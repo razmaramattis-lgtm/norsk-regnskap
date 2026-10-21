@@ -134,6 +134,13 @@
       "when": 1792616541708,
       "tag": "0018_nummerteller_og_duplikater",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1792616753312,
+      "tag": "0019_nummerteller_og_duplikater",
+      "breakpoints": true
     }
   ]
 }

@@ -579,6 +579,7 @@ export type Database = {
           id: string
           lastet_opp_av: string | null
           mime: string | null
+          notat: string | null
           oppbevares_til: string
           path: string
           sha256: string | null
@@ -593,6 +594,7 @@ export type Database = {
           id?: string
           lastet_opp_av?: string | null
           mime?: string | null
+          notat?: string | null
           oppbevares_til?: string
           path: string
           sha256?: string | null
@@ -607,6 +609,7 @@ export type Database = {
           id?: string
           lastet_opp_av?: string | null
           mime?: string | null
+          notat?: string | null
           oppbevares_til?: string
           path?: string
           sha256?: string | null
