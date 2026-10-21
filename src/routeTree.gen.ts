@@ -14,6 +14,9 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
+import { Route as AuthenticatedAppBilagIndexRouteImport } from './routes/_authenticated/app.bilag.index'
+import { Route as AuthenticatedAppBilagIdRouteImport } from './routes/_authenticated/app.bilag.$id'
+import { Route as AuthenticatedAppBilagNyRouteImport } from './routes/_authenticated/app.bilag.ny'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -39,18 +42,40 @@ const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
   path: '/app',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAppBilagIndexRoute =
+  AuthenticatedAppBilagIndexRouteImport.update({
+    id: '/bilag/',
+    path: '/bilag/',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppBilagIdRoute = AuthenticatedAppBilagIdRouteImport.update({
+  id: '/bilag/$id',
+  path: '/bilag/$id',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppBilagNyRoute = AuthenticatedAppBilagNyRouteImport.update({
+  id: '/bilag/ny',
+  path: '/bilag/ny',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/app': typeof AuthenticatedAppRoute
+  '/app': typeof AuthenticatedAppRouteWithChildren
+  '/app/bilag/$id': typeof AuthenticatedAppBilagIdRoute
+  '/app/bilag/ny': typeof AuthenticatedAppBilagNyRoute
+  '/app/bilag/': typeof AuthenticatedAppBilagIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/app': typeof AuthenticatedAppRoute
+  '/app': typeof AuthenticatedAppRouteWithChildren
+  '/app/bilag/$id': typeof AuthenticatedAppBilagIdRoute
+  '/app/bilag/ny': typeof AuthenticatedAppBilagNyRoute
+  '/app/bilag': typeof AuthenticatedAppBilagIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -58,13 +83,30 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/_authenticated/app': typeof AuthenticatedAppRoute
+  '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
+  '/_authenticated/app/bilag/$id': typeof AuthenticatedAppBilagIdRoute
+  '/_authenticated/app/bilag/ny': typeof AuthenticatedAppBilagNyRoute
+  '/_authenticated/app/bilag/': typeof AuthenticatedAppBilagIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/reset-password' | '/app'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/reset-password'
+    | '/app'
+    | '/app/bilag/$id'
+    | '/app/bilag/ny'
+    | '/app/bilag/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/reset-password' | '/app'
+  to:
+    | '/'
+    | '/auth'
+    | '/reset-password'
+    | '/app'
+    | '/app/bilag/$id'
+    | '/app/bilag/ny'
+    | '/app/bilag'
   id:
     | '__root__'
     | '/'
@@ -72,6 +114,9 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/_authenticated/app'
+    | '/_authenticated/app/bilag/$id'
+    | '/_authenticated/app/bilag/ny'
+    | '/_authenticated/app/bilag/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -118,15 +163,51 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/app/bilag/': {
+      id: '/_authenticated/app/bilag/'
+      path: '/bilag'
+      fullPath: '/app/bilag/'
+      preLoaderRoute: typeof AuthenticatedAppBilagIndexRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/bilag/$id': {
+      id: '/_authenticated/app/bilag/$id'
+      path: '/bilag/$id'
+      fullPath: '/app/bilag/$id'
+      preLoaderRoute: typeof AuthenticatedAppBilagIdRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/bilag/ny': {
+      id: '/_authenticated/app/bilag/ny'
+      path: '/bilag/ny'
+      fullPath: '/app/bilag/ny'
+      preLoaderRoute: typeof AuthenticatedAppBilagNyRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
   }
 }
 
+interface AuthenticatedAppRouteChildren {
+  AuthenticatedAppBilagIdRoute: typeof AuthenticatedAppBilagIdRoute
+  AuthenticatedAppBilagNyRoute: typeof AuthenticatedAppBilagNyRoute
+  AuthenticatedAppBilagIndexRoute: typeof AuthenticatedAppBilagIndexRoute
+}
+
+const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
+  AuthenticatedAppBilagIdRoute: AuthenticatedAppBilagIdRoute,
+  AuthenticatedAppBilagNyRoute: AuthenticatedAppBilagNyRoute,
+  AuthenticatedAppBilagIndexRoute: AuthenticatedAppBilagIndexRoute,
+}
+
+const AuthenticatedAppRouteWithChildren =
+  AuthenticatedAppRoute._addFileChildren(AuthenticatedAppRouteChildren)
+
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedAppRoute: typeof AuthenticatedAppRoute
+  AuthenticatedAppRoute: typeof AuthenticatedAppRouteWithChildren
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedAppRoute: AuthenticatedAppRoute,
+  AuthenticatedAppRoute: AuthenticatedAppRouteWithChildren,
 }
 
 const AuthenticatedRouteRouteWithChildren =
