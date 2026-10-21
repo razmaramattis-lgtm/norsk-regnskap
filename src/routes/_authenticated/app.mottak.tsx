@@ -284,6 +284,24 @@ function Registrering({ dokumentId, filnavn }: { dokumentId: string; filnavn: st
           </dl>
         )}
       </div>
+      <div className="rounded-md border p-3 text-xs">
+        <div className="flex items-center justify-between gap-2">
+          <span className="font-medium">Konto og mva</span>
+          <Button size="sm" variant="outline" disabled={kiLaster} onClick={() => void hentKiForslag()}>
+            <Sparkles /> {kiLaster ? "Vurderer …" : ki ? "Foreslå på nytt" : "Foreslå med KI"}
+          </Button>
+        </div>
+        {ki && (
+          <div className="mt-2 space-y-1">
+            <div className="text-sm">
+              <span className="font-mono">{ki.konto}</span> {ki.kontonavn} · {ki.mva_behandling}
+              <span className="ml-1 text-muted-foreground">({Math.round(ki.sikkerhet * 100)} % sikker)</span>
+            </div>
+            <p className="text-muted-foreground">{ki.begrunnelse}</p>
+            <button className="text-muted-foreground underline" onClick={() => setKi(null)}>Ikke bruk forslaget</button>
+          </div>
+        )}
+      </div>
       <div className="grid grid-cols-2 gap-3">
         <div className="col-span-2 space-y-1.5">
           <Label>Hva er dette?</Label>
@@ -314,7 +332,7 @@ function Registrering({ dokumentId, filnavn }: { dokumentId: string; filnavn: st
                 ))}
               </div>
             </div>
-            {type === "kjop" && (
+            {type === "kjop" && !ki && (
               <div className="col-span-2 space-y-1.5">
                 <Label>Hva kjøpte du?</Label>
                 <select className={`${selectCls} w-full`} value={kjop} onChange={(e) => { setKjop(e.target.value); setSats(KJOPSTYPER.find((k) => k.id === e.target.value)?.sats ?? 25); }}>
