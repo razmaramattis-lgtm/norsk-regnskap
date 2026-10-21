@@ -67,8 +67,13 @@ samme forslag. Se `byggOmvendtAvgift` i `src/lib/mva.ts`.
 - Hent kontoplanen først; bruk bare kontoer som finnes.
 - Personopplysninger (lønn, ansatte) skal ikke sendes til en ekstern modell uten databehandleravtale.
 
+## MCP-server
+
+`mcp/fjordbok-mcp.mjs` pakker de tre funksjonene som MCP-verktøy (`hent_kontoplan`, `hent_banktransaksjoner`,
+`foreslaa_bilag`) over stdio, uten avhengigheter. Oppsett står i `mcp/README.md`. Serveren har ingen egne rettigheter:
+alt begrenses av nøkkelen i databasen.
+
 ## Videre arbeid
 
-- En ferdig MCP-server som pakker de tre funksjonene som verktøy.
 - Lesing av vedlegg (kvitteringer) for agenter, med egen tilgangsbegrensning.
 - Grenser per nøkkel (antall forslag per døgn).
