@@ -12,6 +12,8 @@ import { kontrollerBilag } from "@/lib/bilagskontroll";
 import { DokumentViser } from "@/components/app/DokumentViser";
 import { lastOppDokument } from "@/components/app/Vedlegg";
 import { useTidligereBilag } from "@/components/app/hooks";
+import { useServerFn } from "@tanstack/react-start";
+import { lesBilag, type LestBilag } from "@/lib/les-bilag.functions";
 import { Empty, PageHeader, Panel, selectCls, useAccounts } from "@/components/app/ui";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -162,8 +164,30 @@ function Registrering({ dokumentId, filnavn }: { dokumentId: string; filnavn: st
   const [tekst, setTekst] = useState(filnavn.replace(/\.[a-z0-9]+$/i, "").replace(/[_-]+/g, " "));
   const [egne, setEgne] = useState<HLinje[] | null>(null);
   const [busy, setBusy] = useState(false);
+  const [lest, setLest] = useState<LestBilag | null>(null);
+  const [leser, setLeser] = useState(false);
+  const les = useServerFn(lesBilag);
   const b = Number(belop.replace(/\s/g, "").replace(",", "."));
   const forslag = forslagFraHistorikk(tekst, historikk);
+
+  async function lesDokument() {
+    setLeser(true);
+    try {
+      const r = await les({ data: { dokumentId } });
+      setLest(r);
+      const navn = [r.leverandor, r.beskrivelse].filter(Boolean).join(" – ");
+      if (navn || r.fakturanr) setTekst(`${navn || "Faktura"}${r.fakturanr ? ` (faktura ${r.fakturanr})` : ""}`);
+      if (r.belop_inkl_mva) setBelop(String(r.belop_inkl_mva).replace(".", ","));
+      if (r.fakturadato && /^\d{4}-\d{2}-\d{2}$/.test(r.fakturadato)) setDato(r.fakturadato);
+      if (r.type) setType(r.type);
+      if (r.mva_sats != null && [0, 12, 15, 25].includes(r.mva_sats)) setSats(r.mva_sats);
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setLeser(false);
+    }
+  }
+  useEffect(() => { void lesDokument(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const linjer: HLinje[] = egne
     ? skalerLinjer(egne, b)
@@ -224,6 +248,22 @@ function Registrering({ dokumentId, filnavn }: { dokumentId: string; filnavn: st
 
   return (
     <Panel className="h-fit space-y-4 p-5">
+      <div className="rounded-md border border-primary/20 bg-primary/5 p-3 text-xs">
+        <div className="flex items-center justify-between gap-2">
+          <span className="flex items-center gap-1.5 font-medium text-primary"><Sparkles className="h-3.5 w-3.5" /> {leser ? "Leser bilaget …" : lest ? "Hentet fra bilaget – kontroller før bokføring" : "Les fakturadata fra bilaget"}</span>
+          {!leser && <button className="text-primary underline" onClick={() => void lesDokument()}>{lest ? "Les på nytt" : "Les"}</button>}
+        </div>
+        {lest && (
+          <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-0.5 text-muted-foreground">
+            {lest.leverandor && <><dt>Leverandør</dt><dd className="text-foreground">{lest.leverandor}</dd></>}
+            {lest.fakturanr && <><dt>Fakturanr.</dt><dd className="font-mono text-foreground">{lest.fakturanr}</dd></>}
+            {lest.fakturadato && <><dt>Fakturadato</dt><dd className="text-foreground">{dato(lest.fakturadato)}</dd></>}
+            {lest.forfallsdato && <><dt>Forfall</dt><dd className="text-foreground">{dato(lest.forfallsdato)}</dd></>}
+            {lest.kid && <><dt>KID</dt><dd className="font-mono text-foreground">{lest.kid}</dd></>}
+            {lest.mva_belop != null && <><dt>MVA</dt><dd className="text-foreground">{kr(lest.mva_belop)}</dd></>}
+          </dl>
+        )}
+      </div>
       <div className="grid grid-cols-2 gap-3">
         <div className="col-span-2 space-y-1.5">
           <Label>Hva er dette?</Label>
