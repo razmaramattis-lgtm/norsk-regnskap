@@ -956,6 +956,38 @@ export type Database = {
           },
         ]
       }
+      maanedsavslutning_avkrysning: {
+        Row: {
+          company_id: string
+          kontrollert_at: string
+          kontrollert_av: string
+          periode: string
+          punkt: string
+        }
+        Insert: {
+          company_id: string
+          kontrollert_at?: string
+          kontrollert_av?: string
+          periode: string
+          punkt: string
+        }
+        Update: {
+          company_id?: string
+          kontrollert_at?: string
+          kontrollert_av?: string
+          periode?: string
+          punkt?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maanedsavslutning_avkrysning_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payroll_lines: {
         Row: {
           aga: number
