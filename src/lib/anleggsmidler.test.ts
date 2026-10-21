@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   beregnSaldo,
   byggAvskrivningsbilag,
+  byggMaanedsplan,
   kanKostnadsfores,
   sumSkattemessig,
   SALDOGRUPPER,
@@ -123,5 +124,26 @@ describe("avskrivningsbilag", () => {
     const rader = beregnSaldo([m({ id: "1", solgt: "2026-06-01", salgssum: 100_000 })], 2026);
     expect(byggAvskrivningsbilag(rader)).toEqual([]);
     expect(sumSkattemessig(rader).inntektsforing).toBe(4_000);
+  });
+});
+
+describe("månedsplan", () => {
+  it("fordeler årsavskrivningen på 12 balanserte bilag som summerer eksakt", () => {
+    const rader = beregnSaldo([m({ id: "1", anskaffelseskost: 100_001 })], 2025);
+    const aar = sumSkattemessig(rader).avskrivning; // 20 000,20
+    const plan = byggMaanedsplan(rader, 2025);
+    expect(plan).toHaveLength(12);
+    for (const md of plan) {
+      const debet = md.linjer.reduce((s, l) => s + l.debet, 0);
+      const kredit = md.linjer.reduce((s, l) => s + l.kredit, 0);
+      expect(debet).toBe(kredit);
+      expect(md.sum).toBe(debet);
+      expect(md.dato.slice(0, 7)).toBe(`2025-${String(md.maaned).padStart(2, "0")}`);
+    }
+    const total = plan.reduce((s, md) => s + md.sum, 0);
+    expect(Math.round(total * 100)).toBe(Math.round(aar * 100));
+    // Januar–november er like, desember tar avrundingsresten.
+    expect(plan[0].sum).toBe(plan[10].sum);
+    expect(plan[11].sum).not.toBe(plan[0].sum);
   });
 });
