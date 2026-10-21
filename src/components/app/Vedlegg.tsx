@@ -17,7 +17,7 @@ export async function lastOppDokument(companyId: string, file: File, link: { vou
   const { error } = await supabase.storage.from("bilag").upload(path, file, { upsert: false });
   if (error && !/exists/i.test(error.message)) throw error;
   const { error: e2 } = await supabase.from("documents").insert({
-    company_id: companyId, path, filnavn: file.name, mime: file.type, storrelse: file.size, sha256: hash, ...link,
+    company_id: companyId, path, filnavn: file.name, mime: file.type, storrelse: file.size, sha256: hash, voucher_id: link.voucher_id ?? null, supplier_invoice_id: link.supplier_invoice_id ?? null,
   });
   if (e2) throw e2;
 }
