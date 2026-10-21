@@ -16,12 +16,10 @@ export const Route = createFileRoute("/_authenticated/app/hovedbok")({
 
 type Rad = {
   id: string;
-  debet: string;
-  kredit: string;
+  debet: number;
+  kredit: number;
   tekst: string | null;
   mva_kode: string | null;
-  d: number;
-  k: number;
   v: { id: string; bilagsnr: number | null; dato: string; beskrivelse: string };
 };
 
@@ -35,15 +33,15 @@ function KontoTabell({ g }: { g: KontoGruppe }) {
       <tbody>
         <tr className="border-b bg-muted/40 italic"><td className="px-4 py-2" colSpan={6}>Inngående saldo</td><td className="num px-4 py-2">{kr(g.ib)}</td></tr>
         {g.rader.map((r) => {
-          saldo += r.d - r.k;
+          saldo += r.debet - r.kredit;
           return (
             <tr key={r.id} className="border-b">
               <td className="px-4 py-2">{dato(r.v.dato)}</td>
               <td className="px-4 py-2 font-mono"><Link to="/app/bilag/$id" params={{ id: r.v.id }} className="text-primary hover:underline">{r.v.bilagsnr}</Link></td>
               <td className="px-4 py-2">{r.tekst || r.v.beskrivelse}</td>
               <td className="px-4 py-2 font-mono">{r.mva_kode}</td>
-              <td className="num px-4 py-2">{r.d ? kr(r.d) : ""}</td>
-              <td className="num px-4 py-2">{r.k ? kr(r.k) : ""}</td>
+              <td className="num px-4 py-2">{r.debet ? kr(r.debet) : ""}</td>
+              <td className="num px-4 py-2">{r.kredit ? kr(r.kredit) : ""}</td>
               <td className="num px-4 py-2">{kr(saldo)}</td>
             </tr>
           );
@@ -78,8 +76,8 @@ function Hovedbok() {
         for (const l of data ?? []) {
           const g = grupper.get(l.konto);
           if (!g) continue;
-          const rad: Rad = { ...l, d: Number(l.debet), k: Number(l.kredit), v: l.vouchers };
-          if (rad.v.dato < fra) g.ib += rad.d - rad.k;
+          const rad: Rad = { ...l, debet: Number(l.debet), kredit: Number(l.kredit), v: l.vouchers };
+          if (rad.v.dato < fra) g.ib += rad.debet - rad.kredit;
           else g.rader.push(rad);
         }
         if (!data || data.length < 1000) break;
