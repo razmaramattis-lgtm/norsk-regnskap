@@ -24,7 +24,7 @@ export function lagGjoremaal(
   firma: KlientFirma,
   r: OversiktRad,
   idag: string,
-  ekstra: { repeterendeKlare?: number } = {},
+  ekstra: { repeterendeKlare?: number; mottak?: number } = {},
 ): Gjoremaal[] {
   const ut: Gjoremaal[] = [];
 
@@ -74,6 +74,14 @@ export function lagGjoremaal(
       tittel: `${flertall(r.ubehandlede_banktransaksjoner, "banktransaksjon", "banktransaksjoner")} å avstemme`,
       tone: "warn",
       lenke: "/app/bank",
+    });
+  if (ekstra.mottak)
+    ut.push({
+      id: "mottak",
+      tittel: flertall(ekstra.mottak, "dokument i bilagsmottaket", "dokumenter i bilagsmottaket"),
+      detalj: "Før dem med kvitteringen ved siden av",
+      tone: "warn",
+      lenke: "/app/mottak",
     });
   if (ekstra.repeterendeKlare)
     ut.push({

@@ -47,7 +47,19 @@ function Oversikt() {
           .lte("neste_dato", idag())
       ).count ?? 0,
   });
-  const gjoremaal = rad ? lagGjoremaal(company, rad, idag(), { repeterendeKlare }) : [];
+  const { data: mottak = 0 } = useQuery({
+    queryKey: ["mottak-antall", company.id],
+    queryFn: async () =>
+      (
+        await supabase
+          .from("documents")
+          .select("id", { count: "exact", head: true })
+          .eq("company_id", company.id)
+          .is("voucher_id", null)
+          .is("supplier_invoice_id", null)
+      ).count ?? 0,
+  });
+  const gjoremaal = rad ? lagGjoremaal(company, rad, idag(), { repeterendeKlare, mottak }) : [];
   const graf = maanedstall(år, y);
   const { data: antall } = useQuery({
     queryKey: ["kom-i-gang", company.id],

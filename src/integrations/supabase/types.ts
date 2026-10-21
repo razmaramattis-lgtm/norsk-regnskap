@@ -583,6 +583,7 @@ export type Database = {
       }
       documents: {
         Row: {
+          notat: string | null
           company_id: string
           created_at: string
           filnavn: string
@@ -597,6 +598,7 @@ export type Database = {
           voucher_id: string | null
         }
         Insert: {
+          notat?: string | null
           company_id: string
           created_at?: string
           filnavn: string
@@ -611,6 +613,7 @@ export type Database = {
           voucher_id?: string | null
         }
         Update: {
+          notat?: string | null
           company_id?: string
           created_at?: string
           filnavn?: string

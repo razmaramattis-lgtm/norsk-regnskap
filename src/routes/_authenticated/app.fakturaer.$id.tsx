@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { BellRing, Copy, Mail, Plus, Printer, Repeat, Trash2 } from "lucide-react";
+import { BellRing, Copy, History, Mail, Plus, Printer, Repeat, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "@/lib/company";
 import { dato, formatOrgNr, idag, kr } from "@/lib/format";
@@ -46,6 +46,23 @@ function FakturaSide() {
   const { data: repetering } = useQuery({
     queryKey: ["repetering", id],
     queryFn: async () => (await supabase.from("repeterende_fakturaer").select("*").eq("mal_faktura", id).maybeSingle()).data,
+  });
+  // Linjer fra tidligere fakturaer, så samme vare/tjeneste fylles ut med pris, enhet og mva
+  const { data: tidligereLinjer = [] } = useQuery({
+    queryKey: ["tidligere-fakturalinjer", company.id],
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("invoice_lines")
+        .select("beskrivelse, enhetspris, enhet, mva_sats, invoices!inner(fakturadato, er_kreditnota)")
+        .eq("company_id", company.id)
+        .eq("invoices.er_kreditnota", false)
+        .order("fakturadato", { referencedTable: "invoices", ascending: false })
+        .limit(500);
+      const sett = new Map<string, { beskrivelse: string; enhetspris: number; enhet: string | null; mva_sats: number }>();
+      for (const l of data ?? []) if (!sett.has(l.beskrivelse)) sett.set(l.beskrivelse, { beskrivelse: l.beskrivelse, enhetspris: Number(l.enhetspris), enhet: l.enhet, mva_sats: Number(l.mva_sats) });
+      return [...sett.values()];
+    },
   });
   const [kunde, setKunde] = useState("");
   const [fdato, setFdato] = useState(idag());
@@ -319,6 +336,28 @@ function FakturaSide() {
     );
   }
 
+  /** Linjene fra forrige faktura til samme kunde, så faste kunder kan faktureres med ett klikk. */
+  async function hentForrige() {
+    const { data: forrige } = await supabase
+      .from("invoices")
+      .select("fakturanr, fakturadato, deres_ref, invoice_lines(*)")
+      .eq("company_id", company.id)
+      .eq("customer_id", kunde)
+      .eq("er_kreditnota", false)
+      .not("fakturanr", "is", null)
+      .order("fakturadato", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (!forrige) { toast.info("Kunden har ingen tidligere fakturaer."); return; }
+    setLinjer(
+      forrige.invoice_lines
+        .sort((a, b) => a.linjenr - b.linjenr)
+        .map((l) => ({ beskrivelse: l.beskrivelse, antall: String(Math.abs(Number(l.antall))), enhet: l.enhet ?? "", enhetspris: String(l.enhetspris), rabatt: Number(l.rabatt_prosent) ? String(l.rabatt_prosent) : "", mva_sats: Number(l.mva_sats) })),
+    );
+    if (!deresRef && forrige.deres_ref) setDeresRef(forrige.deres_ref);
+    toast.success(`Linjene fra faktura ${forrige.fakturanr} (${dato(forrige.fakturadato)}) er hentet`);
+  }
+
   const set = (i: number, k: keyof L, v: string | number) => setLinjer((ls) => ls.map((x, j) => (j === i ? { ...x, [k]: v } : x)));
 
   return (
@@ -358,10 +397,15 @@ function FakturaSide() {
                 <td className="min-w-48 px-3 py-2">
                   <Input list="vareliste" value={l.beskrivelse} onChange={(e) => {
                     const v = varer.find((a) => a.navn === e.target.value);
+                    const t = tidligereLinjer.find((a) => a.beskrivelse === e.target.value);
                     if (v) setLinjer((ls) => ls.map((x, j) => (j === i ? { ...x, beskrivelse: v.navn, enhetspris: String(v.pris), mva_sats: Number(v.mva_sats) } : x)));
+                    else if (t && !l.enhetspris) setLinjer((ls) => ls.map((x, j) => (j === i ? { ...x, beskrivelse: t.beskrivelse, enhetspris: String(t.enhetspris), enhet: t.enhet ?? x.enhet, mva_sats: t.mva_sats } : x)));
                     else set(i, "beskrivelse", e.target.value);
                   }} />
-                  <datalist id="vareliste">{varer.map((a) => <option key={a.id} value={a.navn} />)}</datalist>
+                  <datalist id="vareliste">
+                    {varer.map((a) => <option key={a.id} value={a.navn} />)}
+                    {tidligereLinjer.filter((t) => !varer.some((a) => a.navn === t.beskrivelse)).map((t) => <option key={t.beskrivelse} value={t.beskrivelse}>{kr(t.enhetspris)}</option>)}
+                  </datalist>
                 </td>
                 <td className="w-20 px-3 py-2"><Input className="num" value={l.antall} onChange={(e) => set(i, "antall", e.target.value)} /></td>
                 <td className="w-24 px-3 py-2"><Input list="enheter" value={l.enhet} onChange={(e) => set(i, "enhet", e.target.value)} /></td>
@@ -380,7 +424,10 @@ function FakturaSide() {
         </table>
         <datalist id="enheter">{["stk", "timer", "dager", "mnd", "km", "kg", "pakke"].map((e) => <option key={e} value={e} />)}</datalist>
         <div className="flex items-start justify-between p-4">
-          <Button variant="ghost" size="sm" onClick={() => setLinjer((ls) => [...ls, tomLinje(company.mva_registrert)])}><Plus /> Ny linje</Button>
+          <div className="flex flex-wrap gap-1">
+            <Button variant="ghost" size="sm" onClick={() => setLinjer((ls) => [...ls, tomLinje(company.mva_registrert)])}><Plus /> Ny linje</Button>
+            <Button variant="ghost" size="sm" onClick={hentForrige}><History /> Som forrige faktura til kunden</Button>
+          </div>
           <dl className="grid w-64 grid-cols-2 gap-y-1 text-sm">
             <dt>Sum eks. mva</dt><dd className="num">{kr(sum.netto)}</dd>
             <dt>MVA</dt><dd className="num">{kr(sum.mva)}</dd>
