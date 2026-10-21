@@ -15,6 +15,13 @@
       "when": 1792599154690,
       "tag": "0001_enk_egenkapital",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792599920164,
+      "tag": "0002_fase2_leverandor_bank_lonn_arkiv",
+      "breakpoints": true
     }
   ]
 }
