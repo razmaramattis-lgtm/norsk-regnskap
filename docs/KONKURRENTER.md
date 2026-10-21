@@ -90,7 +90,7 @@ og lansering mot årsskiftet.
 
 1. **SAF-T-import** av kontoplan, kunder, leverandører og åpningsbalanse (flytting fra Fiken/Tripletex). *Gjort:* `/app/import`.
 2. **Lær av godkjente forslag**: når samme motpart er ført på samme konto to ganger, foreslås kontoen automatisk. *Gjort.*
-3. **Faktura-PDF** og «send på e-post», med automatisk purring på forfalte fakturaer.
+3. **Faktura-PDF** og «send på e-post», med purring på forfalte fakturaer. *Gjort* via eget e-postprogram; automatisk utsendelse krever e-postleverandør.
 4. **Veiviser for nytt firma**: hent fra Enhetsregisteret, velg MVA-termin, importer første kontoutskrift.
 5. **Fiken-lignende registrering**: «Hva har skjedd?» med kjøp/salg/overføring som førstevalg i «Registrer bilag».
 6. **Lagre avkrysning i månedsavslutningen.**

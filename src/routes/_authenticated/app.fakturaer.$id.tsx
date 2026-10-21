@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Printer, Trash2 } from "lucide-react";
+import { BellRing, Mail, Plus, Printer, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "@/lib/company";
 import { dato, formatOrgNr, idag, kr } from "@/lib/format";
@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { useCustomers, NyKunde, STATUS } from "@/components/app/kunder";
 import { useArticles } from "@/components/app/hooks";
 import { EhfPanel } from "@/components/app/EhfPanel";
+import { fakturaEpost, mailto, purreEpost } from "@/lib/fakturatekst";
 
 export const Route = createFileRoute("/_authenticated/app/fakturaer/$id")({
   head: () => ({ meta: [{ title: "Faktura – Fjordbok" }] }),
@@ -93,12 +94,21 @@ function FakturaSide() {
     const c = f.customers!;
     return (
       <>
+        <div className="print:hidden">
         <PageHeader
           title={`${f.er_kreditnota ? "Kreditnota" : "Faktura"} ${f.fakturanr}`}
           sub={c.navn}
           actions={
             <>
               <Button variant="outline" onClick={() => window.print()}><Printer /> Skriv ut / PDF</Button>
+              <Button variant="outline" asChild title={c.epost ? undefined : "Kunden mangler e-post"}>
+                <a href={mailto(fakturaEpost(f, company, c))}><Mail /> Send på e-post</a>
+              </Button>
+              {f.status === "sendt" && !f.er_kreditnota && f.forfallsdato < idag() && (
+                <Button variant="outline" asChild>
+                  <a href={mailto(purreEpost(f, company, c, idag()))}><BellRing /> Send purring</a>
+                </Button>
+              )}
               {f.voucher_id && <Button variant="ghost" asChild><Link to="/app/bilag/$id" params={{ id: f.voucher_id }}>Se bilag</Link></Button>}
               {f.status === "sendt" && !f.er_kreditnota && canWrite && (
                 <Button variant="outline" disabled={busy} onClick={() => run(async () => { const { data, error } = await supabase.rpc("credit_invoice", { _invoice: id }); if (error) throw error; nav({ to: "/app/fakturaer/$id", params: { id: data } }); }, "Kreditnota opprettet og bokført")}>Krediter</Button>
@@ -114,7 +124,8 @@ function FakturaSide() {
           </Panel>
         )}
         <EhfPanel faktura={f} company={company} />
-        <Panel className="mx-auto max-w-3xl p-12">
+        </div>
+        <Panel className="mx-auto max-w-3xl p-12 print:max-w-none print:border-0 print:p-0 print:shadow-none">
           <div className="flex justify-between">
             <div>
               <div className="font-serif text-2xl">{company.name}</div>
@@ -178,6 +189,11 @@ function FakturaSide() {
         <NyKunde onCreated={setKunde} />
         <div className="space-y-1.5"><Label>Fakturadato</Label><Input type="date" value={fdato} onChange={(e) => setFdato(e.target.value)} /></div>
       </Panel>
+      {kunder.find((k) => k.id === kunde && !k.org_nr) && (
+        <p className="mb-6 rounded-md bg-warning/15 px-4 py-2.5 text-sm">
+          Kunden har ikke org.nr. Er kunden en bedrift, skal org.nr. stå på fakturaen fra 1.1.2028, og e-faktura (EHF) krever det fra 1.1.2027.
+        </p>
+      )}
       <Panel className="mb-6">
         <table className="w-full text-sm">
           <thead className="border-b text-left text-xs uppercase tracking-wide text-muted-foreground">

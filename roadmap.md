@@ -57,5 +57,6 @@
 - [ ] A-melding (Altinn) – krever Maskinporten-avtale
 - [ ] MVA-melding innsending via Skatteetatens API – krever Maskinporten-avtale
 - [ ] Skattemelding: næringsspesifikasjon (ENK/AS), RF-1167
-- [ ] Faktura-PDF og utsendelse på e-post
+- [x] Faktura-PDF (utskrift) og e-post/purring via eget e-postprogram; ekte utsendelse krever e-postleverandør
+- [x] Varsel når kunden mangler org.nr. (krav fra 2028)
 - [ ] Bransjeveiledere (bygg, netthandel, konsulent, restaurant, helse) tilpasset norske regler
