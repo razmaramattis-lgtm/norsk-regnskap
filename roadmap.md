@@ -48,6 +48,16 @@
 
 - [x] Månedsavslutning lagrer avkrysning med hvem og når (migrasjon 0010)
 
+## Avansert lønn (fase 5)
+- [x] Lønnsarter med a-meldingskode: fastlønn, timelønn, overtid 50/100 %, tillegg, bonus, provisjon, styrehonorar, utbetalte feriepenger
+- [x] Naturalytelser (fri telefon, bil, forsikring) med trekk og AGA, uten utbetaling (5280/5290)
+- [x] Trekkfrie godtgjørelser (km, diett) og trekk i lønn (fagforening, forskudd, kantine)
+- [x] Prosenttrekk eller tabelltrekk med halvt trekk
+- [x] Feriepenger med 2,3 prosentpoeng ekstra fra 60 år, OTP av lønn mellom 1 G og 12 G (G må kontrolleres årlig)
+- [x] Lønnsslipp (utskrift/PDF) og grunnlag for a-melding med frist
+- [x] Endre ansatte, fødselsdato, aktiv/inaktiv
+- [ ] Skattekort-API og a-melding via Maskinporten
+
 ## Neste faser
 - [ ] Velg og koble på leverandører: Peppol-aksesspunkt, Skatteetaten (MVA, skattemelding, a-melding), bank
 - [x] SAF-T-import: kontoplan, kunder, leverandører og åpningsbalanse som utkast (`/app/import`)

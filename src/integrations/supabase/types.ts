@@ -650,6 +650,10 @@ export type Database = {
       }
       employees: {
         Row: {
+          fodselsdato: string | null
+          trekkmetode: string
+          tabelltrekk: number
+          trekktabell: string | null
           aktiv: boolean
           ansatt_dato: string | null
           company_id: string
@@ -667,6 +671,10 @@ export type Database = {
           timelonn: number
         }
         Insert: {
+          fodselsdato?: string | null
+          trekkmetode?: string
+          tabelltrekk?: number
+          trekktabell?: string | null
           aktiv?: boolean
           ansatt_dato?: string | null
           company_id: string
@@ -684,6 +692,10 @@ export type Database = {
           timelonn?: number
         }
         Update: {
+          fodselsdato?: string | null
+          trekkmetode?: string
+          tabelltrekk?: number
+          trekktabell?: string | null
           aktiv?: boolean
           ansatt_dato?: string | null
           company_id?: string
@@ -968,6 +980,10 @@ export type Database = {
       }
       payroll_lines: {
         Row: {
+          naturalytelse: number
+          godtgjorelse: number
+          trekk: number
+          poster: Json
           aga: number
           brutto: number
           company_id: string
@@ -982,6 +998,10 @@ export type Database = {
           timer: number
         }
         Insert: {
+          naturalytelse?: number
+          godtgjorelse?: number
+          trekk?: number
+          poster?: Json
           aga?: number
           brutto?: number
           company_id: string
@@ -996,6 +1016,10 @@ export type Database = {
           timer?: number
         }
         Update: {
+          naturalytelse?: number
+          godtgjorelse?: number
+          trekk?: number
+          poster?: Json
           aga?: number
           brutto?: number
           company_id?: string
@@ -1035,6 +1059,7 @@ export type Database = {
       }
       payroll_runs: {
         Row: {
+          halvt_trekk: boolean
           company_id: string
           created_at: string
           id: string
@@ -1044,6 +1069,7 @@ export type Database = {
           voucher_id: string | null
         }
         Insert: {
+          halvt_trekk?: boolean
           company_id: string
           created_at?: string
           id?: string
@@ -1053,6 +1079,7 @@ export type Database = {
           voucher_id?: string | null
         }
         Update: {
+          halvt_trekk?: boolean
           company_id?: string
           created_at?: string
           id?: string
