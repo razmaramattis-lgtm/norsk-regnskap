@@ -81,3 +81,39 @@ export function terminer(aar: number, type: string) {
     };
   });
 }
+
+export type OppgjorLinje = { konto: string; tekst: string; debet: number; kredit: number };
+
+const UTGAENDE_KONTI = ["2700", "2701", "2702"] as const;
+const INNGAENDE_KONTI = ["2710", "2711", "2712"] as const;
+
+/**
+ * MVA-oppgjør: nuller ut utgående (2700–2702) og inngående (2710–2712) MVA-konti for terminen
+ * og fører differansen på oppgjørskonto 2740 (skyldig = kredit, tilgode = debet).
+ *
+ * Linjene får bevisst ingen MVA-kode, så oppgjøret ikke telles på nytt i MVA-meldingen.
+ * Returnerer tom liste når det ikke er noe å gjøre opp.
+ */
+export function byggMvaOppgjor(linjer: Pick<Linje, "konto" | "debet" | "kredit">[]): OppgjorLinje[] {
+  const saldo = new Map<string, number>();
+  for (const l of linjer) saldo.set(l.konto, r2((saldo.get(l.konto) ?? 0) + Number(l.debet) - Number(l.kredit)));
+
+  const ut: OppgjorLinje[] = [];
+  let skyldig = 0;
+  for (const k of UTGAENDE_KONTI) {
+    const s = saldo.get(k) ?? 0; // kredit-saldo er negativ
+    if (Math.abs(s) < 0.005) continue;
+    ut.push(s < 0 ? { konto: k, tekst: "MVA-oppgjør utgående", debet: r2(-s), kredit: 0 } : { konto: k, tekst: "MVA-oppgjør utgående", debet: 0, kredit: r2(s) });
+    skyldig = r2(skyldig - s);
+  }
+  for (const k of INNGAENDE_KONTI) {
+    const s = saldo.get(k) ?? 0; // debet-saldo er positiv
+    if (Math.abs(s) < 0.005) continue;
+    ut.push(s > 0 ? { konto: k, tekst: "MVA-oppgjør inngående", debet: 0, kredit: r2(s) } : { konto: k, tekst: "MVA-oppgjør inngående", debet: r2(-s), kredit: 0 });
+    skyldig = r2(skyldig - s);
+  }
+  if (!ut.length) return [];
+  if (skyldig > 0.004) ut.push({ konto: "2740", tekst: "Skyldig MVA til oppgjør", debet: 0, kredit: skyldig });
+  else if (skyldig < -0.004) ut.push({ konto: "2740", tekst: "MVA til gode", debet: r2(-skyldig), kredit: 0 });
+  return ut;
+}

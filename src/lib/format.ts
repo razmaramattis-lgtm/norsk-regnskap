@@ -48,3 +48,15 @@ export function formatOrgNr(org: string | null | undefined) {
   const s = org.replace(/\s/g, "");
   return s.length === 9 ? `${s.slice(0, 3)} ${s.slice(3, 6)} ${s.slice(6)}` : org;
 }
+
+/** Validerer norsk kontonummer (11 siffer, mod11 med vekter 5,4,3,2,7,6,5,4,3,2). */
+export function gyldigKontonummer(konto: string): boolean {
+  const s = konto.replace(/[\s.]/g, "");
+  if (!/^\d{11}$/.test(s)) return false;
+  const w = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2];
+  const sum = w.reduce((acc, wi, i) => acc + wi * Number(s[i]), 0);
+  const r = 11 - (sum % 11);
+  const k = r === 11 ? 0 : r;
+  if (k === 10) return false;
+  return k === Number(s[10]);
+}
