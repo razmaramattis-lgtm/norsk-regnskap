@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ExternalLink, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { PdfSider } from "./PdfSider";
 
 /** Midlertidig lenke til en fil i bilagsarkivet (gyldig i 10 minutter). */
 export function useSignertUrl(path: string | null | undefined) {
@@ -51,7 +52,7 @@ export function DokumentViser({
         ) : error || !url ? (
           <div className="p-6 text-sm text-destructive">Kunne ikke hente filen.</div>
         ) : erPdf ? (
-          <iframe title={filnavn} src={`${url}#view=FitH`} className="absolute inset-0 h-full w-full bg-white" />
+          <PdfSider url={url} />
         ) : erBilde ? (
           <div className="absolute inset-0 overflow-auto p-3">
             <img src={url} alt={filnavn} className="mx-auto max-w-full rounded shadow-paper" />
