@@ -20,6 +20,7 @@ import { Route as AuthenticatedAppAarsregnskapRouteImport } from './routes/_auth
 import { Route as AuthenticatedAppAnleggsmidlerRouteImport } from './routes/_authenticated/app.anleggsmidler'
 import { Route as AuthenticatedAppArkivRouteImport } from './routes/_authenticated/app.arkiv'
 import { Route as AuthenticatedAppBankRouteImport } from './routes/_authenticated/app.bank'
+import { Route as AuthenticatedAppBilagsjournalRouteImport } from './routes/_authenticated/app.bilagsjournal'
 import { Route as AuthenticatedAppFirmaRouteImport } from './routes/_authenticated/app.firma'
 import { Route as AuthenticatedAppForslagRouteImport } from './routes/_authenticated/app.forslag'
 import { Route as AuthenticatedAppFristerRouteImport } from './routes/_authenticated/app.frister'
@@ -103,6 +104,12 @@ const AuthenticatedAppBankRoute = AuthenticatedAppBankRouteImport.update({
   path: '/bank',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppBilagsjournalRoute =
+  AuthenticatedAppBilagsjournalRouteImport.update({
+    id: '/bilagsjournal',
+    path: '/bilagsjournal',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppFirmaRoute = AuthenticatedAppFirmaRouteImport.update({
   id: '/firma',
   path: '/firma',
@@ -253,6 +260,7 @@ export interface FileRoutesByFullPath {
   '/app/anleggsmidler': typeof AuthenticatedAppAnleggsmidlerRoute
   '/app/arkiv': typeof AuthenticatedAppArkivRoute
   '/app/bank': typeof AuthenticatedAppBankRoute
+  '/app/bilagsjournal': typeof AuthenticatedAppBilagsjournalRoute
   '/app/firma': typeof AuthenticatedAppFirmaRoute
   '/app/forslag': typeof AuthenticatedAppForslagRoute
   '/app/frister': typeof AuthenticatedAppFristerRoute
@@ -289,6 +297,7 @@ export interface FileRoutesByTo {
   '/app/anleggsmidler': typeof AuthenticatedAppAnleggsmidlerRoute
   '/app/arkiv': typeof AuthenticatedAppArkivRoute
   '/app/bank': typeof AuthenticatedAppBankRoute
+  '/app/bilagsjournal': typeof AuthenticatedAppBilagsjournalRoute
   '/app/firma': typeof AuthenticatedAppFirmaRoute
   '/app/forslag': typeof AuthenticatedAppForslagRoute
   '/app/frister': typeof AuthenticatedAppFristerRoute
@@ -328,6 +337,7 @@ export interface FileRoutesById {
   '/_authenticated/app/anleggsmidler': typeof AuthenticatedAppAnleggsmidlerRoute
   '/_authenticated/app/arkiv': typeof AuthenticatedAppArkivRoute
   '/_authenticated/app/bank': typeof AuthenticatedAppBankRoute
+  '/_authenticated/app/bilagsjournal': typeof AuthenticatedAppBilagsjournalRoute
   '/_authenticated/app/firma': typeof AuthenticatedAppFirmaRoute
   '/_authenticated/app/forslag': typeof AuthenticatedAppForslagRoute
   '/_authenticated/app/frister': typeof AuthenticatedAppFristerRoute
@@ -367,6 +377,7 @@ export interface FileRouteTypes {
     | '/app/anleggsmidler'
     | '/app/arkiv'
     | '/app/bank'
+    | '/app/bilagsjournal'
     | '/app/firma'
     | '/app/forslag'
     | '/app/frister'
@@ -403,6 +414,7 @@ export interface FileRouteTypes {
     | '/app/anleggsmidler'
     | '/app/arkiv'
     | '/app/bank'
+    | '/app/bilagsjournal'
     | '/app/firma'
     | '/app/forslag'
     | '/app/frister'
@@ -441,6 +453,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/anleggsmidler'
     | '/_authenticated/app/arkiv'
     | '/_authenticated/app/bank'
+    | '/_authenticated/app/bilagsjournal'
     | '/_authenticated/app/firma'
     | '/_authenticated/app/forslag'
     | '/_authenticated/app/frister'
@@ -553,6 +566,13 @@ declare module '@tanstack/react-router' {
       path: '/bank'
       fullPath: '/app/bank'
       preLoaderRoute: typeof AuthenticatedAppBankRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/bilagsjournal': {
+      id: '/_authenticated/app/bilagsjournal'
+      path: '/bilagsjournal'
+      fullPath: '/app/bilagsjournal'
+      preLoaderRoute: typeof AuthenticatedAppBilagsjournalRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/firma': {
@@ -739,6 +759,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAnleggsmidlerRoute: typeof AuthenticatedAppAnleggsmidlerRoute
   AuthenticatedAppArkivRoute: typeof AuthenticatedAppArkivRoute
   AuthenticatedAppBankRoute: typeof AuthenticatedAppBankRoute
+  AuthenticatedAppBilagsjournalRoute: typeof AuthenticatedAppBilagsjournalRoute
   AuthenticatedAppFirmaRoute: typeof AuthenticatedAppFirmaRoute
   AuthenticatedAppForslagRoute: typeof AuthenticatedAppForslagRoute
   AuthenticatedAppFristerRoute: typeof AuthenticatedAppFristerRoute
@@ -773,6 +794,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAnleggsmidlerRoute: AuthenticatedAppAnleggsmidlerRoute,
   AuthenticatedAppArkivRoute: AuthenticatedAppArkivRoute,
   AuthenticatedAppBankRoute: AuthenticatedAppBankRoute,
+  AuthenticatedAppBilagsjournalRoute: AuthenticatedAppBilagsjournalRoute,
   AuthenticatedAppFirmaRoute: AuthenticatedAppFirmaRoute,
   AuthenticatedAppForslagRoute: AuthenticatedAppForslagRoute,
   AuthenticatedAppFristerRoute: AuthenticatedAppFristerRoute,
