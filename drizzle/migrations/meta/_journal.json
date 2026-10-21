@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1792599140802,
+      "tag": "0000_norsk_regnskap_kjerne",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792599154690,
+      "tag": "0001_enk_egenkapital",
+      "breakpoints": true
+    }
+  ]
+}

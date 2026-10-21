@@ -10,33 +10,218 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
+import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
+import { Route as AuthenticatedAppFirmaRouteImport } from './routes/_authenticated/app.firma'
+import { Route as AuthenticatedAppKontoplanRouteImport } from './routes/_authenticated/app.kontoplan'
+import { Route as AuthenticatedAppKunderRouteImport } from './routes/_authenticated/app.kunder'
+import { Route as AuthenticatedAppMvaRouteImport } from './routes/_authenticated/app.mva'
+import { Route as AuthenticatedAppRapporterRouteImport } from './routes/_authenticated/app.rapporter'
+import { Route as AuthenticatedAppBilagIndexRouteImport } from './routes/_authenticated/app.bilag.index'
+import { Route as AuthenticatedAppBilagIdRouteImport } from './routes/_authenticated/app.bilag.$id'
+import { Route as AuthenticatedAppBilagNyRouteImport } from './routes/_authenticated/app.bilag.ny'
+import { Route as AuthenticatedAppFakturaerIndexRouteImport } from './routes/_authenticated/app.fakturaer.index'
+import { Route as AuthenticatedAppFakturaerIdRouteImport } from './routes/_authenticated/app.fakturaer.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAppIndexRoute = AuthenticatedAppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppFirmaRoute = AuthenticatedAppFirmaRouteImport.update({
+  id: '/firma',
+  path: '/firma',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppKontoplanRoute =
+  AuthenticatedAppKontoplanRouteImport.update({
+    id: '/kontoplan',
+    path: '/kontoplan',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppKunderRoute = AuthenticatedAppKunderRouteImport.update({
+  id: '/kunder',
+  path: '/kunder',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppMvaRoute = AuthenticatedAppMvaRouteImport.update({
+  id: '/mva',
+  path: '/mva',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppRapporterRoute =
+  AuthenticatedAppRapporterRouteImport.update({
+    id: '/rapporter',
+    path: '/rapporter',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppBilagIndexRoute =
+  AuthenticatedAppBilagIndexRouteImport.update({
+    id: '/bilag/',
+    path: '/bilag/',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppBilagIdRoute = AuthenticatedAppBilagIdRouteImport.update({
+  id: '/bilag/$id',
+  path: '/bilag/$id',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppBilagNyRoute = AuthenticatedAppBilagNyRouteImport.update({
+  id: '/bilag/ny',
+  path: '/bilag/ny',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppFakturaerIndexRoute =
+  AuthenticatedAppFakturaerIndexRouteImport.update({
+    id: '/fakturaer/',
+    path: '/fakturaer/',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppFakturaerIdRoute =
+  AuthenticatedAppFakturaerIdRouteImport.update({
+    id: '/fakturaer/$id',
+    path: '/fakturaer/$id',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/app': typeof AuthenticatedAppRouteWithChildren
+  '/app/firma': typeof AuthenticatedAppFirmaRoute
+  '/app/kontoplan': typeof AuthenticatedAppKontoplanRoute
+  '/app/kunder': typeof AuthenticatedAppKunderRoute
+  '/app/mva': typeof AuthenticatedAppMvaRoute
+  '/app/rapporter': typeof AuthenticatedAppRapporterRoute
+  '/app/': typeof AuthenticatedAppIndexRoute
+  '/app/bilag/$id': typeof AuthenticatedAppBilagIdRoute
+  '/app/bilag/ny': typeof AuthenticatedAppBilagNyRoute
+  '/app/fakturaer/$id': typeof AuthenticatedAppFakturaerIdRoute
+  '/app/bilag/': typeof AuthenticatedAppBilagIndexRoute
+  '/app/fakturaer/': typeof AuthenticatedAppFakturaerIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/app/firma': typeof AuthenticatedAppFirmaRoute
+  '/app/kontoplan': typeof AuthenticatedAppKontoplanRoute
+  '/app/kunder': typeof AuthenticatedAppKunderRoute
+  '/app/mva': typeof AuthenticatedAppMvaRoute
+  '/app/rapporter': typeof AuthenticatedAppRapporterRoute
+  '/app': typeof AuthenticatedAppIndexRoute
+  '/app/bilag/$id': typeof AuthenticatedAppBilagIdRoute
+  '/app/bilag/ny': typeof AuthenticatedAppBilagNyRoute
+  '/app/fakturaer/$id': typeof AuthenticatedAppFakturaerIdRoute
+  '/app/bilag': typeof AuthenticatedAppBilagIndexRoute
+  '/app/fakturaer': typeof AuthenticatedAppFakturaerIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
+  '/_authenticated/app/firma': typeof AuthenticatedAppFirmaRoute
+  '/_authenticated/app/kontoplan': typeof AuthenticatedAppKontoplanRoute
+  '/_authenticated/app/kunder': typeof AuthenticatedAppKunderRoute
+  '/_authenticated/app/mva': typeof AuthenticatedAppMvaRoute
+  '/_authenticated/app/rapporter': typeof AuthenticatedAppRapporterRoute
+  '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
+  '/_authenticated/app/bilag/$id': typeof AuthenticatedAppBilagIdRoute
+  '/_authenticated/app/bilag/ny': typeof AuthenticatedAppBilagNyRoute
+  '/_authenticated/app/fakturaer/$id': typeof AuthenticatedAppFakturaerIdRoute
+  '/_authenticated/app/bilag/': typeof AuthenticatedAppBilagIndexRoute
+  '/_authenticated/app/fakturaer/': typeof AuthenticatedAppFakturaerIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/reset-password'
+    | '/app'
+    | '/app/firma'
+    | '/app/kontoplan'
+    | '/app/kunder'
+    | '/app/mva'
+    | '/app/rapporter'
+    | '/app/'
+    | '/app/bilag/$id'
+    | '/app/bilag/ny'
+    | '/app/fakturaer/$id'
+    | '/app/bilag/'
+    | '/app/fakturaer/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/reset-password'
+    | '/app/firma'
+    | '/app/kontoplan'
+    | '/app/kunder'
+    | '/app/mva'
+    | '/app/rapporter'
+    | '/app'
+    | '/app/bilag/$id'
+    | '/app/bilag/ny'
+    | '/app/fakturaer/$id'
+    | '/app/bilag'
+    | '/app/fakturaer'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/reset-password'
+    | '/_authenticated/app'
+    | '/_authenticated/app/firma'
+    | '/_authenticated/app/kontoplan'
+    | '/_authenticated/app/kunder'
+    | '/_authenticated/app/mva'
+    | '/_authenticated/app/rapporter'
+    | '/_authenticated/app/'
+    | '/_authenticated/app/bilag/$id'
+    | '/_authenticated/app/bilag/ny'
+    | '/_authenticated/app/fakturaer/$id'
+    | '/_authenticated/app/bilag/'
+    | '/_authenticated/app/fakturaer/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +233,161 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/app': {
+      id: '/_authenticated/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AuthenticatedAppRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/app/': {
+      id: '/_authenticated/app/'
+      path: '/'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AuthenticatedAppIndexRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/firma': {
+      id: '/_authenticated/app/firma'
+      path: '/firma'
+      fullPath: '/app/firma'
+      preLoaderRoute: typeof AuthenticatedAppFirmaRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/kontoplan': {
+      id: '/_authenticated/app/kontoplan'
+      path: '/kontoplan'
+      fullPath: '/app/kontoplan'
+      preLoaderRoute: typeof AuthenticatedAppKontoplanRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/kunder': {
+      id: '/_authenticated/app/kunder'
+      path: '/kunder'
+      fullPath: '/app/kunder'
+      preLoaderRoute: typeof AuthenticatedAppKunderRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/mva': {
+      id: '/_authenticated/app/mva'
+      path: '/mva'
+      fullPath: '/app/mva'
+      preLoaderRoute: typeof AuthenticatedAppMvaRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/rapporter': {
+      id: '/_authenticated/app/rapporter'
+      path: '/rapporter'
+      fullPath: '/app/rapporter'
+      preLoaderRoute: typeof AuthenticatedAppRapporterRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/bilag/': {
+      id: '/_authenticated/app/bilag/'
+      path: '/bilag'
+      fullPath: '/app/bilag/'
+      preLoaderRoute: typeof AuthenticatedAppBilagIndexRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/bilag/$id': {
+      id: '/_authenticated/app/bilag/$id'
+      path: '/bilag/$id'
+      fullPath: '/app/bilag/$id'
+      preLoaderRoute: typeof AuthenticatedAppBilagIdRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/bilag/ny': {
+      id: '/_authenticated/app/bilag/ny'
+      path: '/bilag/ny'
+      fullPath: '/app/bilag/ny'
+      preLoaderRoute: typeof AuthenticatedAppBilagNyRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/fakturaer/': {
+      id: '/_authenticated/app/fakturaer/'
+      path: '/fakturaer'
+      fullPath: '/app/fakturaer/'
+      preLoaderRoute: typeof AuthenticatedAppFakturaerIndexRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/fakturaer/$id': {
+      id: '/_authenticated/app/fakturaer/$id'
+      path: '/fakturaer/$id'
+      fullPath: '/app/fakturaer/$id'
+      preLoaderRoute: typeof AuthenticatedAppFakturaerIdRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
   }
 }
 
+interface AuthenticatedAppRouteChildren {
+  AuthenticatedAppFirmaRoute: typeof AuthenticatedAppFirmaRoute
+  AuthenticatedAppKontoplanRoute: typeof AuthenticatedAppKontoplanRoute
+  AuthenticatedAppKunderRoute: typeof AuthenticatedAppKunderRoute
+  AuthenticatedAppMvaRoute: typeof AuthenticatedAppMvaRoute
+  AuthenticatedAppRapporterRoute: typeof AuthenticatedAppRapporterRoute
+  AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
+  AuthenticatedAppBilagIdRoute: typeof AuthenticatedAppBilagIdRoute
+  AuthenticatedAppBilagNyRoute: typeof AuthenticatedAppBilagNyRoute
+  AuthenticatedAppFakturaerIdRoute: typeof AuthenticatedAppFakturaerIdRoute
+  AuthenticatedAppBilagIndexRoute: typeof AuthenticatedAppBilagIndexRoute
+  AuthenticatedAppFakturaerIndexRoute: typeof AuthenticatedAppFakturaerIndexRoute
+}
+
+const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
+  AuthenticatedAppFirmaRoute: AuthenticatedAppFirmaRoute,
+  AuthenticatedAppKontoplanRoute: AuthenticatedAppKontoplanRoute,
+  AuthenticatedAppKunderRoute: AuthenticatedAppKunderRoute,
+  AuthenticatedAppMvaRoute: AuthenticatedAppMvaRoute,
+  AuthenticatedAppRapporterRoute: AuthenticatedAppRapporterRoute,
+  AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
+  AuthenticatedAppBilagIdRoute: AuthenticatedAppBilagIdRoute,
+  AuthenticatedAppBilagNyRoute: AuthenticatedAppBilagNyRoute,
+  AuthenticatedAppFakturaerIdRoute: AuthenticatedAppFakturaerIdRoute,
+  AuthenticatedAppBilagIndexRoute: AuthenticatedAppBilagIndexRoute,
+  AuthenticatedAppFakturaerIndexRoute: AuthenticatedAppFakturaerIndexRoute,
+}
+
+const AuthenticatedAppRouteWithChildren =
+  AuthenticatedAppRoute._addFileChildren(AuthenticatedAppRouteChildren)
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAppRoute: typeof AuthenticatedAppRouteWithChildren
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAppRoute: AuthenticatedAppRouteWithChildren,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
