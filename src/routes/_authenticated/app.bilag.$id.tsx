@@ -4,10 +4,11 @@ import { toast } from "sonner";
 import { Copy, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "@/lib/company";
-import { dato, kr } from "@/lib/format";
-import { PageHeader, Panel, Empty, useAccounts } from "@/components/app/ui";
+import { dato } from "@/lib/format";
+import { PageHeader, Panel, Empty } from "@/components/app/ui";
 import { BilagEditor } from "@/components/app/BilagEditor";
-import { Vedlegg } from "@/components/app/Vedlegg";
+import { Vedlegg, useDokumenter } from "@/components/app/Vedlegg";
+import { BilagDokumenter, BilagLinjer } from "@/components/app/BilagVisning";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/app/bilag/$id")({
@@ -18,7 +19,6 @@ export const Route = createFileRoute("/_authenticated/app/bilag/$id")({
 function BilagSide() {
   const { id } = Route.useParams();
   const { canWrite } = useCompany();
-  const { data: kontoer = [] } = useAccounts();
   const nav = useNavigate();
   const qc = useQueryClient();
   const { data: v, isLoading } = useQuery({
@@ -30,7 +30,9 @@ function BilagSide() {
       return data;
     },
   });
+  const { data: docs = [] } = useDokumenter({ voucherId: id });
   if (isLoading || !v) return <Empty>Laster …</Empty>;
+  const harDocs = docs.length > 0;
 
   /** Nytt utkast med samme linjer og dagens dato, f.eks. for faste månedlige posteringer. */
   async function kopier() {
@@ -63,6 +65,9 @@ function BilagSide() {
           )}
         />
         <div className="mb-4"><Vedlegg voucherId={id} /></div>
+        <div className={harDocs ? "grid gap-6 2xl:grid-cols-[minmax(0,1fr)_480px]" : ""}>
+        {harDocs && <BilagDokumenter voucherId={id} className="h-[70vh] 2xl:order-2 2xl:sticky 2xl:top-6" />}
+        <div className="min-w-0">
         <BilagEditor
           voucherId={id}
           initial={{
@@ -71,11 +76,12 @@ function BilagSide() {
             linjer: v.voucher_lines.map((l) => ({ konto: l.konto, tekst: l.tekst ?? "", debet: Number(l.debet) ? String(l.debet) : "", kredit: Number(l.kredit) ? String(l.kredit) : "", mva_kode: l.mva_kode ?? "" })),
           }}
         />
+        </div>
+        </div>
       </>
     );
   }
 
-  const sum = v.voucher_lines.reduce((s, l) => s + Number(l.debet), 0);
   return (
     <>
       <PageHeader
@@ -98,25 +104,10 @@ function BilagSide() {
         <Lock className="h-4 w-4" /> Bokført {v.bokfort_at ? new Date(v.bokfort_at).toLocaleString("nb-NO") : ""} – kan ikke endres.
       </div>
       <div className="mb-4"><Vedlegg voucherId={id} /></div>
-      <Panel>
-        <table className="w-full text-sm">
-          <thead className="border-b text-left text-xs uppercase tracking-wide text-muted-foreground">
-            <tr><th className="px-4 py-3">Konto</th><th className="px-4 py-3">Tekst</th><th className="px-4 py-3">MVA</th><th className="px-4 py-3 text-right">Debet</th><th className="px-4 py-3 text-right">Kredit</th></tr>
-          </thead>
-          <tbody>
-            {v.voucher_lines.map((l) => (
-              <tr key={l.id} className="border-b last:border-0">
-                <td className="px-4 py-3"><span className="font-mono">{l.konto}</span> <span className="text-muted-foreground">{kontoer.find((k) => k.number === l.konto)?.name}</span></td>
-                <td className="px-4 py-3">{l.tekst}</td>
-                <td className="px-4 py-3 font-mono">{l.mva_kode}</td>
-                <td className="num px-4 py-3">{Number(l.debet) ? kr(l.debet) : ""}</td>
-                <td className="num px-4 py-3">{Number(l.kredit) ? kr(l.kredit) : ""}</td>
-              </tr>
-            ))}
-          </tbody>
-          <tfoot><tr className="border-t bg-muted/50 font-medium"><td colSpan={3} className="px-4 py-3">Sum</td><td className="num px-4 py-3">{kr(sum)}</td><td className="num px-4 py-3">{kr(sum)}</td></tr></tfoot>
-        </table>
-      </Panel>
+      <div className={harDocs ? "grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(360px,520px)]" : ""}>
+        <Panel className="h-fit overflow-x-auto"><BilagLinjer linjer={v.voucher_lines} /></Panel>
+        {harDocs && <BilagDokumenter voucherId={id} className="h-[75vh]" />}
+      </div>
     </>
   );
 }

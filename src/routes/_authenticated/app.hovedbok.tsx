@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { z } from "zod";
@@ -7,6 +7,7 @@ import { useCompany } from "@/lib/company";
 import { dato, kr } from "@/lib/format";
 import { PageHeader, Panel, Empty, useAccounts, selectCls, theadCls } from "@/components/app/ui";
 import { Input } from "@/components/ui/input";
+import { BilagSheet } from "@/components/app/BilagVisning";
 
 export const Route = createFileRoute("/_authenticated/app/hovedbok")({
   validateSearch: z.object({ konto: z.string().optional() }),
@@ -22,6 +23,7 @@ function Hovedbok() {
   const [konto, setKonto] = useState(k0 ?? "1920");
   const [fra, setFra] = useState(`${y}-01-01`);
   const [til, setTil] = useState(`${y}-12-31`);
+  const [bilag, setBilag] = useState<string | null>(null);
   const { data, isLoading } = useQuery({
     queryKey: ["gl", company.id, konto, fra, til],
     queryFn: async () => {
@@ -36,7 +38,7 @@ function Hovedbok() {
   let saldo = data?.ib ?? 0;
   return (
     <>
-      <PageHeader title="Hovedbok" sub="Alle posteringer per konto med løpende saldo."
+      <PageHeader title="Hovedbok" sub="Alle posteringer per konto med løpende saldo. Klikk på en linje for å se bilaget."
         actions={<>
           <select className={selectCls} value={konto} onChange={(e) => setKonto(e.target.value)}>{kontoer.map((a) => <option key={a.number} value={a.number}>{a.number} {a.name}</option>)}</select>
           <Input type="date" value={fra} onChange={(e) => setFra(e.target.value)} className="w-40" />
@@ -51,9 +53,9 @@ function Hovedbok() {
               {data.rader.map((r) => {
                 saldo += r.d - r.k;
                 return (
-                  <tr key={r.id} className="border-b">
+                  <tr key={r.id} onClick={() => setBilag(r.v.id)} className="cursor-pointer border-b transition-colors hover:bg-primary/5">
                     <td className="px-4 py-2">{dato(r.v.dato)}</td>
-                    <td className="px-4 py-2 font-mono"><Link to="/app/bilag/$id" params={{ id: r.v.id }} className="text-primary hover:underline">{r.v.bilagsnr}</Link></td>
+                    <td className="px-4 py-2 font-mono text-primary">{r.v.bilagsnr}</td>
                     <td className="px-4 py-2">{r.tekst || r.v.beskrivelse}</td>
                     <td className="px-4 py-2 font-mono">{r.mva_kode}</td>
                     <td className="num px-4 py-2">{r.d ? kr(r.d) : ""}</td>
@@ -67,6 +69,7 @@ function Hovedbok() {
           </table>
         )}
       </Panel>
+      <BilagSheet id={bilag} onClose={() => setBilag(null)} />
     </>
   );
 }
