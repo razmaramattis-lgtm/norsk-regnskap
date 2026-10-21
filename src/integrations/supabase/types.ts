@@ -70,103 +70,40 @@ export type Database = {
           },
         ]
       }
-      anleggsmidler: {
-        Row: {
-          anskaffelseskost: number
-          anskaffet: string
-          company_id: string
-          created_at: string
-          id: string
-          konto: string | null
-          navn: string
-          notat: string | null
-          opprettet_av: string | null
-          salgssum: number | null
-          saldogruppe: string
-          solgt: string | null
-        }
-        Insert: {
-          anskaffelseskost: number
-          anskaffet: string
-          company_id: string
-          created_at?: string
-          id?: string
-          konto?: string | null
-          navn: string
-          notat?: string | null
-          opprettet_av?: string | null
-          salgssum?: number | null
-          saldogruppe: string
-          solgt?: string | null
-        }
-        Update: {
-          anskaffelseskost?: number
-          anskaffet?: string
-          company_id?: string
-          created_at?: string
-          id?: string
-          konto?: string | null
-          navn?: string
-          notat?: string | null
-          opprettet_av?: string | null
-          salgssum?: number | null
-          saldogruppe?: string
-          solgt?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "anleggsmidler_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      maanedsavslutning_avkrysning: {
-        Row: {
-          company_id: string
-          kontrollert_at: string
-          kontrollert_av: string
-          periode: string
-          punkt: string
-        }
-        Insert: {
-          company_id: string
-          kontrollert_at?: string
-          kontrollert_av?: string
-          periode: string
-          punkt: string
-        }
-        Update: {
-          company_id?: string
-          kontrollert_at?: string
-          kontrollert_av?: string
-          periode?: string
-          punkt?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "maanedsavslutning_avkrysning_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       agent_keys: {
         Row: {
           company_id: string
           created_at: string
+          created_by: string | null
           id: string
+          key_hash: string
           last_used_at: string | null
           navn: string
           prefix: string
           revoked_at: string | null
         }
-        Insert: never
-        Update: never
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          key_hash: string
+          last_used_at?: string | null
+          navn: string
+          prefix: string
+          revoked_at?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          key_hash?: string
+          last_used_at?: string | null
+          navn?: string
+          prefix?: string
+          revoked_at?: string | null
+        }
         Relationships: [
           {
             foreignKeyName: "agent_keys_company_id_fkey"
@@ -237,13 +174,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "agent_proposals_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "agent_proposals_bank_transaction_id_fkey"
             columns: ["bank_transaction_id"]
             isOneToOne: false
@@ -251,10 +181,70 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "agent_proposals_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "agent_proposals_voucher_id_fkey"
             columns: ["voucher_id"]
             isOneToOne: false
             referencedRelation: "vouchers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      anleggsmidler: {
+        Row: {
+          anskaffelseskost: number
+          anskaffet: string
+          company_id: string
+          created_at: string
+          id: string
+          konto: string | null
+          navn: string
+          notat: string | null
+          opprettet_av: string | null
+          saldogruppe: string
+          salgssum: number | null
+          solgt: string | null
+        }
+        Insert: {
+          anskaffelseskost: number
+          anskaffet: string
+          company_id: string
+          created_at?: string
+          id?: string
+          konto?: string | null
+          navn: string
+          notat?: string | null
+          opprettet_av?: string | null
+          saldogruppe: string
+          salgssum?: number | null
+          solgt?: string | null
+        }
+        Update: {
+          anskaffelseskost?: number
+          anskaffet?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          konto?: string | null
+          navn?: string
+          notat?: string | null
+          opprettet_av?: string | null
+          saldogruppe?: string
+          salgssum?: number | null
+          solgt?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "anleggsmidler_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
             referencedColumns: ["id"]
           },
         ]
@@ -650,15 +640,12 @@ export type Database = {
       }
       employees: {
         Row: {
-          fodselsdato: string | null
-          trekkmetode: string
-          tabelltrekk: number
-          trekktabell: string | null
           aktiv: boolean
           ansatt_dato: string | null
           company_id: string
           created_at: string
           epost: string | null
+          fodselsdato: string | null
           id: string
           kontonummer: string | null
           lonnstype: string
@@ -668,18 +655,18 @@ export type Database = {
           skattetrekk_prosent: number
           stilling: string | null
           stillingsprosent: number
+          tabelltrekk: number
           timelonn: number
+          trekkmetode: string
+          trekktabell: string | null
         }
         Insert: {
-          fodselsdato?: string | null
-          trekkmetode?: string
-          tabelltrekk?: number
-          trekktabell?: string | null
           aktiv?: boolean
           ansatt_dato?: string | null
           company_id: string
           created_at?: string
           epost?: string | null
+          fodselsdato?: string | null
           id?: string
           kontonummer?: string | null
           lonnstype?: string
@@ -689,18 +676,18 @@ export type Database = {
           skattetrekk_prosent?: number
           stilling?: string | null
           stillingsprosent?: number
+          tabelltrekk?: number
           timelonn?: number
+          trekkmetode?: string
+          trekktabell?: string | null
         }
         Update: {
-          fodselsdato?: string | null
-          trekkmetode?: string
-          tabelltrekk?: number
-          trekktabell?: string | null
           aktiv?: boolean
           ansatt_dato?: string | null
           company_id?: string
           created_at?: string
           epost?: string | null
+          fodselsdato?: string | null
           id?: string
           kontonummer?: string | null
           lonnstype?: string
@@ -710,7 +697,10 @@ export type Database = {
           skattetrekk_prosent?: number
           stilling?: string | null
           stillingsprosent?: number
+          tabelltrekk?: number
           timelonn?: number
+          trekkmetode?: string
+          trekktabell?: string | null
         }
         Relationships: [
           {
@@ -836,40 +826,40 @@ export type Database = {
       }
       invoice_lines: {
         Row: {
-          rabatt_prosent: number
-          enhet: string | null
           antall: number
           beskrivelse: string
           company_id: string
+          enhet: string | null
           enhetspris: number
           id: string
           invoice_id: string
           linjenr: number
           mva_sats: number
+          rabatt_prosent: number
         }
         Insert: {
-          rabatt_prosent?: number
-          enhet?: string | null
           antall?: number
           beskrivelse: string
           company_id: string
+          enhet?: string | null
           enhetspris?: number
           id?: string
           invoice_id: string
           linjenr?: number
           mva_sats?: number
+          rabatt_prosent?: number
         }
         Update: {
-          rabatt_prosent?: number
-          enhet?: string | null
           antall?: number
           beskrivelse?: string
           company_id?: string
+          enhet?: string | null
           enhetspris?: number
           id?: string
           invoice_id?: string
           linjenr?: number
           mva_sats?: number
+          rabatt_prosent?: number
         }
         Relationships: [
           {
@@ -890,72 +880,72 @@ export type Database = {
       }
       invoices: {
         Row: {
-          leveringsdato: string | null
-          deres_ref: string | null
-          var_ref: string | null
-          innbetalt: number
           betalt_voucher_id: string | null
           company_id: string
           created_at: string
           customer_id: string
+          deres_ref: string | null
           er_kreditnota: boolean
           fakturadato: string
           fakturanr: number | null
           forfallsdato: string
           id: string
+          innbetalt: number
           kid: string | null
           kreditnota_for: string | null
+          leveringsdato: string | null
           merknad: string | null
           mva: number
           netto: number
           status: Database["public"]["Enums"]["invoice_status"]
           total: number
+          var_ref: string | null
           voucher_id: string | null
         }
         Insert: {
-          leveringsdato?: string | null
-          deres_ref?: string | null
-          var_ref?: string | null
-          innbetalt?: number
           betalt_voucher_id?: string | null
           company_id: string
           created_at?: string
           customer_id: string
+          deres_ref?: string | null
           er_kreditnota?: boolean
           fakturadato?: string
           fakturanr?: number | null
           forfallsdato?: string
           id?: string
+          innbetalt?: number
           kid?: string | null
           kreditnota_for?: string | null
+          leveringsdato?: string | null
           merknad?: string | null
           mva?: number
           netto?: number
           status?: Database["public"]["Enums"]["invoice_status"]
           total?: number
+          var_ref?: string | null
           voucher_id?: string | null
         }
         Update: {
-          leveringsdato?: string | null
-          deres_ref?: string | null
-          var_ref?: string | null
-          innbetalt?: number
           betalt_voucher_id?: string | null
           company_id?: string
           created_at?: string
           customer_id?: string
+          deres_ref?: string | null
           er_kreditnota?: boolean
           fakturadato?: string
           fakturanr?: number | null
           forfallsdato?: string
           id?: string
+          innbetalt?: number
           kid?: string | null
           kreditnota_for?: string | null
+          leveringsdato?: string | null
           merknad?: string | null
           mva?: number
           netto?: number
           status?: Database["public"]["Enums"]["invoice_status"]
           total?: number
+          var_ref?: string | null
           voucher_id?: string | null
         }
         Relationships: [
@@ -996,60 +986,92 @@ export type Database = {
           },
         ]
       }
+      maanedsavslutning_avkrysning: {
+        Row: {
+          company_id: string
+          kontrollert_at: string
+          kontrollert_av: string
+          periode: string
+          punkt: string
+        }
+        Insert: {
+          company_id: string
+          kontrollert_at?: string
+          kontrollert_av?: string
+          periode: string
+          punkt: string
+        }
+        Update: {
+          company_id?: string
+          kontrollert_at?: string
+          kontrollert_av?: string
+          periode?: string
+          punkt?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maanedsavslutning_avkrysning_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payroll_lines: {
         Row: {
-          naturalytelse: number
-          godtgjorelse: number
-          trekk: number
-          poster: Json
           aga: number
           brutto: number
           company_id: string
           employee_id: string
           feriepenger: number
+          godtgjorelse: number
           id: string
+          naturalytelse: number
           netto: number
           otp: number
+          poster: Json
           run_id: string
           skattetrekk: number
           tillegg: number
           timer: number
+          trekk: number
         }
         Insert: {
-          naturalytelse?: number
-          godtgjorelse?: number
-          trekk?: number
-          poster?: Json
           aga?: number
           brutto?: number
           company_id: string
           employee_id: string
           feriepenger?: number
+          godtgjorelse?: number
           id?: string
+          naturalytelse?: number
           netto?: number
           otp?: number
+          poster?: Json
           run_id: string
           skattetrekk?: number
           tillegg?: number
           timer?: number
+          trekk?: number
         }
         Update: {
-          naturalytelse?: number
-          godtgjorelse?: number
-          trekk?: number
-          poster?: Json
           aga?: number
           brutto?: number
           company_id?: string
           employee_id?: string
           feriepenger?: number
+          godtgjorelse?: number
           id?: string
+          naturalytelse?: number
           netto?: number
           otp?: number
+          poster?: Json
           run_id?: string
           skattetrekk?: number
           tillegg?: number
           timer?: number
+          trekk?: number
         }
         Relationships: [
           {
@@ -1077,9 +1099,9 @@ export type Database = {
       }
       payroll_runs: {
         Row: {
-          halvt_trekk: boolean
           company_id: string
           created_at: string
+          halvt_trekk: boolean
           id: string
           periode: string
           status: string
@@ -1087,9 +1109,9 @@ export type Database = {
           voucher_id: string | null
         }
         Insert: {
-          halvt_trekk?: boolean
           company_id: string
           created_at?: string
+          halvt_trekk?: boolean
           id?: string
           periode: string
           status?: string
@@ -1097,9 +1119,9 @@ export type Database = {
           voucher_id?: string | null
         }
         Update: {
-          halvt_trekk?: boolean
           company_id?: string
           created_at?: string
+          halvt_trekk?: boolean
           id?: string
           periode?: string
           status?: string
@@ -1176,6 +1198,13 @@ export type Database = {
           opprettet_av?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "repeterende_fakturaer_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "repeterende_fakturaer_mal_faktura_fkey"
             columns: ["mal_faktura"]
@@ -1501,6 +1530,7 @@ export type Database = {
     }
     Functions: {
       accept_my_invites: { Args: never; Returns: number }
+      agent_firma: { Args: { _key: string }; Returns: string }
       agent_foreslaa_bilag: {
         Args: {
           _agent_navn?: string
@@ -1513,9 +1543,24 @@ export type Database = {
         }
         Returns: string
       }
-      agent_hent_banktransaksjoner: { Args: { _grense?: number; _key: string }; Returns: Json }
+      agent_hent_banktransaksjoner: {
+        Args: { _grense?: number; _key: string }
+        Returns: Json
+      }
       agent_hent_kontoplan: { Args: { _key: string }; Returns: Json }
       approve_proposal: { Args: { _id: string }; Returns: string }
+      book_bank_transaction: {
+        Args: {
+          _invoice: string
+          _motkonto: string
+          _mva_sats: number
+          _supplier_invoice: string
+          _tx: string
+        }
+        Returns: string
+      }
+      book_payroll: { Args: { _run: string }; Returns: string }
+      book_supplier_invoice: { Args: { _inv: string }; Returns: string }
       byraa_oversikt: {
         Args: never
         Returns: {
@@ -1532,26 +1577,17 @@ export type Database = {
           ventende_forslag: number
         }[]
       }
-      create_agent_key: { Args: { _company: string; _navn: string }; Returns: string }
-      revoke_agent_key: { Args: { _id: string }; Returns: undefined }
-      book_bank_transaction: {
-        Args: {
-          _invoice: string
-          _motkonto: string
-          _mva_sats: number
-          _supplier_invoice: string
-          _tx: string
-        }
-        Returns: string
-      }
-      book_payroll: { Args: { _run: string }; Returns: string }
-      book_supplier_invoice: { Args: { _inv: string }; Returns: string }
       can_write: { Args: { _company: string }; Returns: boolean }
       close_year: { Args: { _aar: number; _company: string }; Returns: string }
+      create_agent_key: {
+        Args: { _company: string; _navn: string }
+        Returns: string
+      }
       credit_invoice: { Args: { _invoice: string }; Returns: string }
       is_admin: { Args: { _company: string }; Returns: boolean }
       is_member: { Args: { _company: string }; Returns: boolean }
       kid_mod10: { Args: { _base: string }; Returns: string }
+      lag_repeterende_utkast: { Args: { _id: string }; Returns: string }
       log_audit: {
         Args: {
           _company: string
@@ -1567,25 +1603,31 @@ export type Database = {
         Returns: string
       }
       post_voucher: { Args: { _voucher: string }; Returns: number }
-      reject_proposal: {
-        Args: { _grunn?: string; _id: string }
-        Returns: undefined
-      }
       register_invoice_payment: {
         Args: { _dato: string; _invoice: string }
         Returns: string
       }
       registrer_innbetaling: {
-        Args: { _belop: number; _dato: string; _invoice: string; _konto?: string }
+        Args: {
+          _belop: number
+          _dato: string
+          _invoice: string
+          _konto?: string
+        }
         Returns: string
       }
-      lag_repeterende_utkast: { Args: { _id: string }; Returns: string }
+      reject_proposal: {
+        Args: { _grunn?: string; _id: string }
+        Returns: undefined
+      }
       reverse_voucher: { Args: { _voucher: string }; Returns: string }
+      revoke_agent_key: { Args: { _id: string }; Returns: undefined }
       send_invoice: { Args: { _invoice: string }; Returns: number }
       set_period_lock: {
         Args: { _company: string; _dato: string }
         Returns: undefined
       }
+      validate_proposal_payload: { Args: { _p: Json }; Returns: undefined }
     }
     Enums: {
       company_type: "enk" | "as"
