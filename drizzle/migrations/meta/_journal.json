@@ -99,6 +99,13 @@
       "when": 1792615077560,
       "tag": "0013_0010_maanedsavslutning",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1792615113999,
+      "tag": "0014_0011_lonn_avansert",
+      "breakpoints": true
     }
   ]
 }

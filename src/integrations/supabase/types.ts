@@ -645,6 +645,7 @@ export type Database = {
           company_id: string
           created_at: string
           epost: string | null
+          fodselsdato: string | null
           id: string
           kontonummer: string | null
           lonnstype: string
@@ -654,7 +655,10 @@ export type Database = {
           skattetrekk_prosent: number
           stilling: string | null
           stillingsprosent: number
+          tabelltrekk: number
           timelonn: number
+          trekkmetode: string
+          trekktabell: string | null
         }
         Insert: {
           aktiv?: boolean
@@ -662,6 +666,7 @@ export type Database = {
           company_id: string
           created_at?: string
           epost?: string | null
+          fodselsdato?: string | null
           id?: string
           kontonummer?: string | null
           lonnstype?: string
@@ -671,7 +676,10 @@ export type Database = {
           skattetrekk_prosent?: number
           stilling?: string | null
           stillingsprosent?: number
+          tabelltrekk?: number
           timelonn?: number
+          trekkmetode?: string
+          trekktabell?: string | null
         }
         Update: {
           aktiv?: boolean
@@ -679,6 +687,7 @@ export type Database = {
           company_id?: string
           created_at?: string
           epost?: string | null
+          fodselsdato?: string | null
           id?: string
           kontonummer?: string | null
           lonnstype?: string
@@ -688,7 +697,10 @@ export type Database = {
           skattetrekk_prosent?: number
           stilling?: string | null
           stillingsprosent?: number
+          tabelltrekk?: number
           timelonn?: number
+          trekkmetode?: string
+          trekktabell?: string | null
         }
         Relationships: [
           {
@@ -995,13 +1007,17 @@ export type Database = {
           company_id: string
           employee_id: string
           feriepenger: number
+          godtgjorelse: number
           id: string
+          naturalytelse: number
           netto: number
           otp: number
+          poster: Json
           run_id: string
           skattetrekk: number
           tillegg: number
           timer: number
+          trekk: number
         }
         Insert: {
           aga?: number
@@ -1009,13 +1025,17 @@ export type Database = {
           company_id: string
           employee_id: string
           feriepenger?: number
+          godtgjorelse?: number
           id?: string
+          naturalytelse?: number
           netto?: number
           otp?: number
+          poster?: Json
           run_id: string
           skattetrekk?: number
           tillegg?: number
           timer?: number
+          trekk?: number
         }
         Update: {
           aga?: number
@@ -1023,13 +1043,17 @@ export type Database = {
           company_id?: string
           employee_id?: string
           feriepenger?: number
+          godtgjorelse?: number
           id?: string
+          naturalytelse?: number
           netto?: number
           otp?: number
+          poster?: Json
           run_id?: string
           skattetrekk?: number
           tillegg?: number
           timer?: number
+          trekk?: number
         }
         Relationships: [
           {
@@ -1059,6 +1083,7 @@ export type Database = {
         Row: {
           company_id: string
           created_at: string
+          halvt_trekk: boolean
           id: string
           periode: string
           status: string
@@ -1068,6 +1093,7 @@ export type Database = {
         Insert: {
           company_id: string
           created_at?: string
+          halvt_trekk?: boolean
           id?: string
           periode: string
           status?: string
@@ -1077,6 +1103,7 @@ export type Database = {
         Update: {
           company_id?: string
           created_at?: string
+          halvt_trekk?: boolean
           id?: string
           periode?: string
           status?: string
