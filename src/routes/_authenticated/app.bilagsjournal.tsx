@@ -31,7 +31,7 @@ function Bilagsjournal() {
       for (let f = 0; ; f += 1000) {
         let q = supabase.from("vouchers").select("id, bilagsnr, dato, beskrivelse, status, kilde, korrigerer, bokfort_at, voucher_lines(debet, kredit)")
           .eq("company_id", company.id).gte("dato", fra).lte("dato", til).order("dato", { ascending: false }).order("bilagsnr", { ascending: false }).range(f, f + 999);
-        if (status !== "alle") q = q.eq("status", status);
+        if (status !== "alle") q = q.eq("status", status as "bokfort" | "utkast");
         const { data, error } = await q;
         if (error) throw error;
         rader.push(...(data ?? []));
