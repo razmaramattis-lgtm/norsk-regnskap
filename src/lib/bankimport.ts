@@ -1,4 +1,4 @@
-export type BankRad = { dato: string; tekst: string; belop: number; referanse?: string };
+export type BankRad = { dato: string; tekst: string; belop: number; referanse?: string | undefined };
 
 function parseTall(s: string): number {
   const t = s.replace(/\s|\u00a0/g, "").replace(/kr/i, "");

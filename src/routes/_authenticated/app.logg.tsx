@@ -26,12 +26,12 @@ function Logg() {
           <table className="w-full text-sm">
             <thead className={theadCls}><tr><th className="px-4 py-3">Tidspunkt</th><th className="px-4 py-3">Hendelse</th><th className="px-4 py-3">Detaljer</th><th className="px-4 py-3">Bruker</th></tr></thead>
             <tbody>{data.map((l) => {
-              const d = (l.detaljer ?? {}) as Record<string, unknown>;
+              const d = (l.detaljer ?? {}) as { bilagsnr?: number; belop?: number; til?: string };
               return (
                 <tr key={l.id} className="border-b last:border-0">
                   <td className="px-4 py-2 font-mono text-xs">{new Date(l.created_at).toLocaleString("nb-NO")}</td>
                   <td className="px-4 py-2">{H[l.handling] ?? l.handling}</td>
-                  <td className="px-4 py-2">{d.bilagsnr ? `Bilag ${d.bilagsnr} · ${kr(d.belop as number)}` : d.til ? `Til og med ${d.til}` : ""}</td>
+                  <td className="px-4 py-2">{d.bilagsnr ? `Bilag ${d.bilagsnr} · ${kr(d.belop)}` : d.til ? `Til og med ${d.til}` : ""}</td>
                   <td className="px-4 py-2 font-mono text-xs text-muted-foreground">{l.user_id?.slice(0, 8)}</td>
                 </tr>
               );

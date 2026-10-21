@@ -11,7 +11,7 @@ async function sha256(file: File) {
   return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-export async function lastOppDokument(companyId: string, file: File, link: { voucher_id?: string; supplier_invoice_id?: string } = {}) {
+export async function lastOppDokument(companyId: string, file: File, link: { voucher_id?: string | undefined; supplier_invoice_id?: string | undefined } = {}) {
   const hash = await sha256(file);
   const path = `${companyId}/${new Date().toISOString().slice(0, 7)}/${hash.slice(0, 12)}-${file.name.replace(/[^\w.\-]/g, "_")}`;
   const { error } = await supabase.storage.from("bilag").upload(path, file, { upsert: false });
