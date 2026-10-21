@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
-import { Archive, BookOpen, Bot, Building2, CalendarCheck, CalendarClock, FileInput, FileText, FileSpreadsheet, History, Landmark, LayoutDashboard, ListTree, LogOut, Package, Plug, Receipt, BarChart3, ScrollText, Truck, Users, Wallet, Scale } from "lucide-react";
+import { Archive, BookOpen, Bot, Building, Building2, CalendarCheck, CalendarClock, FileInput, FileText, FileSpreadsheet, History, Landmark, LayoutDashboard, ListTree, LogOut, Package, Plug, Receipt, BarChart3, ScrollText, Truck, Users, Wallet, Scale } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CompanyProvider, useCompany, useMemberships, ROLLENAVN } from "@/lib/company";
 import { NyttFirma } from "@/components/app/NyttFirma";
@@ -49,6 +49,7 @@ const grupper = [
     { to: "/app/bank", label: "Bank", icon: Landmark },
     { to: "/app/lonn", label: "Lønn", icon: Wallet },
     { to: "/app/arkiv", label: "Bilagsarkiv", icon: Archive },
+    { to: "/app/anleggsmidler", label: "Anleggsmidler", icon: Building },
     { to: "/app/forslag", label: "Forslag fra AI", icon: Bot },
   ] },
   { tittel: "Rapporter", lenker: [

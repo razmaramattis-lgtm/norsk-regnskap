@@ -112,7 +112,7 @@ Status: **Gjort** = fungerer og er testet. **Forberedt** = kode og struktur finn
 | --- | --- | --- |
 | 150+ MCP-verktøy, scoped API-nøkler | Forslagslag og scopede agentnøkler (les kontoplan/bank, foreslå bilag): agent foreslår, menneske godkjenner | Gjort |
 | AI-kategorisering som utvidelse | Regelmotor for banktransaksjoner | Gjort |
-| MCP-server og Claude-plugin | Funksjonene og nøklene er klare (`docs/AI-AGENTER.md`); selve MCP-serveren er ikke bygget | Delvis |
+| MCP-server og Claude-plugin | MCP-server (`mcp/`) med tre verktøy over scopede nøkler; ingen Claude-plugin | Gjort (MCP) |
 | Kvitteringsgjenkjenning (OCR) | Krever leverandør | Ikke gjort |
 
 ## Hva Accounted gjør bedre (verdt å hente)

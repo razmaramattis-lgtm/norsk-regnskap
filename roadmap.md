@@ -32,13 +32,13 @@
 - [x] Oppslag i Enhetsregisteret på kunder og leverandører (uverifisert mot live-API)
 - [x] Omvendt avgiftsplikt og innførsel: MVA-kodene 14, 15, 81–89 i MVA-meldingen, egen fane «Kjøp fra utlandet» i bilagseditoren (kodene bør kontrolleres mot Skatteetatens gjeldende kodeliste)
 - [x] EHF kreditnota (Peppol Credit Note, type 381) fra kreditert faktura
+- [x] Anleggsmidler: register, saldogrupper a–j, skattemessig saldoavskrivning, avskrivningsbilag som utkast (satser må kontrolleres for inntektsåret)
+- [x] MCP-server (`mcp/fjordbok-mcp.mjs`) for AI-agenter, uten avhengigheter
 - [x] Agentnøkler: scopede nøkler som kun kan lese kontoplan/banktransaksjoner og foreslå bilag (`docs/AI-AGENTER.md`)
 
 ## Neste faser
 - [ ] Velg og koble på leverandører: Peppol-aksesspunkt, Skatteetaten (MVA, skattemelding, a-melding), bank
 - [ ] SAF-T-import (flytte kunder fra andre systemer)
-- [ ] MCP-server som pakker agent-funksjonene som verktøy (selve nøklene og funksjonene er ferdige, se docs/AI-AGENTER.md)
-- [ ] Anleggsmidler og avskrivninger (saldogrupper)
 - [ ] Periodiseringer, tilbud, ordre, repeterende fakturaer
 - [ ] Prosjekter/avdelinger (dimensjoner), kontoregler for automatisk kontering
 - [ ] Kjørebok og reiseregning

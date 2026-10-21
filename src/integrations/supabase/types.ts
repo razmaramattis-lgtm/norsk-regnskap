@@ -70,6 +70,59 @@ export type Database = {
           },
         ]
       }
+      anleggsmidler: {
+        Row: {
+          anskaffelseskost: number
+          anskaffet: string
+          company_id: string
+          created_at: string
+          id: string
+          konto: string | null
+          navn: string
+          notat: string | null
+          opprettet_av: string | null
+          salgssum: number | null
+          saldogruppe: string
+          solgt: string | null
+        }
+        Insert: {
+          anskaffelseskost: number
+          anskaffet: string
+          company_id: string
+          created_at?: string
+          id?: string
+          konto?: string | null
+          navn: string
+          notat?: string | null
+          opprettet_av?: string | null
+          salgssum?: number | null
+          saldogruppe: string
+          solgt?: string | null
+        }
+        Update: {
+          anskaffelseskost?: number
+          anskaffet?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          konto?: string | null
+          navn?: string
+          notat?: string | null
+          opprettet_av?: string | null
+          salgssum?: number | null
+          saldogruppe?: string
+          solgt?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "anleggsmidler_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_keys: {
         Row: {
           company_id: string

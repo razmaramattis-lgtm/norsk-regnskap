@@ -17,6 +17,7 @@ import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/ap
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
 import { Route as AuthenticatedAppAarsavslutningRouteImport } from './routes/_authenticated/app.aarsavslutning'
 import { Route as AuthenticatedAppAarsregnskapRouteImport } from './routes/_authenticated/app.aarsregnskap'
+import { Route as AuthenticatedAppAnleggsmidlerRouteImport } from './routes/_authenticated/app.anleggsmidler'
 import { Route as AuthenticatedAppArkivRouteImport } from './routes/_authenticated/app.arkiv'
 import { Route as AuthenticatedAppBankRouteImport } from './routes/_authenticated/app.bank'
 import { Route as AuthenticatedAppFirmaRouteImport } from './routes/_authenticated/app.firma'
@@ -81,6 +82,12 @@ const AuthenticatedAppAarsregnskapRoute =
   AuthenticatedAppAarsregnskapRouteImport.update({
     id: '/aarsregnskap',
     path: '/aarsregnskap',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppAnleggsmidlerRoute =
+  AuthenticatedAppAnleggsmidlerRouteImport.update({
+    id: '/anleggsmidler',
+    path: '/anleggsmidler',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
 const AuthenticatedAppArkivRoute = AuthenticatedAppArkivRouteImport.update({
@@ -223,6 +230,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof AuthenticatedAppRouteWithChildren
   '/app/aarsavslutning': typeof AuthenticatedAppAarsavslutningRoute
   '/app/aarsregnskap': typeof AuthenticatedAppAarsregnskapRoute
+  '/app/anleggsmidler': typeof AuthenticatedAppAnleggsmidlerRoute
   '/app/arkiv': typeof AuthenticatedAppArkivRoute
   '/app/bank': typeof AuthenticatedAppBankRoute
   '/app/firma': typeof AuthenticatedAppFirmaRoute
@@ -255,6 +263,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/app/aarsavslutning': typeof AuthenticatedAppAarsavslutningRoute
   '/app/aarsregnskap': typeof AuthenticatedAppAarsregnskapRoute
+  '/app/anleggsmidler': typeof AuthenticatedAppAnleggsmidlerRoute
   '/app/arkiv': typeof AuthenticatedAppArkivRoute
   '/app/bank': typeof AuthenticatedAppBankRoute
   '/app/firma': typeof AuthenticatedAppFirmaRoute
@@ -290,6 +299,7 @@ export interface FileRoutesById {
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
   '/_authenticated/app/aarsavslutning': typeof AuthenticatedAppAarsavslutningRoute
   '/_authenticated/app/aarsregnskap': typeof AuthenticatedAppAarsregnskapRoute
+  '/_authenticated/app/anleggsmidler': typeof AuthenticatedAppAnleggsmidlerRoute
   '/_authenticated/app/arkiv': typeof AuthenticatedAppArkivRoute
   '/_authenticated/app/bank': typeof AuthenticatedAppBankRoute
   '/_authenticated/app/firma': typeof AuthenticatedAppFirmaRoute
@@ -325,6 +335,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/app/aarsavslutning'
     | '/app/aarsregnskap'
+    | '/app/anleggsmidler'
     | '/app/arkiv'
     | '/app/bank'
     | '/app/firma'
@@ -357,6 +368,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/app/aarsavslutning'
     | '/app/aarsregnskap'
+    | '/app/anleggsmidler'
     | '/app/arkiv'
     | '/app/bank'
     | '/app/firma'
@@ -391,6 +403,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app'
     | '/_authenticated/app/aarsavslutning'
     | '/_authenticated/app/aarsregnskap'
+    | '/_authenticated/app/anleggsmidler'
     | '/_authenticated/app/arkiv'
     | '/_authenticated/app/bank'
     | '/_authenticated/app/firma'
@@ -481,6 +494,13 @@ declare module '@tanstack/react-router' {
       path: '/aarsregnskap'
       fullPath: '/app/aarsregnskap'
       preLoaderRoute: typeof AuthenticatedAppAarsregnskapRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/anleggsmidler': {
+      id: '/_authenticated/app/anleggsmidler'
+      path: '/anleggsmidler'
+      fullPath: '/app/anleggsmidler'
+      preLoaderRoute: typeof AuthenticatedAppAnleggsmidlerRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/arkiv': {
@@ -657,6 +677,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedAppRouteChildren {
   AuthenticatedAppAarsavslutningRoute: typeof AuthenticatedAppAarsavslutningRoute
   AuthenticatedAppAarsregnskapRoute: typeof AuthenticatedAppAarsregnskapRoute
+  AuthenticatedAppAnleggsmidlerRoute: typeof AuthenticatedAppAnleggsmidlerRoute
   AuthenticatedAppArkivRoute: typeof AuthenticatedAppArkivRoute
   AuthenticatedAppBankRoute: typeof AuthenticatedAppBankRoute
   AuthenticatedAppFirmaRoute: typeof AuthenticatedAppFirmaRoute
@@ -687,6 +708,7 @@ interface AuthenticatedAppRouteChildren {
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppAarsavslutningRoute: AuthenticatedAppAarsavslutningRoute,
   AuthenticatedAppAarsregnskapRoute: AuthenticatedAppAarsregnskapRoute,
+  AuthenticatedAppAnleggsmidlerRoute: AuthenticatedAppAnleggsmidlerRoute,
   AuthenticatedAppArkivRoute: AuthenticatedAppArkivRoute,
   AuthenticatedAppBankRoute: AuthenticatedAppBankRoute,
   AuthenticatedAppFirmaRoute: AuthenticatedAppFirmaRoute,

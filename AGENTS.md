@@ -24,3 +24,4 @@
 - Accounted (svensk, AGPL) er referanse, ikke kodekilde. Ikke kopier kode derfra.
 - Agenter bruker kun `agent_*`-funksjonene med en `agent_keys`-nøkkel (lagres som hash, aldri i klartekst). Nøkkelen kan lese kontoplan/nye banktransaksjoner og foreslå bilag, aldri bokføre. Se `docs/AI-AGENTER.md`.
 - Kjøp med omvendt avgiftsplikt lages med `byggOmvendtAvgift` (`src/lib/mva.ts`): avgift på 270x (utgående) og 271x (inngående) i samme bilag, samme MVA-kode på alle tre linjene.
+- Anleggsmidler: saldosatser og grenser ligger i `src/lib/anleggsmidler.ts` (hentet fra Sticos, må kontrolleres per inntektsår). Beregningen ruller saldo fra første anskaffelsesår; ikke lagre beregnet saldo i databasen.

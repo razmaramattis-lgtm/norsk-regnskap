@@ -75,6 +75,9 @@ const tabeller: Record<string, unknown[]> = {
       mva_kode: null,
     },
   ],
+  anleggsmidler: [
+    { id: "m1", navn: "Skriver", saldogruppe: "a", anskaffet: "2025-03-10", anskaffelseskost: 40000, solgt: null, salgssum: null, konto: null },
+  ],
   account_balances: [
     { konto: "1920", debet: 100000, kredit: 0, mva_kode: null, dato: "2025-06-01" },
     { konto: "2000", debet: 0, kredit: 30000, mva_kode: null, dato: "2025-01-01" },
@@ -200,5 +203,17 @@ describe("nye sider rendrer med innhold", () => {
     await vis("/app/mva");
     await waitFor(() => expect(screen.getByText("Innsending")).toBeInTheDocument());
     expect(screen.getByRole("button", { name: /Send til Skatteetaten/ })).toBeInTheDocument();
+  });
+
+  it("anleggsmidler viser saldoavskrivning og register", async () => {
+    await vis("/app/anleggsmidler");
+    await waitFor(() => expect(screen.getByText("Gruppe A Kontormaskiner o.l.")).toBeInTheDocument());
+    expect(screen.getByText("Skriver")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Opprett avskrivningsbilag/ })).toBeEnabled();
+  });
+
+  it("mva viser fradragskolonne", async () => {
+    await vis("/app/mva");
+    expect(await screen.findByText("Fradrag")).toBeInTheDocument();
   });
 });
