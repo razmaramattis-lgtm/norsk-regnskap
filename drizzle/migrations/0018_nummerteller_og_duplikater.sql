@@ -1,5 +1,6 @@
--- Nummerintegritet: et fakturanummer eller bilagsnummer kan aldri brukes to ganger, tellerne kan ikke settes
--- tilbake, og samme leverandørfaktura kan ikke registreres to ganger.
+-- Nummerintegritet i tillegg til de unike indeksene i 0017: tellerne kan ikke settes tilbake eller hoppe over
+-- nummer etter første faktura/bilag, samme leverandørfaktura gjenkjennes også med andre store/små bokstaver
+-- og mellomrom, og samme fil kan ikke arkiveres to ganger.
 
 -- Tellerne i companies kan bare gå fremover (en administrator kunne ellers sette dem tilbake via API-et).
 CREATE OR REPLACE FUNCTION public.vakt_nummerteller() RETURNS trigger LANGUAGE plpgsql AS $$
@@ -37,7 +38,6 @@ BEGIN
   END IF;
 END $$;
 
-CREATE UNIQUE INDEX IF NOT EXISTS invoices_unikt_fakturanr ON public.invoices (company_id, fakturanr) WHERE fakturanr IS NOT NULL;
 CREATE UNIQUE INDEX IF NOT EXISTS supplier_invoices_unik_per_leverandor
   ON public.supplier_invoices (company_id, supplier_id, lower(btrim(fakturanr)))
   WHERE nullif(btrim(fakturanr), '') IS NOT NULL;
@@ -60,7 +60,15 @@ CREATE TRIGGER vakt_leverandorfaktura BEFORE INSERT OR UPDATE OF fakturanr, supp
   FOR EACH ROW EXECUTE FUNCTION public.vakt_leverandorfaktura();
 
 -- Samme fil (samme SHA-256) skal ikke arkiveres to ganger i samme firma; da ville kvitteringen kunne bokføres dobbelt.
-CREATE UNIQUE INDEX IF NOT EXISTS documents_unik_fil ON public.documents (company_id, sha256) WHERE sha256 IS NOT NULL;
+-- Finnes det allerede like filer, hoppes indeksen over (appen sjekker likevel før opplasting).
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM public.documents WHERE sha256 IS NOT NULL GROUP BY company_id, sha256 HAVING count(*) > 1) THEN
+    RAISE NOTICE 'Like filer finnes allerede i bilagsarkivet; unik indeks på sha256 er ikke opprettet.';
+  ELSE
+    CREATE UNIQUE INDEX IF NOT EXISTS documents_unik_fil ON public.documents (company_id, sha256) WHERE sha256 IS NOT NULL;
+  END IF;
+END $$;
 
 -- Bilagsmottak: notat og tidspunkt for når dokumentet ble behandlet
 ALTER TABLE public.documents ADD COLUMN IF NOT EXISTS notat text CHECK (notat IS NULL OR char_length(notat) <= 500);
