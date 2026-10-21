@@ -8,6 +8,11 @@ import { useHarAnsatte } from "@/lib/integrasjoner/hooks";
 import { beregnMvaMelding, terminer } from "@/lib/mva";
 import { PageHeader, Panel, StatusPill, usePostedLines } from "@/components/app/ui";
 import { Button } from "@/components/ui/button";
+import { lagGjoremaal } from "@/lib/gjoremaal";
+import { maanedstall } from "@/lib/maanedstall";
+import { useOversikt } from "@/lib/oversikt";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 export const Route = createFileRoute("/_authenticated/app/")({
   head: () => ({ meta: [{ title: "Oversikt – Fjordbok" }] }),
@@ -27,6 +32,11 @@ function Oversikt() {
     queryKey: ["open-invoices", company.id],
     queryFn: async () => (await supabase.from("invoices").select("total, forfallsdato").eq("company_id", company.id).eq("status", "sendt")).data ?? [],
   });
+
+  const { data: oversikt = [] } = useOversikt();
+  const rad = oversikt.find((o) => o.company_id === company.id);
+  const gjoremaal = rad ? lagGjoremaal(company, rad, idag()) : [];
+  const graf = maanedstall(år, y);
 
   const sum = (ls: typeof år, f: (k: number) => boolean) => ls.filter((l) => f(Number(l.konto))).reduce((s, l) => s + l.debet - l.kredit, 0);
   const inntekt = -sum(år, (k) => k >= 3000 && k < 4000);
@@ -71,6 +81,55 @@ function Oversikt() {
             {k.s && <div className="mt-1 text-xs text-destructive">{k.s}</div>}
           </Panel>
         ))}
+      </div>
+      <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+        <Panel className="p-6">
+          <h2 className="mb-3 text-xl">Til behandling</h2>
+          {!rad ? (
+            <div className="py-6 text-sm text-muted-foreground">Henter …</div>
+          ) : gjoremaal.length === 0 ? (
+            <div className="flex items-center gap-3 py-6 text-sm text-muted-foreground">
+              <CheckCircle2 className="h-5 w-5 text-success" /> Alt er à jour. Godt jobbet!
+            </div>
+          ) : (
+            <ul className="divide-y text-sm">
+              {gjoremaal.map((g) => (
+                <li key={g.id}>
+                  <Link to={g.lenke} className="group flex items-center gap-3 py-2.5">
+                    <span className={`h-2 w-2 shrink-0 rounded-full ${g.tone === "bad" ? "bg-destructive" : g.tone === "warn" ? "bg-warning" : "bg-primary"}`} />
+                    <span className="min-w-0 flex-1">
+                      <span className="block font-medium">{g.tittel}</span>
+                      {g.detalj && <span className="block text-xs text-muted-foreground">{g.detalj}</span>}
+                    </span>
+                    <ArrowRight className="h-4 w-4 opacity-30 transition group-hover:translate-x-0.5 group-hover:opacity-80" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+        <Panel className="p-6">
+          <div className="mb-3 flex items-baseline justify-between">
+            <h2 className="text-xl">Inntekter og kostnader {y}</h2>
+            <Link to="/app/rapporter" className="text-sm text-primary hover:underline">Resultat og balanse</Link>
+          </div>
+          <div className="h-56">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={graf} barGap={2} margin={{ left: 0, right: 0, top: 4, bottom: 0 }}>
+                <CartesianGrid vertical={false} stroke="var(--border)" />
+                <XAxis dataKey="maaned" tickLine={false} axisLine={false} fontSize={12} />
+                <YAxis tickLine={false} axisLine={false} fontSize={12} width={48} tickFormatter={(v: number) => (Math.abs(v) >= 1000 ? `${Math.round(v / 1000)}k` : String(v))} />
+                <Tooltip
+                  cursor={{ fill: "var(--muted)" }}
+                  contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
+                  formatter={(v: number, n: string) => [kr(v), n === "inntekt" ? "Inntekter" : "Kostnader"]}
+                />
+                <Bar dataKey="inntekt" fill="var(--primary)" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="kostnad" fill="var(--chart-2)" radius={[3, 3, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </Panel>
       </div>
       <Panel className="mt-8 p-6">
         <div className="mb-3 flex items-baseline justify-between">

@@ -37,6 +37,15 @@
 - [x] MCP-server (`mcp/fjordbok-mcp.mjs`) for AI-agenter, uten avhengigheter
 - [x] Agentnøkler: scopede nøkler som kun kan lese kontoplan/banktransaksjoner og foreslå bilag (`docs/AI-AGENTER.md`)
 
+## Brukervennlighet (fase 4, se `docs/KONKURRENTER.md`)
+- [x] «Til behandling» på oversikten: alt som venter, mest hastende først (`src/lib/gjoremaal.ts`)
+- [x] Graf over inntekter og kostnader per måned på oversikten
+- [x] Søk og hurtigvalg med ⌘K / Ctrl+K (sider, oppgaver, bytt firma)
+- [x] Mobilmeny
+- [ ] Lær kontoregler av godkjente forslag
+- [ ] Veiviser for nytt firma (Enhetsregisteret, MVA-termin, første kontoutskrift)
+- [ ] «Hva har skjedd?»-registrering (kjøp/salg/overføring) som førstevalg
+
 ## Neste faser
 - [ ] Velg og koble på leverandører: Peppol-aksesspunkt, Skatteetaten (MVA, skattemelding, a-melding), bank
 - [ ] SAF-T-import (flytte kunder fra andre systemer)

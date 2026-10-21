@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RouterProvider, createMemoryHistory, createRouter } from "@tanstack/react-router";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const firma = {
@@ -171,6 +171,21 @@ describe("nye sider rendrer med innhold", () => {
     await vis("/app");
     await waitFor(() => expect(screen.getByText("Kommende frister")).toBeInTheDocument());
     expect(screen.getAllByText(/MVA-melding|Skattemelding|Årsregnskap/).length).toBeGreaterThan(0);
+  });
+
+  it("oversikt viser gjøremål fra databasen", async () => {
+    await vis("/app");
+    await waitFor(() => expect(screen.getByText("Til behandling")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText("4 banktransaksjoner å avstemme")).toBeInTheDocument());
+    expect(screen.getByText("1 forslag venter på godkjenning")).toBeInTheDocument();
+  });
+
+  it("⌘K åpner søket med sider og hurtigvalg", async () => {
+    await vis("/app");
+    await waitFor(() => expect(screen.getByText("Kommende frister")).toBeInTheDocument());
+    fireEvent.keyDown(window, { key: "k", metaKey: true });
+    await waitFor(() => expect(screen.getByPlaceholderText(/Søk etter side/)).toBeInTheDocument());
+    expect(screen.getByText("Registrer bilag", { selector: "[cmdk-item]" })).toBeInTheDocument();
   });
 
   it("navigasjonen har de nye sidene", async () => {
