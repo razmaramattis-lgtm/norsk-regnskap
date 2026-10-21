@@ -70,15 +70,160 @@ export type Database = {
           },
         ]
       }
+      articles: {
+        Row: {
+          aktiv: boolean
+          company_id: string
+          created_at: string
+          enhet: string
+          id: string
+          mva_sats: number
+          navn: string
+          pris: number
+          varenr: string | null
+        }
+        Insert: {
+          aktiv?: boolean
+          company_id: string
+          created_at?: string
+          enhet?: string
+          id?: string
+          mva_sats?: number
+          navn: string
+          pris?: number
+          varenr?: string | null
+        }
+        Update: {
+          aktiv?: boolean
+          company_id?: string
+          created_at?: string
+          enhet?: string
+          id?: string
+          mva_sats?: number
+          navn?: string
+          pris?: number
+          varenr?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "articles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audit_log: {
+        Row: {
+          company_id: string
+          created_at: string
+          detaljer: Json | null
+          handling: string
+          id: number
+          objekt: string | null
+          objekt_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          detaljer?: Json | null
+          handling: string
+          id?: number
+          objekt?: string | null
+          objekt_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          detaljer?: Json | null
+          handling?: string
+          id?: number
+          objekt?: string | null
+          objekt_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_log_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bank_transactions: {
+        Row: {
+          bankkonto: string
+          belop: number
+          company_id: string
+          created_at: string
+          dato: string
+          id: string
+          import_hash: string | null
+          referanse: string | null
+          status: string
+          tekst: string
+          voucher_id: string | null
+        }
+        Insert: {
+          bankkonto?: string
+          belop: number
+          company_id: string
+          created_at?: string
+          dato: string
+          id?: string
+          import_hash?: string | null
+          referanse?: string | null
+          status?: string
+          tekst?: string
+          voucher_id?: string | null
+        }
+        Update: {
+          bankkonto?: string
+          belop?: number
+          company_id?: string
+          created_at?: string
+          dato?: string
+          id?: string
+          import_hash?: string | null
+          referanse?: string | null
+          status?: string
+          tekst?: string
+          voucher_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_transactions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_transactions_voucher_id_fkey"
+            columns: ["voucher_id"]
+            isOneToOne: false
+            referencedRelation: "vouchers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       companies: {
         Row: {
           adresse: string | null
+          aga_sone: string
           company_type: Database["public"]["Enums"]["company_type"]
           created_at: string
           created_by: string
           epost: string | null
+          feriepengesats: number
           id: string
           kontonummer: string | null
+          laast_til: string | null
           mva_registrert: boolean
           mva_termin: string
           name: string
@@ -91,12 +236,15 @@ export type Database = {
         }
         Insert: {
           adresse?: string | null
+          aga_sone?: string
           company_type?: Database["public"]["Enums"]["company_type"]
           created_at?: string
           created_by?: string
           epost?: string | null
+          feriepengesats?: number
           id?: string
           kontonummer?: string | null
+          laast_til?: string | null
           mva_registrert?: boolean
           mva_termin?: string
           name: string
@@ -109,12 +257,15 @@ export type Database = {
         }
         Update: {
           adresse?: string | null
+          aga_sone?: string
           company_type?: Database["public"]["Enums"]["company_type"]
           created_at?: string
           created_by?: string
           epost?: string | null
+          feriepengesats?: number
           id?: string
           kontonummer?: string | null
+          laast_til?: string | null
           mva_registrert?: boolean
           mva_termin?: string
           name?: string
@@ -241,6 +392,135 @@ export type Database = {
           },
         ]
       }
+      documents: {
+        Row: {
+          company_id: string
+          created_at: string
+          filnavn: string
+          id: string
+          lastet_opp_av: string | null
+          mime: string | null
+          oppbevares_til: string
+          path: string
+          sha256: string | null
+          storrelse: number | null
+          supplier_invoice_id: string | null
+          voucher_id: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          filnavn: string
+          id?: string
+          lastet_opp_av?: string | null
+          mime?: string | null
+          oppbevares_til?: string
+          path: string
+          sha256?: string | null
+          storrelse?: number | null
+          supplier_invoice_id?: string | null
+          voucher_id?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          filnavn?: string
+          id?: string
+          lastet_opp_av?: string | null
+          mime?: string | null
+          oppbevares_til?: string
+          path?: string
+          sha256?: string | null
+          storrelse?: number | null
+          supplier_invoice_id?: string | null
+          voucher_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_supplier_invoice_id_fkey"
+            columns: ["supplier_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_voucher_id_fkey"
+            columns: ["voucher_id"]
+            isOneToOne: false
+            referencedRelation: "vouchers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employees: {
+        Row: {
+          aktiv: boolean
+          ansatt_dato: string | null
+          company_id: string
+          created_at: string
+          epost: string | null
+          id: string
+          kontonummer: string | null
+          lonnstype: string
+          maanedslonn: number
+          navn: string
+          otp_prosent: number
+          skattetrekk_prosent: number
+          stilling: string | null
+          stillingsprosent: number
+          timelonn: number
+        }
+        Insert: {
+          aktiv?: boolean
+          ansatt_dato?: string | null
+          company_id: string
+          created_at?: string
+          epost?: string | null
+          id?: string
+          kontonummer?: string | null
+          lonnstype?: string
+          maanedslonn?: number
+          navn: string
+          otp_prosent?: number
+          skattetrekk_prosent?: number
+          stilling?: string | null
+          stillingsprosent?: number
+          timelonn?: number
+        }
+        Update: {
+          aktiv?: boolean
+          ansatt_dato?: string | null
+          company_id?: string
+          created_at?: string
+          epost?: string | null
+          id?: string
+          kontonummer?: string | null
+          lonnstype?: string
+          maanedslonn?: number
+          navn?: string
+          otp_prosent?: number
+          skattetrekk_prosent?: number
+          stilling?: string | null
+          stillingsprosent?: number
+          timelonn?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employees_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_lines: {
         Row: {
           antall: number
@@ -295,11 +575,13 @@ export type Database = {
           company_id: string
           created_at: string
           customer_id: string
+          er_kreditnota: boolean
           fakturadato: string
           fakturanr: number | null
           forfallsdato: string
           id: string
           kid: string | null
+          kreditnota_for: string | null
           merknad: string | null
           mva: number
           netto: number
@@ -312,11 +594,13 @@ export type Database = {
           company_id: string
           created_at?: string
           customer_id: string
+          er_kreditnota?: boolean
           fakturadato?: string
           fakturanr?: number | null
           forfallsdato?: string
           id?: string
           kid?: string | null
+          kreditnota_for?: string | null
           merknad?: string | null
           mva?: number
           netto?: number
@@ -329,11 +613,13 @@ export type Database = {
           company_id?: string
           created_at?: string
           customer_id?: string
+          er_kreditnota?: boolean
           fakturadato?: string
           fakturanr?: number | null
           forfallsdato?: string
           id?: string
           kid?: string | null
+          kreditnota_for?: string | null
           merknad?: string | null
           mva?: number
           netto?: number
@@ -364,7 +650,126 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "invoices_kreditnota_for_fkey"
+            columns: ["kreditnota_for"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "invoices_voucher_id_fkey"
+            columns: ["voucher_id"]
+            isOneToOne: false
+            referencedRelation: "vouchers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payroll_lines: {
+        Row: {
+          aga: number
+          brutto: number
+          company_id: string
+          employee_id: string
+          feriepenger: number
+          id: string
+          netto: number
+          otp: number
+          run_id: string
+          skattetrekk: number
+          tillegg: number
+          timer: number
+        }
+        Insert: {
+          aga?: number
+          brutto?: number
+          company_id: string
+          employee_id: string
+          feriepenger?: number
+          id?: string
+          netto?: number
+          otp?: number
+          run_id: string
+          skattetrekk?: number
+          tillegg?: number
+          timer?: number
+        }
+        Update: {
+          aga?: number
+          brutto?: number
+          company_id?: string
+          employee_id?: string
+          feriepenger?: number
+          id?: string
+          netto?: number
+          otp?: number
+          run_id?: string
+          skattetrekk?: number
+          tillegg?: number
+          timer?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_lines_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_lines_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_lines_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payroll_runs: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          periode: string
+          status: string
+          utbetalingsdato: string
+          voucher_id: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          periode: string
+          status?: string
+          utbetalingsdato: string
+          voucher_id?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          periode?: string
+          status?: string
+          utbetalingsdato?: string
+          voucher_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_runs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_runs_voucher_id_fkey"
             columns: ["voucher_id"]
             isOneToOne: false
             referencedRelation: "vouchers"
@@ -392,6 +797,187 @@ export type Database = {
           id?: string
         }
         Relationships: []
+      }
+      supplier_invoice_lines: {
+        Row: {
+          beskrivelse: string | null
+          company_id: string
+          id: string
+          konto: string
+          linjenr: number
+          mva_sats: number
+          netto: number
+          supplier_invoice_id: string
+        }
+        Insert: {
+          beskrivelse?: string | null
+          company_id: string
+          id?: string
+          konto: string
+          linjenr?: number
+          mva_sats?: number
+          netto?: number
+          supplier_invoice_id: string
+        }
+        Update: {
+          beskrivelse?: string | null
+          company_id?: string
+          id?: string
+          konto?: string
+          linjenr?: number
+          mva_sats?: number
+          netto?: number
+          supplier_invoice_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_invoice_lines_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_invoice_lines_supplier_invoice_id_fkey"
+            columns: ["supplier_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      supplier_invoices: {
+        Row: {
+          betalt_voucher_id: string | null
+          company_id: string
+          created_at: string
+          fakturadato: string
+          fakturanr: string | null
+          forfallsdato: string
+          id: string
+          kid: string | null
+          mva: number
+          netto: number
+          status: Database["public"]["Enums"]["supplier_invoice_status"]
+          supplier_id: string
+          total: number
+          voucher_id: string | null
+        }
+        Insert: {
+          betalt_voucher_id?: string | null
+          company_id: string
+          created_at?: string
+          fakturadato?: string
+          fakturanr?: string | null
+          forfallsdato?: string
+          id?: string
+          kid?: string | null
+          mva?: number
+          netto?: number
+          status?: Database["public"]["Enums"]["supplier_invoice_status"]
+          supplier_id: string
+          total?: number
+          voucher_id?: string | null
+        }
+        Update: {
+          betalt_voucher_id?: string | null
+          company_id?: string
+          created_at?: string
+          fakturadato?: string
+          fakturanr?: string | null
+          forfallsdato?: string
+          id?: string
+          kid?: string | null
+          mva?: number
+          netto?: number
+          status?: Database["public"]["Enums"]["supplier_invoice_status"]
+          supplier_id?: string
+          total?: number
+          voucher_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_invoices_betalt_voucher_id_fkey"
+            columns: ["betalt_voucher_id"]
+            isOneToOne: false
+            referencedRelation: "vouchers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_invoices_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_invoices_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_invoices_voucher_id_fkey"
+            columns: ["voucher_id"]
+            isOneToOne: false
+            referencedRelation: "vouchers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      suppliers: {
+        Row: {
+          adresse: string | null
+          company_id: string
+          created_at: string
+          epost: string | null
+          id: string
+          kontonummer: string | null
+          land: string
+          navn: string
+          org_nr: string | null
+          postnr: string | null
+          poststed: string | null
+          standard_konto: string | null
+        }
+        Insert: {
+          adresse?: string | null
+          company_id: string
+          created_at?: string
+          epost?: string | null
+          id?: string
+          kontonummer?: string | null
+          land?: string
+          navn: string
+          org_nr?: string | null
+          postnr?: string | null
+          poststed?: string | null
+          standard_konto?: string | null
+        }
+        Update: {
+          adresse?: string | null
+          company_id?: string
+          created_at?: string
+          epost?: string | null
+          id?: string
+          kontonummer?: string | null
+          land?: string
+          navn?: string
+          org_nr?: string | null
+          postnr?: string | null
+          poststed?: string | null
+          standard_konto?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "suppliers_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       voucher_lines: {
         Row: {
@@ -528,10 +1114,38 @@ export type Database = {
     }
     Functions: {
       accept_my_invites: { Args: never; Returns: number }
+      book_bank_transaction: {
+        Args: {
+          _invoice: string
+          _motkonto: string
+          _mva_sats: number
+          _supplier_invoice: string
+          _tx: string
+        }
+        Returns: string
+      }
+      book_payroll: { Args: { _run: string }; Returns: string }
+      book_supplier_invoice: { Args: { _inv: string }; Returns: string }
       can_write: { Args: { _company: string }; Returns: boolean }
+      close_year: { Args: { _aar: number; _company: string }; Returns: string }
+      credit_invoice: { Args: { _invoice: string }; Returns: string }
       is_admin: { Args: { _company: string }; Returns: boolean }
       is_member: { Args: { _company: string }; Returns: boolean }
       kid_mod10: { Args: { _base: string }; Returns: string }
+      log_audit: {
+        Args: {
+          _company: string
+          _det: Json
+          _handling: string
+          _id: string
+          _objekt: string
+        }
+        Returns: undefined
+      }
+      pay_supplier_invoice: {
+        Args: { _dato: string; _inv: string }
+        Returns: string
+      }
       post_voucher: { Args: { _voucher: string }; Returns: number }
       register_invoice_payment: {
         Args: { _dato: string; _invoice: string }
@@ -539,11 +1153,16 @@ export type Database = {
       }
       reverse_voucher: { Args: { _voucher: string }; Returns: string }
       send_invoice: { Args: { _invoice: string }; Returns: number }
+      set_period_lock: {
+        Args: { _company: string; _dato: string }
+        Returns: undefined
+      }
     }
     Enums: {
       company_type: "enk" | "as"
       invoice_status: "utkast" | "sendt" | "betalt" | "kreditert"
       member_role: "eier" | "admin" | "regnskapsforer" | "leser"
+      supplier_invoice_status: "utkast" | "bokfort" | "betalt"
       voucher_status: "utkast" | "bokfort"
     }
     CompositeTypes: {
@@ -675,6 +1294,7 @@ export const Constants = {
       company_type: ["enk", "as"],
       invoice_status: ["utkast", "sendt", "betalt", "kreditert"],
       member_role: ["eier", "admin", "regnskapsforer", "leser"],
+      supplier_invoice_status: ["utkast", "bokfort", "betalt"],
       voucher_status: ["utkast", "bokfort"],
     },
   },

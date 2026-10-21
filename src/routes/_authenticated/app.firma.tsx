@@ -6,6 +6,7 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompany, ROLLENAVN, type Role } from "@/lib/company";
 import { gyldigOrgNr } from "@/lib/format";
+import { AGA_SONER } from "@/lib/lonn";
 import { PageHeader, Panel } from "@/components/app/ui";
 import { NyttFirma } from "@/components/app/NyttFirma";
 import { Button } from "@/components/ui/button";
@@ -50,7 +51,7 @@ function Firma() {
     e.preventDefault();
     if (f.org_nr && !gyldigOrgNr(f.org_nr)) { toast.error("Ugyldig organisasjonsnummer"); return; }
     const { error } = await supabase.from("companies").update({
-      name: f.name, org_nr: f.org_nr, mva_registrert: f.mva_registrert, mva_termin: f.mva_termin,
+      name: f.name, org_nr: f.org_nr, mva_registrert: f.mva_registrert, mva_termin: f.mva_termin, aga_sone: f.aga_sone, feriepengesats: Number(f.feriepengesats),
       adresse: f.adresse, postnr: f.postnr, poststed: f.poststed, kontonummer: f.kontonummer, epost: f.epost,
     }).eq("id", company.id);
     if (error) { toast.error(error.message); return; }
@@ -88,6 +89,19 @@ function Firma() {
               <select className="h-9 w-full rounded-md border border-input bg-card px-2 text-sm" value={f.mva_termin} onChange={(e) => setF({ ...f, mva_termin: e.target.value })} disabled={!isAdmin}>
                 <option value="tomaaned">Alminnelig (seks terminer)</option>
                 <option value="aarlig">Årstermin (omsetning under 1 mill. kr)</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Arbeidsgiveravgift-sone</Label>
+              <select className="h-9 w-full rounded-md border border-input bg-card px-2 text-sm" value={f.aga_sone} onChange={(e) => setF({ ...f, aga_sone: e.target.value })} disabled={!isAdmin}>
+                {Object.entries(AGA_SONER).map(([k, v]) => <option key={k} value={k}>{v.navn} – {v.sats} %</option>)}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Feriepengesats</Label>
+              <select className="h-9 w-full rounded-md border border-input bg-card px-2 text-sm" value={String(Number(f.feriepengesats))} onChange={(e) => setF({ ...f, feriepengesats: Number(e.target.value) })} disabled={!isAdmin}>
+                <option value="10.2">10,2 % (4 uker + 1 dag)</option>
+                <option value="12">12 % (5 uker, tariff)</option>
               </select>
             </div>
             {isAdmin && <Button type="submit" className="col-span-2">Lagre</Button>}

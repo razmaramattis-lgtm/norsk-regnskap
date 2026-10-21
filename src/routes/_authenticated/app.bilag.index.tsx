@@ -13,7 +13,7 @@ export const Route = createFileRoute("/_authenticated/app/bilag/")({
   component: BilagListe,
 });
 
-const KILDE: Record<string, string> = { manuell: "Manuell", faktura: "Faktura", innbetaling: "Innbetaling", korreksjon: "Korreksjon" };
+const KILDE: Record<string, string> = { manuell: "Manuell", faktura: "Faktura", innbetaling: "Innbetaling", korreksjon: "Korreksjon", leverandorfaktura: "Leverandørfaktura", utbetaling: "Utbetaling", bank: "Bank", lonn: "Lønn", aarsavslutning: "Årsavslutning" };
 
 function BilagListe() {
   const { company, canWrite } = useCompany();

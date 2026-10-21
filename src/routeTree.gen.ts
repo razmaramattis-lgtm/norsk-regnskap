@@ -15,16 +15,28 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
+import { Route as AuthenticatedAppAarsavslutningRouteImport } from './routes/_authenticated/app.aarsavslutning'
+import { Route as AuthenticatedAppArkivRouteImport } from './routes/_authenticated/app.arkiv'
+import { Route as AuthenticatedAppBankRouteImport } from './routes/_authenticated/app.bank'
 import { Route as AuthenticatedAppFirmaRouteImport } from './routes/_authenticated/app.firma'
+import { Route as AuthenticatedAppHovedbokRouteImport } from './routes/_authenticated/app.hovedbok'
 import { Route as AuthenticatedAppKontoplanRouteImport } from './routes/_authenticated/app.kontoplan'
 import { Route as AuthenticatedAppKunderRouteImport } from './routes/_authenticated/app.kunder'
+import { Route as AuthenticatedAppLeverandorerRouteImport } from './routes/_authenticated/app.leverandorer'
+import { Route as AuthenticatedAppLoggRouteImport } from './routes/_authenticated/app.logg'
 import { Route as AuthenticatedAppMvaRouteImport } from './routes/_authenticated/app.mva'
 import { Route as AuthenticatedAppRapporterRouteImport } from './routes/_authenticated/app.rapporter'
+import { Route as AuthenticatedAppReskontroRouteImport } from './routes/_authenticated/app.reskontro'
+import { Route as AuthenticatedAppVarerRouteImport } from './routes/_authenticated/app.varer'
 import { Route as AuthenticatedAppBilagIndexRouteImport } from './routes/_authenticated/app.bilag.index'
 import { Route as AuthenticatedAppBilagIdRouteImport } from './routes/_authenticated/app.bilag.$id'
 import { Route as AuthenticatedAppBilagNyRouteImport } from './routes/_authenticated/app.bilag.ny'
 import { Route as AuthenticatedAppFakturaerIndexRouteImport } from './routes/_authenticated/app.fakturaer.index'
 import { Route as AuthenticatedAppFakturaerIdRouteImport } from './routes/_authenticated/app.fakturaer.$id'
+import { Route as AuthenticatedAppLeverandorfakturaerIndexRouteImport } from './routes/_authenticated/app.leverandorfakturaer.index'
+import { Route as AuthenticatedAppLeverandorfakturaerIdRouteImport } from './routes/_authenticated/app.leverandorfakturaer.$id'
+import { Route as AuthenticatedAppLonnIndexRouteImport } from './routes/_authenticated/app.lonn.index'
+import { Route as AuthenticatedAppLonnIdRouteImport } from './routes/_authenticated/app.lonn.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -55,11 +67,33 @@ const AuthenticatedAppIndexRoute = AuthenticatedAppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppAarsavslutningRoute =
+  AuthenticatedAppAarsavslutningRouteImport.update({
+    id: '/aarsavslutning',
+    path: '/aarsavslutning',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppArkivRoute = AuthenticatedAppArkivRouteImport.update({
+  id: '/arkiv',
+  path: '/arkiv',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppBankRoute = AuthenticatedAppBankRouteImport.update({
+  id: '/bank',
+  path: '/bank',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppFirmaRoute = AuthenticatedAppFirmaRouteImport.update({
   id: '/firma',
   path: '/firma',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppHovedbokRoute =
+  AuthenticatedAppHovedbokRouteImport.update({
+    id: '/hovedbok',
+    path: '/hovedbok',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppKontoplanRoute =
   AuthenticatedAppKontoplanRouteImport.update({
     id: '/kontoplan',
@@ -69,6 +103,17 @@ const AuthenticatedAppKontoplanRoute =
 const AuthenticatedAppKunderRoute = AuthenticatedAppKunderRouteImport.update({
   id: '/kunder',
   path: '/kunder',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppLeverandorerRoute =
+  AuthenticatedAppLeverandorerRouteImport.update({
+    id: '/leverandorer',
+    path: '/leverandorer',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppLoggRoute = AuthenticatedAppLoggRouteImport.update({
+  id: '/logg',
+  path: '/logg',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
 const AuthenticatedAppMvaRoute = AuthenticatedAppMvaRouteImport.update({
@@ -82,6 +127,17 @@ const AuthenticatedAppRapporterRoute =
     path: '/rapporter',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppReskontroRoute =
+  AuthenticatedAppReskontroRouteImport.update({
+    id: '/reskontro',
+    path: '/reskontro',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppVarerRoute = AuthenticatedAppVarerRouteImport.update({
+  id: '/varer',
+  path: '/varer',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppBilagIndexRoute =
   AuthenticatedAppBilagIndexRouteImport.update({
     id: '/bilag/',
@@ -110,39 +166,86 @@ const AuthenticatedAppFakturaerIdRoute =
     path: '/fakturaer/$id',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppLeverandorfakturaerIndexRoute =
+  AuthenticatedAppLeverandorfakturaerIndexRouteImport.update({
+    id: '/leverandorfakturaer/',
+    path: '/leverandorfakturaer/',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppLeverandorfakturaerIdRoute =
+  AuthenticatedAppLeverandorfakturaerIdRouteImport.update({
+    id: '/leverandorfakturaer/$id',
+    path: '/leverandorfakturaer/$id',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppLonnIndexRoute =
+  AuthenticatedAppLonnIndexRouteImport.update({
+    id: '/lonn/',
+    path: '/lonn/',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppLonnIdRoute = AuthenticatedAppLonnIdRouteImport.update({
+  id: '/lonn/$id',
+  path: '/lonn/$id',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/app': typeof AuthenticatedAppRouteWithChildren
+  '/app/aarsavslutning': typeof AuthenticatedAppAarsavslutningRoute
+  '/app/arkiv': typeof AuthenticatedAppArkivRoute
+  '/app/bank': typeof AuthenticatedAppBankRoute
   '/app/firma': typeof AuthenticatedAppFirmaRoute
+  '/app/hovedbok': typeof AuthenticatedAppHovedbokRoute
   '/app/kontoplan': typeof AuthenticatedAppKontoplanRoute
   '/app/kunder': typeof AuthenticatedAppKunderRoute
+  '/app/leverandorer': typeof AuthenticatedAppLeverandorerRoute
+  '/app/logg': typeof AuthenticatedAppLoggRoute
   '/app/mva': typeof AuthenticatedAppMvaRoute
   '/app/rapporter': typeof AuthenticatedAppRapporterRoute
+  '/app/reskontro': typeof AuthenticatedAppReskontroRoute
+  '/app/varer': typeof AuthenticatedAppVarerRoute
   '/app/': typeof AuthenticatedAppIndexRoute
   '/app/bilag/$id': typeof AuthenticatedAppBilagIdRoute
   '/app/bilag/ny': typeof AuthenticatedAppBilagNyRoute
   '/app/fakturaer/$id': typeof AuthenticatedAppFakturaerIdRoute
+  '/app/leverandorfakturaer/$id': typeof AuthenticatedAppLeverandorfakturaerIdRoute
+  '/app/lonn/$id': typeof AuthenticatedAppLonnIdRoute
   '/app/bilag/': typeof AuthenticatedAppBilagIndexRoute
   '/app/fakturaer/': typeof AuthenticatedAppFakturaerIndexRoute
+  '/app/leverandorfakturaer/': typeof AuthenticatedAppLeverandorfakturaerIndexRoute
+  '/app/lonn/': typeof AuthenticatedAppLonnIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/app/aarsavslutning': typeof AuthenticatedAppAarsavslutningRoute
+  '/app/arkiv': typeof AuthenticatedAppArkivRoute
+  '/app/bank': typeof AuthenticatedAppBankRoute
   '/app/firma': typeof AuthenticatedAppFirmaRoute
+  '/app/hovedbok': typeof AuthenticatedAppHovedbokRoute
   '/app/kontoplan': typeof AuthenticatedAppKontoplanRoute
   '/app/kunder': typeof AuthenticatedAppKunderRoute
+  '/app/leverandorer': typeof AuthenticatedAppLeverandorerRoute
+  '/app/logg': typeof AuthenticatedAppLoggRoute
   '/app/mva': typeof AuthenticatedAppMvaRoute
   '/app/rapporter': typeof AuthenticatedAppRapporterRoute
+  '/app/reskontro': typeof AuthenticatedAppReskontroRoute
+  '/app/varer': typeof AuthenticatedAppVarerRoute
   '/app': typeof AuthenticatedAppIndexRoute
   '/app/bilag/$id': typeof AuthenticatedAppBilagIdRoute
   '/app/bilag/ny': typeof AuthenticatedAppBilagNyRoute
   '/app/fakturaer/$id': typeof AuthenticatedAppFakturaerIdRoute
+  '/app/leverandorfakturaer/$id': typeof AuthenticatedAppLeverandorfakturaerIdRoute
+  '/app/lonn/$id': typeof AuthenticatedAppLonnIdRoute
   '/app/bilag': typeof AuthenticatedAppBilagIndexRoute
   '/app/fakturaer': typeof AuthenticatedAppFakturaerIndexRoute
+  '/app/leverandorfakturaer': typeof AuthenticatedAppLeverandorfakturaerIndexRoute
+  '/app/lonn': typeof AuthenticatedAppLonnIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -151,17 +254,29 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
+  '/_authenticated/app/aarsavslutning': typeof AuthenticatedAppAarsavslutningRoute
+  '/_authenticated/app/arkiv': typeof AuthenticatedAppArkivRoute
+  '/_authenticated/app/bank': typeof AuthenticatedAppBankRoute
   '/_authenticated/app/firma': typeof AuthenticatedAppFirmaRoute
+  '/_authenticated/app/hovedbok': typeof AuthenticatedAppHovedbokRoute
   '/_authenticated/app/kontoplan': typeof AuthenticatedAppKontoplanRoute
   '/_authenticated/app/kunder': typeof AuthenticatedAppKunderRoute
+  '/_authenticated/app/leverandorer': typeof AuthenticatedAppLeverandorerRoute
+  '/_authenticated/app/logg': typeof AuthenticatedAppLoggRoute
   '/_authenticated/app/mva': typeof AuthenticatedAppMvaRoute
   '/_authenticated/app/rapporter': typeof AuthenticatedAppRapporterRoute
+  '/_authenticated/app/reskontro': typeof AuthenticatedAppReskontroRoute
+  '/_authenticated/app/varer': typeof AuthenticatedAppVarerRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
   '/_authenticated/app/bilag/$id': typeof AuthenticatedAppBilagIdRoute
   '/_authenticated/app/bilag/ny': typeof AuthenticatedAppBilagNyRoute
   '/_authenticated/app/fakturaer/$id': typeof AuthenticatedAppFakturaerIdRoute
+  '/_authenticated/app/leverandorfakturaer/$id': typeof AuthenticatedAppLeverandorfakturaerIdRoute
+  '/_authenticated/app/lonn/$id': typeof AuthenticatedAppLonnIdRoute
   '/_authenticated/app/bilag/': typeof AuthenticatedAppBilagIndexRoute
   '/_authenticated/app/fakturaer/': typeof AuthenticatedAppFakturaerIndexRoute
+  '/_authenticated/app/leverandorfakturaer/': typeof AuthenticatedAppLeverandorfakturaerIndexRoute
+  '/_authenticated/app/lonn/': typeof AuthenticatedAppLonnIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -170,33 +285,57 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/app'
+    | '/app/aarsavslutning'
+    | '/app/arkiv'
+    | '/app/bank'
     | '/app/firma'
+    | '/app/hovedbok'
     | '/app/kontoplan'
     | '/app/kunder'
+    | '/app/leverandorer'
+    | '/app/logg'
     | '/app/mva'
     | '/app/rapporter'
+    | '/app/reskontro'
+    | '/app/varer'
     | '/app/'
     | '/app/bilag/$id'
     | '/app/bilag/ny'
     | '/app/fakturaer/$id'
+    | '/app/leverandorfakturaer/$id'
+    | '/app/lonn/$id'
     | '/app/bilag/'
     | '/app/fakturaer/'
+    | '/app/leverandorfakturaer/'
+    | '/app/lonn/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/reset-password'
+    | '/app/aarsavslutning'
+    | '/app/arkiv'
+    | '/app/bank'
     | '/app/firma'
+    | '/app/hovedbok'
     | '/app/kontoplan'
     | '/app/kunder'
+    | '/app/leverandorer'
+    | '/app/logg'
     | '/app/mva'
     | '/app/rapporter'
+    | '/app/reskontro'
+    | '/app/varer'
     | '/app'
     | '/app/bilag/$id'
     | '/app/bilag/ny'
     | '/app/fakturaer/$id'
+    | '/app/leverandorfakturaer/$id'
+    | '/app/lonn/$id'
     | '/app/bilag'
     | '/app/fakturaer'
+    | '/app/leverandorfakturaer'
+    | '/app/lonn'
   id:
     | '__root__'
     | '/'
@@ -204,17 +343,29 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/_authenticated/app'
+    | '/_authenticated/app/aarsavslutning'
+    | '/_authenticated/app/arkiv'
+    | '/_authenticated/app/bank'
     | '/_authenticated/app/firma'
+    | '/_authenticated/app/hovedbok'
     | '/_authenticated/app/kontoplan'
     | '/_authenticated/app/kunder'
+    | '/_authenticated/app/leverandorer'
+    | '/_authenticated/app/logg'
     | '/_authenticated/app/mva'
     | '/_authenticated/app/rapporter'
+    | '/_authenticated/app/reskontro'
+    | '/_authenticated/app/varer'
     | '/_authenticated/app/'
     | '/_authenticated/app/bilag/$id'
     | '/_authenticated/app/bilag/ny'
     | '/_authenticated/app/fakturaer/$id'
+    | '/_authenticated/app/leverandorfakturaer/$id'
+    | '/_authenticated/app/lonn/$id'
     | '/_authenticated/app/bilag/'
     | '/_authenticated/app/fakturaer/'
+    | '/_authenticated/app/leverandorfakturaer/'
+    | '/_authenticated/app/lonn/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -268,11 +419,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppIndexRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/aarsavslutning': {
+      id: '/_authenticated/app/aarsavslutning'
+      path: '/aarsavslutning'
+      fullPath: '/app/aarsavslutning'
+      preLoaderRoute: typeof AuthenticatedAppAarsavslutningRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/arkiv': {
+      id: '/_authenticated/app/arkiv'
+      path: '/arkiv'
+      fullPath: '/app/arkiv'
+      preLoaderRoute: typeof AuthenticatedAppArkivRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/bank': {
+      id: '/_authenticated/app/bank'
+      path: '/bank'
+      fullPath: '/app/bank'
+      preLoaderRoute: typeof AuthenticatedAppBankRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/firma': {
       id: '/_authenticated/app/firma'
       path: '/firma'
       fullPath: '/app/firma'
       preLoaderRoute: typeof AuthenticatedAppFirmaRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/hovedbok': {
+      id: '/_authenticated/app/hovedbok'
+      path: '/hovedbok'
+      fullPath: '/app/hovedbok'
+      preLoaderRoute: typeof AuthenticatedAppHovedbokRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/kontoplan': {
@@ -289,6 +468,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppKunderRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/leverandorer': {
+      id: '/_authenticated/app/leverandorer'
+      path: '/leverandorer'
+      fullPath: '/app/leverandorer'
+      preLoaderRoute: typeof AuthenticatedAppLeverandorerRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/logg': {
+      id: '/_authenticated/app/logg'
+      path: '/logg'
+      fullPath: '/app/logg'
+      preLoaderRoute: typeof AuthenticatedAppLoggRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/mva': {
       id: '/_authenticated/app/mva'
       path: '/mva'
@@ -301,6 +494,20 @@ declare module '@tanstack/react-router' {
       path: '/rapporter'
       fullPath: '/app/rapporter'
       preLoaderRoute: typeof AuthenticatedAppRapporterRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/reskontro': {
+      id: '/_authenticated/app/reskontro'
+      path: '/reskontro'
+      fullPath: '/app/reskontro'
+      preLoaderRoute: typeof AuthenticatedAppReskontroRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/varer': {
+      id: '/_authenticated/app/varer'
+      path: '/varer'
+      fullPath: '/app/varer'
+      preLoaderRoute: typeof AuthenticatedAppVarerRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/bilag/': {
@@ -338,35 +545,89 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppFakturaerIdRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/leverandorfakturaer/': {
+      id: '/_authenticated/app/leverandorfakturaer/'
+      path: '/leverandorfakturaer'
+      fullPath: '/app/leverandorfakturaer/'
+      preLoaderRoute: typeof AuthenticatedAppLeverandorfakturaerIndexRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/leverandorfakturaer/$id': {
+      id: '/_authenticated/app/leverandorfakturaer/$id'
+      path: '/leverandorfakturaer/$id'
+      fullPath: '/app/leverandorfakturaer/$id'
+      preLoaderRoute: typeof AuthenticatedAppLeverandorfakturaerIdRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/lonn/': {
+      id: '/_authenticated/app/lonn/'
+      path: '/lonn'
+      fullPath: '/app/lonn/'
+      preLoaderRoute: typeof AuthenticatedAppLonnIndexRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/lonn/$id': {
+      id: '/_authenticated/app/lonn/$id'
+      path: '/lonn/$id'
+      fullPath: '/app/lonn/$id'
+      preLoaderRoute: typeof AuthenticatedAppLonnIdRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
   }
 }
 
 interface AuthenticatedAppRouteChildren {
+  AuthenticatedAppAarsavslutningRoute: typeof AuthenticatedAppAarsavslutningRoute
+  AuthenticatedAppArkivRoute: typeof AuthenticatedAppArkivRoute
+  AuthenticatedAppBankRoute: typeof AuthenticatedAppBankRoute
   AuthenticatedAppFirmaRoute: typeof AuthenticatedAppFirmaRoute
+  AuthenticatedAppHovedbokRoute: typeof AuthenticatedAppHovedbokRoute
   AuthenticatedAppKontoplanRoute: typeof AuthenticatedAppKontoplanRoute
   AuthenticatedAppKunderRoute: typeof AuthenticatedAppKunderRoute
+  AuthenticatedAppLeverandorerRoute: typeof AuthenticatedAppLeverandorerRoute
+  AuthenticatedAppLoggRoute: typeof AuthenticatedAppLoggRoute
   AuthenticatedAppMvaRoute: typeof AuthenticatedAppMvaRoute
   AuthenticatedAppRapporterRoute: typeof AuthenticatedAppRapporterRoute
+  AuthenticatedAppReskontroRoute: typeof AuthenticatedAppReskontroRoute
+  AuthenticatedAppVarerRoute: typeof AuthenticatedAppVarerRoute
   AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
   AuthenticatedAppBilagIdRoute: typeof AuthenticatedAppBilagIdRoute
   AuthenticatedAppBilagNyRoute: typeof AuthenticatedAppBilagNyRoute
   AuthenticatedAppFakturaerIdRoute: typeof AuthenticatedAppFakturaerIdRoute
+  AuthenticatedAppLeverandorfakturaerIdRoute: typeof AuthenticatedAppLeverandorfakturaerIdRoute
+  AuthenticatedAppLonnIdRoute: typeof AuthenticatedAppLonnIdRoute
   AuthenticatedAppBilagIndexRoute: typeof AuthenticatedAppBilagIndexRoute
   AuthenticatedAppFakturaerIndexRoute: typeof AuthenticatedAppFakturaerIndexRoute
+  AuthenticatedAppLeverandorfakturaerIndexRoute: typeof AuthenticatedAppLeverandorfakturaerIndexRoute
+  AuthenticatedAppLonnIndexRoute: typeof AuthenticatedAppLonnIndexRoute
 }
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
+  AuthenticatedAppAarsavslutningRoute: AuthenticatedAppAarsavslutningRoute,
+  AuthenticatedAppArkivRoute: AuthenticatedAppArkivRoute,
+  AuthenticatedAppBankRoute: AuthenticatedAppBankRoute,
   AuthenticatedAppFirmaRoute: AuthenticatedAppFirmaRoute,
+  AuthenticatedAppHovedbokRoute: AuthenticatedAppHovedbokRoute,
   AuthenticatedAppKontoplanRoute: AuthenticatedAppKontoplanRoute,
   AuthenticatedAppKunderRoute: AuthenticatedAppKunderRoute,
+  AuthenticatedAppLeverandorerRoute: AuthenticatedAppLeverandorerRoute,
+  AuthenticatedAppLoggRoute: AuthenticatedAppLoggRoute,
   AuthenticatedAppMvaRoute: AuthenticatedAppMvaRoute,
   AuthenticatedAppRapporterRoute: AuthenticatedAppRapporterRoute,
+  AuthenticatedAppReskontroRoute: AuthenticatedAppReskontroRoute,
+  AuthenticatedAppVarerRoute: AuthenticatedAppVarerRoute,
   AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
   AuthenticatedAppBilagIdRoute: AuthenticatedAppBilagIdRoute,
   AuthenticatedAppBilagNyRoute: AuthenticatedAppBilagNyRoute,
   AuthenticatedAppFakturaerIdRoute: AuthenticatedAppFakturaerIdRoute,
+  AuthenticatedAppLeverandorfakturaerIdRoute:
+    AuthenticatedAppLeverandorfakturaerIdRoute,
+  AuthenticatedAppLonnIdRoute: AuthenticatedAppLonnIdRoute,
   AuthenticatedAppBilagIndexRoute: AuthenticatedAppBilagIndexRoute,
   AuthenticatedAppFakturaerIndexRoute: AuthenticatedAppFakturaerIndexRoute,
+  AuthenticatedAppLeverandorfakturaerIndexRoute:
+    AuthenticatedAppLeverandorfakturaerIndexRoute,
+  AuthenticatedAppLonnIndexRoute: AuthenticatedAppLonnIndexRoute,
 }
 
 const AuthenticatedAppRouteWithChildren =
