@@ -9,18 +9,12 @@ import { PageHeader, Panel, Empty, theadCls, selectCls } from "@/components/app/
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+import { useArticles } from "@/components/app/hooks";
+
 export const Route = createFileRoute("/_authenticated/app/varer")({
   head: () => ({ meta: [{ title: "Varer og tjenester – Fjordbok" }] }),
   component: Varer,
 });
-
-export function useArticles() {
-  const { company } = useCompany();
-  return useQuery({
-    queryKey: ["articles", company.id],
-    queryFn: async () => (await supabase.from("articles").select("*").eq("company_id", company.id).order("navn")).data ?? [],
-  });
-}
 
 function Varer() {
   const { company, canWrite } = useCompany();

@@ -10,7 +10,7 @@ import { PageHeader, Panel, Empty, theadCls } from "@/components/app/ui";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useEmployees } from "./app.lonn.index";
+import { useEmployees } from "@/components/app/hooks";
 
 export const Route = createFileRoute("/_authenticated/app/lonn/$id")({
   head: () => ({ meta: [{ title: "Lønnskjøring – Fjordbok" }] }),

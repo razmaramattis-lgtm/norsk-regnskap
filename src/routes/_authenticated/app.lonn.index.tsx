@@ -13,18 +13,12 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
+import { useEmployees } from "@/components/app/hooks";
+
 export const Route = createFileRoute("/_authenticated/app/lonn/")({
   head: () => ({ meta: [{ title: "Lønn – Fjordbok" }] }),
   component: Lonn,
 });
-
-export function useEmployees() {
-  const { company } = useCompany();
-  return useQuery({
-    queryKey: ["employees", company.id],
-    queryFn: async () => (await supabase.from("employees").select("*").eq("company_id", company.id).order("navn")).data ?? [],
-  });
-}
 
 function Lonn() {
   const { company, canWrite } = useCompany();
