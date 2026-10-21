@@ -1,5 +1,6 @@
 import {
   Archive,
+  Upload,
   Briefcase,
   BookOpen,
   Bot,
@@ -72,6 +73,7 @@ export const grupper = [
     lenker: [
       { to: "/app/aarsavslutning", label: "Perioder og årsoppgjør", icon: CalendarCheck },
       { to: "/app/kontoplan", label: "Kontoplan", icon: ListTree },
+      { to: "/app/import", label: "Import fra annet system", icon: Upload },
       { to: "/app/integrasjoner", label: "Integrasjoner", icon: Plug },
       { to: "/app/logg", label: "Revisjonslogg", icon: History },
       { to: "/app/firma", label: "Firma og brukere", icon: Building2 },

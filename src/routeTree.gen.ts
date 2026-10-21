@@ -24,6 +24,7 @@ import { Route as AuthenticatedAppFirmaRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAppForslagRouteImport } from './routes/_authenticated/app.forslag'
 import { Route as AuthenticatedAppFristerRouteImport } from './routes/_authenticated/app.frister'
 import { Route as AuthenticatedAppHovedbokRouteImport } from './routes/_authenticated/app.hovedbok'
+import { Route as AuthenticatedAppImportRouteImport } from './routes/_authenticated/app.import'
 import { Route as AuthenticatedAppIntegrasjonerRouteImport } from './routes/_authenticated/app.integrasjoner'
 import { Route as AuthenticatedAppKlienterRouteImport } from './routes/_authenticated/app.klienter'
 import { Route as AuthenticatedAppKontoplanRouteImport } from './routes/_authenticated/app.kontoplan'
@@ -123,6 +124,11 @@ const AuthenticatedAppHovedbokRoute =
     path: '/hovedbok',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppImportRoute = AuthenticatedAppImportRouteImport.update({
+  id: '/import',
+  path: '/import',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppIntegrasjonerRoute =
   AuthenticatedAppIntegrasjonerRouteImport.update({
     id: '/integrasjoner',
@@ -251,6 +257,7 @@ export interface FileRoutesByFullPath {
   '/app/forslag': typeof AuthenticatedAppForslagRoute
   '/app/frister': typeof AuthenticatedAppFristerRoute
   '/app/hovedbok': typeof AuthenticatedAppHovedbokRoute
+  '/app/import': typeof AuthenticatedAppImportRoute
   '/app/integrasjoner': typeof AuthenticatedAppIntegrasjonerRoute
   '/app/klienter': typeof AuthenticatedAppKlienterRoute
   '/app/kontoplan': typeof AuthenticatedAppKontoplanRoute
@@ -286,6 +293,7 @@ export interface FileRoutesByTo {
   '/app/forslag': typeof AuthenticatedAppForslagRoute
   '/app/frister': typeof AuthenticatedAppFristerRoute
   '/app/hovedbok': typeof AuthenticatedAppHovedbokRoute
+  '/app/import': typeof AuthenticatedAppImportRoute
   '/app/integrasjoner': typeof AuthenticatedAppIntegrasjonerRoute
   '/app/klienter': typeof AuthenticatedAppKlienterRoute
   '/app/kontoplan': typeof AuthenticatedAppKontoplanRoute
@@ -324,6 +332,7 @@ export interface FileRoutesById {
   '/_authenticated/app/forslag': typeof AuthenticatedAppForslagRoute
   '/_authenticated/app/frister': typeof AuthenticatedAppFristerRoute
   '/_authenticated/app/hovedbok': typeof AuthenticatedAppHovedbokRoute
+  '/_authenticated/app/import': typeof AuthenticatedAppImportRoute
   '/_authenticated/app/integrasjoner': typeof AuthenticatedAppIntegrasjonerRoute
   '/_authenticated/app/klienter': typeof AuthenticatedAppKlienterRoute
   '/_authenticated/app/kontoplan': typeof AuthenticatedAppKontoplanRoute
@@ -362,6 +371,7 @@ export interface FileRouteTypes {
     | '/app/forslag'
     | '/app/frister'
     | '/app/hovedbok'
+    | '/app/import'
     | '/app/integrasjoner'
     | '/app/klienter'
     | '/app/kontoplan'
@@ -397,6 +407,7 @@ export interface FileRouteTypes {
     | '/app/forslag'
     | '/app/frister'
     | '/app/hovedbok'
+    | '/app/import'
     | '/app/integrasjoner'
     | '/app/klienter'
     | '/app/kontoplan'
@@ -434,6 +445,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/forslag'
     | '/_authenticated/app/frister'
     | '/_authenticated/app/hovedbok'
+    | '/_authenticated/app/import'
     | '/_authenticated/app/integrasjoner'
     | '/_authenticated/app/klienter'
     | '/_authenticated/app/kontoplan'
@@ -569,6 +581,13 @@ declare module '@tanstack/react-router' {
       path: '/hovedbok'
       fullPath: '/app/hovedbok'
       preLoaderRoute: typeof AuthenticatedAppHovedbokRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/import': {
+      id: '/_authenticated/app/import'
+      path: '/import'
+      fullPath: '/app/import'
+      preLoaderRoute: typeof AuthenticatedAppImportRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/integrasjoner': {
@@ -724,6 +743,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppForslagRoute: typeof AuthenticatedAppForslagRoute
   AuthenticatedAppFristerRoute: typeof AuthenticatedAppFristerRoute
   AuthenticatedAppHovedbokRoute: typeof AuthenticatedAppHovedbokRoute
+  AuthenticatedAppImportRoute: typeof AuthenticatedAppImportRoute
   AuthenticatedAppIntegrasjonerRoute: typeof AuthenticatedAppIntegrasjonerRoute
   AuthenticatedAppKlienterRoute: typeof AuthenticatedAppKlienterRoute
   AuthenticatedAppKontoplanRoute: typeof AuthenticatedAppKontoplanRoute
@@ -757,6 +777,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppForslagRoute: AuthenticatedAppForslagRoute,
   AuthenticatedAppFristerRoute: AuthenticatedAppFristerRoute,
   AuthenticatedAppHovedbokRoute: AuthenticatedAppHovedbokRoute,
+  AuthenticatedAppImportRoute: AuthenticatedAppImportRoute,
   AuthenticatedAppIntegrasjonerRoute: AuthenticatedAppIntegrasjonerRoute,
   AuthenticatedAppKlienterRoute: AuthenticatedAppKlienterRoute,
   AuthenticatedAppKontoplanRoute: AuthenticatedAppKontoplanRoute,

@@ -48,7 +48,7 @@
 
 ## Neste faser
 - [ ] Velg og koble på leverandører: Peppol-aksesspunkt, Skatteetaten (MVA, skattemelding, a-melding), bank
-- [ ] SAF-T-import (flytte kunder fra andre systemer)
+- [x] SAF-T-import: kontoplan, kunder, leverandører og åpningsbalanse som utkast (`/app/import`)
 - [ ] Periodiseringer, tilbud, ordre, repeterende fakturaer
 - [ ] Prosjekter/avdelinger (dimensjoner), kontoregler for automatisk kontering
 - [ ] Kjørebok og reiseregning

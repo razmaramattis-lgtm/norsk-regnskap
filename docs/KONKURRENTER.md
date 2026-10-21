@@ -1,8 +1,40 @@
 # Tripletex, Fiken og Accounted: hva Fjordbok lærer av dem
 
-Oppsummering per 21.10.2026. Accounted-delen bygger på gjennomgangen i `docs/SVERIGE-TIL-NORGE.md`. Delene om Tripletex og
-Fiken er generell produktkjennskap og er **ikke kontrollert mot leverandørenes nettsider i dag**. Priser og funksjoner
-endrer seg, så sjekk dem før dere bruker dem i salg eller beslutninger.
+Oppsummering per 21.10.2026. Kildene er:
+
+- `docs/SVERIGE-TIL-NORGE.md` (gjennomgang av Accounted-koden).
+- Notatet «Analyse: Hva som kreves for å starte et regnskapssystem» (19.10.2026), med priser hentet april 2026 og lovkrav
+  fra Skattedirektoratets uttalelse 30.9.2026.
+- Veiledningen «Slik gir du regnskapsfører tilgang i Fiken» (12.10.2026, bygger på hjelp.fiken.no).
+- Generell produktkjennskap der ingen kilde er oppgitt. Den er ikke kontrollert mot leverandørenes nettsider i dag.
+
+Samtalene der Fiken og Tripletex ble undersøkt direkte er ikke tilgjengelige herfra; bare dokumentene som ble lagret.
+Notater eller skjermbilder fra dem kan legges til her.
+
+## Marked og priser (april 2026, sjekk før bruk)
+
+| Leverandør | Startpris | Styrke | Svakhet Fjordbok kan utnytte |
+| --- | --- | --- | --- |
+| Fiken | 229 kr/mnd ENK, 349 kr/mnd AS, alt inkludert | Enkelhet, forutsigbar pris, egenførere | Ingen prosjekt, svak på flere enheter og mange ansatte; tilgang er «hele regnskapet eller ingenting» |
+| Tripletex (Visma), ca. 150 000 kunder | Fra 249 kr/mnd + tillegg | Bredde, mange integrasjoner | Tillegg driver totalpris, bratt læringskurve |
+| PowerOffice Go, ca. 65 000 kunder | Fra 385 kr/mnd | Standard hos mange byråer | Dyrere for små kunder, mer oppsett |
+| Conta | Gratisplan | Pris | Begrenset funksjonalitet |
+
+Posisjonene analysen peker på: **byråførst** (bygd av regnskapsfører for byråer), **AI-først** (bilag tolkes og konteres,
+regnskapsfører godkjenner) eller **bransjenisje** (f.eks. helse). Distribusjon via byråer var det som fikk Fiken og
+PowerOffice til å vokse. Fjordbok har allerede byrå-oversikt og forslag fra AI, så de to første passer best.
+
+## Lovkrav som styrer produktet
+
+| Fra | Krav | Hva det betyr i Fjordbok |
+| --- | --- | --- |
+| 1.1.2025 | SAF-T Financial 1.30 | Eksport finnes |
+| 1.1.2027 | E-faktura (EHF/Peppol BIS 3.0) til mottakere i ELMA; elektronisk tilgjengelighet i 3,5 år for alle | Generator finnes, sending krever aksesspunkt |
+| 1.1.2028 | Kjøpers org.nr. skal stå på salgsdokumentet, som alltid skal oversendes | Faktura må kreve org.nr. for næringskunder |
+| 1.1.2030 | Plikt til å motta e-faktura og digital bokføring | Innboks for EHF |
+
+Største risiko ifølge analysen er byttekostnaden. Tiltaket er **gratis flytting fra Fiken og Tripletex med SAF-T-import**
+og lansering mot årsskiftet.
 
 ## Kort fortalt
 
@@ -22,6 +54,8 @@ endrer seg, så sjekk dem før dere bruker dem i salg eller beslutninger.
 - **Bankkobling som standard**, så transaksjonene kommer inn av seg selv. Krever PSD2-leverandør.
 - **Faktura som PDF på e-post med ett klikk**, og purring.
 - **Ren, rolig design og få valg per side.**
+- **Ikke kopier:** I Fiken ser en bruker hele regnskapet eller ingenting. Fjordbok har roller (eier, admin,
+  regnskapsfører, leser), som passer bedre for revisor, styreleder og bank.
 
 ## Tripletex: det vi bør kopiere
 
@@ -54,7 +88,7 @@ endrer seg, så sjekk dem før dere bruker dem i salg eller beslutninger.
 
 ### Neste, uten leverandøravtale
 
-1. **SAF-T-import** av kontoplan, kunder, leverandører og åpningsbalanse (flytting fra Fiken/Tripletex).
+1. **SAF-T-import** av kontoplan, kunder, leverandører og åpningsbalanse (flytting fra Fiken/Tripletex). *Gjort:* `/app/import`.
 2. **Lær av godkjente forslag**: når et forslag for samme motpart godkjennes to ganger, lag regel automatisk.
 3. **Faktura-PDF** og «send på e-post», med automatisk purring på forfalte fakturaer.
 4. **Veiviser for nytt firma**: hent fra Enhetsregisteret, velg MVA-termin, importer første kontoutskrift.

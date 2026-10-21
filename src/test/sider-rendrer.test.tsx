@@ -188,6 +188,12 @@ describe("nye sider rendrer med innhold", () => {
     expect(screen.getByText("Registrer bilag", { selector: "[cmdk-item]" })).toBeInTheDocument();
   });
 
+  it("import fra annet system forklarer SAF-T-flyttingen", async () => {
+    await vis("/app/import");
+    await waitFor(() => expect(screen.getByText("Slik gjør du det")).toBeInTheDocument());
+    expect(screen.getByText("Velg SAF-T-fil")).toBeInTheDocument();
+  });
+
   it("navigasjonen har de nye sidene", async () => {
     await vis("/app");
     await waitFor(() => expect(screen.getByText("Integrasjoner")).toBeInTheDocument());
