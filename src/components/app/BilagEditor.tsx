@@ -8,6 +8,7 @@ import { useCompany } from "@/lib/company";
 import { kr, idag } from "@/lib/format";
 import { MVA_KODER, OMVENDT_KODER, INNGAENDE_KONTO, byggOmvendtAvgift, splittBrutto } from "@/lib/mva";
 import { KATEGORI_NAVN, bruk, malerFor } from "@/lib/bokforingsmaler";
+import { BETALT_FRA, HENDELSER, KJOPSTYPER, byggHendelse, type HendelseType } from "@/lib/hendelser";
 import { useAccounts, Panel } from "./ui";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +34,35 @@ export function BilagEditor({
   const [beskr, setBeskr] = useState(initial?.beskrivelse ?? "");
   const [linjer, setLinjer] = useState<EditLinje[]>(initial?.linjer ?? [tom(), tom()]);
   const [busy, setBusy] = useState(false);
+
+  // Hva har skjedd?
+  const [hType, setHType] = useState<HendelseType>("kjop");
+  const [hBelop, setHBelop] = useState("");
+  const [hKjop, setHKjop] = useState("kontor");
+  const [hSats, setHSats] = useState(25);
+  const [hFra, setHFra] = useState("1920");
+  const [hTil, setHTil] = useState("1950");
+
+  function lagFraHendelse() {
+    const b = Number(hBelop.replace(/\s/g, "").replace(",", "."));
+    if (!b || b <= 0) { toast.error("Skriv inn beløp"); return; }
+    const navn = HENDELSER.find((h) => h.id === hType)!.navn;
+    const tekst = beskr.trim() || (hType === "kjop" ? KJOPSTYPER.find((k) => k.id === hKjop)!.navn : navn);
+    const ls = byggHendelse({
+      type: hType,
+      belop: b,
+      tekst,
+      firmatype: company.company_type === "as" ? "as" : "enk",
+      mvaRegistrert: company.mva_registrert,
+      kjopstype: hKjop,
+      sats: hSats,
+      betaltFra: hFra,
+      tilKonto: hTil,
+    });
+    setLinjer(ls.map((l) => ({ konto: l.konto, tekst: l.tekst, debet: l.debet ? String(l.debet) : "", kredit: l.kredit ? String(l.kredit) : "", mva_kode: l.mva_kode })));
+    if (!beskr.trim()) setBeskr(tekst);
+    toast.success("Posteringer laget – kontroller og bokfør.");
+  }
 
   // Hurtigutgift
   const [brutto, setBrutto] = useState("");
@@ -151,13 +181,86 @@ export function BilagEditor({
         </div>
       </Panel>
 
-      <Tabs defaultValue={initial ? "manuell" : "utgift"}>
-        <TabsList>
+      <Tabs defaultValue={initial ? "manuell" : "hendelse"}>
+        <TabsList className="h-auto flex-wrap">
+          <TabsTrigger value="hendelse">Hva har skjedd?</TabsTrigger>
           <TabsTrigger value="utgift">Kjøp / utgift</TabsTrigger>
           <TabsTrigger value="utland">Kjøp fra utlandet</TabsTrigger>
           <TabsTrigger value="mal">Fra mal</TabsTrigger>
           <TabsTrigger value="manuell">Posteringer</TabsTrigger>
         </TabsList>
+        <TabsContent value="hendelse">
+          <Panel className="space-y-5 p-6">
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+              {HENDELSER.map((h) => (
+                <button
+                  key={h.id}
+                  type="button"
+                  onClick={() => {
+                    setHType(h.id);
+                    setHSats(h.id === "kjop" ? (KJOPSTYPER.find((k) => k.id === hKjop)?.sats ?? 25) : 25);
+                  }}
+                  className={`rounded-md border p-3 text-left transition-colors ${hType === h.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}`}
+                >
+                  <div className="text-sm font-medium">{h.navn}</div>
+                  <div className="mt-0.5 text-xs text-muted-foreground">{h.tekst}</div>
+                </button>
+              ))}
+            </div>
+            <div className="grid items-end gap-4 md:grid-cols-4">
+              <div className="space-y-1.5">
+                <Label>{hType === "kjop" || hType === "salg" ? "Beløp inkl. mva" : "Beløp"}</Label>
+                <Input className="num" value={hBelop} onChange={(e) => setHBelop(e.target.value)} placeholder="0,00" />
+              </div>
+              {hType === "kjop" && (
+                <div className="space-y-1.5">
+                  <Label>Hva kjøpte du?</Label>
+                  <select className="h-9 w-full rounded-md border border-input bg-card px-2 text-sm" value={hKjop} onChange={(e) => { setHKjop(e.target.value); setHSats(KJOPSTYPER.find((k) => k.id === e.target.value)?.sats ?? 25); }}>
+                    {KJOPSTYPER.map((k) => <option key={k.id} value={k.id}>{k.navn}</option>)}
+                  </select>
+                </div>
+              )}
+              {(hType === "kjop" || hType === "salg") && company.mva_registrert && (
+                <div className="space-y-1.5">
+                  <Label>MVA</Label>
+                  <select className="h-9 w-full rounded-md border border-input bg-card px-2 text-sm" value={hSats} onChange={(e) => setHSats(Number(e.target.value))}>
+                    <option value={25}>25 %</option>
+                    <option value={15}>15 % (mat)</option>
+                    <option value={12}>12 % (transport, overnatting)</option>
+                    <option value={0}>{hType === "kjop" ? "Ingen fradrag" : "0 % (fritatt)"}</option>
+                  </select>
+                </div>
+              )}
+              {hType === "kjop" && (
+                <div className="space-y-1.5">
+                  <Label>Betalt med</Label>
+                  <select className="h-9 w-full rounded-md border border-input bg-card px-2 text-sm" value={hFra} onChange={(e) => setHFra(e.target.value)}>
+                    {BETALT_FRA.map((f) => <option key={f.konto} value={f.konto}>{f.navn}</option>)}
+                  </select>
+                </div>
+              )}
+              {hType === "overforing" && (
+                <>
+                  <div className="space-y-1.5">
+                    <Label>Fra konto</Label>
+                    <KontoInput value={hFra} onChange={setHFra} kontoer={kontoer} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Til konto</Label>
+                    <KontoInput value={hTil} onChange={setHTil} kontoer={kontoer} />
+                  </div>
+                </>
+              )}
+              <Button type="button" onClick={lagFraHendelse}>Lag posteringer</Button>
+            </div>
+            {hType === "eier_inn" && company.company_type === "as" && (
+              <p className="text-sm text-muted-foreground">Penger fra eier til et AS føres som lån fra eier (2910). Kapitalforhøyelse må vedtas og registreres i Foretaksregisteret.</p>
+            )}
+            {hType === "eier_ut" && company.company_type === "as" && (
+              <p className="text-sm text-muted-foreground">Fra et AS kan eier bare ta ut penger som lønn, utbytte eller tilbakebetaling av lån. Dette fører tilbakebetaling av lån (2910). Bruk malene for utbytte og lønnsmodulen for lønn.</p>
+            )}
+          </Panel>
+        </TabsContent>
         <TabsContent value="utgift">
           <Panel className="grid items-end gap-4 p-6 md:grid-cols-5">
             <div className="space-y-1.5">

@@ -37,9 +37,20 @@
 - [x] MCP-server (`mcp/fjordbok-mcp.mjs`) for AI-agenter, uten avhengigheter
 - [x] Agentnøkler: scopede nøkler som kun kan lese kontoplan/banktransaksjoner og foreslå bilag (`docs/AI-AGENTER.md`)
 
+## Brukervennlighet (fase 4, se `docs/KONKURRENTER.md`)
+- [x] «Til behandling» på oversikten: alt som venter, mest hastende først (`src/lib/gjoremaal.ts`)
+- [x] Graf over inntekter og kostnader per måned på oversikten
+- [x] Søk og hurtigvalg med ⌘K / Ctrl+K (sider, oppgaver, bytt firma)
+- [x] Mobilmeny
+- [x] Lær kontoregler av avstemte banktransaksjoner: samme motpart to ganger på samme konto gir forslag (`src/lib/laering.ts`)
+- [x] Veiviser for nytt firma (Enhetsregisteret, MVA-termin, kontonummer) og «Kom i gang» på oversikten
+- [x] «Hva har skjedd?»-registrering (kjøp, salg, overføring, eier inn/ut) som førstevalg i nytt bilag (`src/lib/hendelser.ts`)
+
+- [x] Månedsavslutning lagrer avkrysning med hvem og når (migrasjon 0010)
+
 ## Neste faser
 - [ ] Velg og koble på leverandører: Peppol-aksesspunkt, Skatteetaten (MVA, skattemelding, a-melding), bank
-- [ ] SAF-T-import (flytte kunder fra andre systemer)
+- [x] SAF-T-import: kontoplan, kunder, leverandører og åpningsbalanse som utkast (`/app/import`)
 - [ ] Periodiseringer, tilbud, ordre, repeterende fakturaer
 - [ ] Prosjekter/avdelinger (dimensjoner), kontoregler for automatisk kontering
 - [ ] Kjørebok og reiseregning
@@ -48,5 +59,6 @@
 - [ ] A-melding (Altinn) – krever Maskinporten-avtale
 - [ ] MVA-melding innsending via Skatteetatens API – krever Maskinporten-avtale
 - [ ] Skattemelding: næringsspesifikasjon (ENK/AS), RF-1167
-- [ ] Faktura-PDF og utsendelse på e-post
+- [x] Faktura-PDF (utskrift) og e-post/purring via eget e-postprogram; ekte utsendelse krever e-postleverandør
+- [x] Varsel når kunden mangler org.nr. (krav fra 2028)
 - [ ] Bransjeveiledere (bygg, netthandel, konsulent, restaurant, helse) tilpasset norske regler

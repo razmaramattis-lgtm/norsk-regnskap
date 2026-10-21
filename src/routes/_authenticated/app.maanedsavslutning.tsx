@@ -1,8 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { CheckCircle2, Circle, TriangleAlert } from "lucide-react";
 import { useCompany } from "@/lib/company";
-import { idag } from "@/lib/format";
+import { dato, idag } from "@/lib/format";
 import { maanedsavslutning, type Sjekkpunkt } from "@/lib/klienter";
 import { Empty, PageHeader, Panel, StatusPill, selectCls } from "@/components/app/ui";
 import { useOversikt } from "@/lib/oversikt";
@@ -28,21 +31,43 @@ const MAANEDER = [
 ];
 
 function Maanedsavslutning() {
-  const { company } = useCompany();
+  const { company, canWrite } = useCompany();
+  const qc = useQueryClient();
   const { data: oversikt = [], isLoading } = useOversikt();
   const na = new Date();
   // Standard: forrige måned, siden det normalt er den som avsluttes
   const forrige = new Date(na.getFullYear(), na.getMonth() - 1, 1);
   const [aar, setAar] = useState(forrige.getFullYear());
   const [maaned, setMaaned] = useState(forrige.getMonth() + 1);
-  const [avkrysset, setAvkrysset] = useState<Record<string, boolean>>({});
   const o = oversikt.find((x) => x.company_id === company.id);
   const siste = new Date(aar, maaned, 0).getDate();
   const periodeSlutt = `${aar}-${String(maaned).padStart(2, "0")}-${String(siste).padStart(2, "0")}`;
   const punkter = o ? maanedsavslutning(company, o, periodeSlutt) : [];
-  const nokkel = (p: Sjekkpunkt) => `${company.id}:${periodeSlutt}:${p.id}`;
-  const ferdig = (p: Sjekkpunkt) =>
-    p.status === "ok" || (p.status === "manuell" && avkrysset[nokkel(p)]);
+  const { data: avkrysset = new Map<string, string>() } = useQuery({
+    queryKey: ["avkrysning", company.id, periodeSlutt],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("maanedsavslutning_avkrysning")
+        .select("punkt, kontrollert_at")
+        .eq("company_id", company.id)
+        .eq("periode", periodeSlutt);
+      if (error) throw error;
+      return new Map((data ?? []).map((r) => [r.punkt, r.kontrollert_at]));
+    },
+  });
+  async function kryss(p: Sjekkpunkt, på: boolean) {
+    const { error } = på
+      ? await supabase.from("maanedsavslutning_avkrysning").insert({ company_id: company.id, periode: periodeSlutt, punkt: p.id })
+      : await supabase
+          .from("maanedsavslutning_avkrysning")
+          .delete()
+          .eq("company_id", company.id)
+          .eq("periode", periodeSlutt)
+          .eq("punkt", p.id);
+    if (error) toast.error(error.message);
+    qc.invalidateQueries({ queryKey: ["avkrysning", company.id, periodeSlutt] });
+  }
+  const ferdig = (p: Sjekkpunkt) => p.status === "ok" || (p.status === "manuell" && avkrysset.has(p.id));
   const antallFerdig = punkter.filter(ferdig).length;
   const advarsler = punkter.filter((p) => p.status === "advarsel").length;
 
@@ -119,12 +144,11 @@ function Maanedsavslutning() {
                       <label className="flex items-center gap-2 text-sm">
                         <input
                           type="checkbox"
-                          checked={!!avkrysset[nokkel(p)]}
-                          onChange={(e) =>
-                            setAvkrysset((a) => ({ ...a, [nokkel(p)]: e.target.checked }))
-                          }
+                          disabled={!canWrite}
+                          checked={avkrysset.has(p.id)}
+                          onChange={(e) => kryss(p, e.target.checked)}
                         />
-                        Kontrollert
+                        {avkrysset.has(p.id) ? `Kontrollert ${dato(avkrysset.get(p.id))}` : "Kontrollert"}
                       </label>
                     )}
                     {p.lenke && !klar && (
@@ -140,8 +164,8 @@ function Maanedsavslutning() {
           <p className="mt-4 text-xs text-muted-foreground">
             De automatiske punktene gjelder status akkurat nå ({idag()}), ikke per månedsslutt:
             transaksjoner og utkast som er registrert etter månedsskiftet telles også. Avkryssing av
-            manuelle punkter lagres ikke; bruk periodelåsing under Perioder og årsoppgjør som
-            sluttsteg.
+            manuelle punkter lagres med hvem som kontrollerte og når. Bruk periodelåsing under Perioder
+            og årsoppgjør som sluttsteg.
           </p>
         </>
       )}
