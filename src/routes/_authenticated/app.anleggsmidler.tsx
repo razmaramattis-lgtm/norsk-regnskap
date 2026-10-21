@@ -12,9 +12,11 @@ import {
   SALDOGRUPPER,
   beregnSaldo,
   byggAvskrivningsbilag,
+  byggMaanedsplan,
   kanKostnadsfores,
   sumSkattemessig,
   type Anleggsmiddel,
+  type AvskrivningsLinje,
   type Saldogruppe,
 } from "@/lib/anleggsmidler";
 import {
@@ -64,6 +66,7 @@ function Anleggsmidler() {
   const aar = new Date().getFullYear();
   const [valgtAar, setAar] = useState(aar);
   const [inntekt, setInntekt] = useState(MIN_INNTEKTSFORING_PROSENT);
+  const [visning, setVisning] = useState<"aar" | "maaned">("maaned");
   const { data: rader = [], isLoading } = useQuery({
     queryKey: ["anleggsmidler", company.id],
     queryFn: async () => {
@@ -82,20 +85,22 @@ function Anleggsmidler() {
   const kontoOverstyring = new Map(
     rader.filter((r) => r.konto).map((r) => [r.id, r.konto as string]),
   );
-  const bilagslinjer = byggAvskrivningsbilag(saldo, (r) => {
+  const kontoFor = (r: (typeof saldo)[number]) => {
     // Eget driftsmiddel (ikke felles saldo) kan ha egen konto.
     const id = r.nokkel.includes(":") ? r.nokkel.slice(r.nokkel.indexOf(":") + 1) : null;
     return (id && kontoOverstyring.get(id)) || SALDOGRUPPER[r.gruppe].konto;
-  });
+  };
+  const bilagslinjer = byggAvskrivningsbilag(saldo, kontoFor);
+  const maanedsplan = byggMaanedsplan(saldo, valgtAar, kontoFor);
 
-  async function lagBilag() {
-    if (!bilagslinjer.length) return;
+  async function lagBilag(linjer: AvskrivningsLinje[], datoStr: string, beskrivelse: string) {
+    if (!linjer.length) return;
     const { data: v, error } = await supabase
       .from("vouchers")
       .insert({
         company_id: company.id,
-        dato: `${valgtAar}-12-31`,
-        beskrivelse: `Avskrivning ${valgtAar}`,
+        dato: datoStr,
+        beskrivelse,
         kilde: "avskrivning",
       })
       .select("id")
