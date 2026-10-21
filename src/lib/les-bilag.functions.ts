@@ -31,48 +31,60 @@ export const lesBilag = createServerFn({ method: "POST" })
     const mime = doc.mime || (doc.filnavn.toLowerCase().endsWith(".pdf") ? "application/pdf" : "image/jpeg");
     const url = `data:${mime};base64,${btoa(bin)}`;
     const innhold = mime === "application/pdf"
-      ? { type: "file", file: { filename: doc.filnavn, file_data: url } }
-      : { type: "image_url", image_url: { url } };
+      ? { type: "input_file", filename: doc.filnavn, file_data: url }
+      : { type: "input_image", image_url: url };
+    const tekstEllerNull = { type: ["string", "null"] };
+    const tallEllerNull = { type: ["number", "null"] };
 
-    const svar = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const svar = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
       method: "POST",
-      headers: { Authorization: `Bearer ${process.env.LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+      headers: { "Lovable-API-Key": process.env.LOVABLE_API_KEY ?? "", "X-Lovable-AIG-SDK": "fetch", "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: "Du leser norske kvitteringer og fakturaer. Hent ut feltene nøyaktig som de står. Datoer som ÅÅÅÅ-MM-DD, beløp som tall i kroner. Bruk null når et felt ikke finnes. beskrivelse: kort tekst på norsk, f.eks. 'Telenor mobil oktober'." },
-          { role: "user", content: [{ type: "text", text: "Hent ut fakturadata fra dette bilaget." }, innhold] },
-        ],
-        tools: [{
-          type: "function",
-          function: {
+        model: "openai/gpt-6-astra",
+        stream: true,
+        store: false,
+        reasoning: { effort: "low" },
+        instructions: "Du leser norske kvitteringer og fakturaer. Hent ut feltene nøyaktig som de står. Datoer som ÅÅÅÅ-MM-DD, beløp som tall i kroner. Bruk null når et felt ikke finnes. mva_sats er 25, 15, 12 eller 0. type er kjop for utgifter vi har betalt/skal betale, salg for fakturaer vi har sendt. beskrivelse: kort tekst på norsk, f.eks. 'Telenor mobil oktober'.",
+        input: [{ role: "user", content: [{ type: "input_text", text: "Hent ut fakturadata fra dette bilaget." }, innhold] }],
+        text: {
+          format: {
+            type: "json_schema",
             name: "bilag",
-            parameters: {
+            strict: true,
+            schema: {
               type: "object",
+              additionalProperties: false,
               properties: {
-                leverandor: { type: ["string", "null"] },
-                fakturanr: { type: ["string", "null"] },
-                fakturadato: { type: ["string", "null"] },
-                forfallsdato: { type: ["string", "null"] },
-                belop_inkl_mva: { type: ["number", "null"] },
-                mva_belop: { type: ["number", "null"] },
-                mva_sats: { type: ["number", "null"], description: "25, 15, 12 eller 0" },
-                kid: { type: ["string", "null"] },
-                beskrivelse: { type: ["string", "null"] },
+                leverandor: tekstEllerNull, fakturanr: tekstEllerNull, fakturadato: tekstEllerNull, forfallsdato: tekstEllerNull,
+                belop_inkl_mva: tallEllerNull, mva_belop: tallEllerNull, mva_sats: tallEllerNull, kid: tekstEllerNull, beskrivelse: tekstEllerNull,
                 type: { type: ["string", "null"], enum: ["kjop", "salg", null] },
               },
               required: ["leverandor", "fakturanr", "fakturadato", "forfallsdato", "belop_inkl_mva", "mva_belop", "mva_sats", "kid", "beskrivelse", "type"],
             },
           },
-        }],
-        tool_choice: { type: "function", function: { name: "bilag" } },
+        },
       }),
     });
     if (svar.status === 429) throw new Error("For mange forespørsler. Prøv igjen om litt.");
     if (svar.status === 402) throw new Error("KI-kreditten er brukt opp.");
-    if (!svar.ok) throw new Error("Kunne ikke lese bilaget");
-    const j = await svar.json();
-    const args = j.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
-    if (!args) throw new Error("Fant ingen fakturadata i dokumentet");
-    return JSON.parse(args) as LestBilag;
+    if (!svar.ok || !svar.body) throw new Error("Kunne ikke lese bilaget");
+    const leser = svar.body.getReader();
+    const dek = new TextDecoder();
+    let rest = "", ut = "";
+    for (;;) {
+      const { done, value } = await leser.read();
+      if (done) break;
+      rest += dek.decode(value, { stream: true });
+      const linjer = rest.split("\n");
+      rest = linjer.pop() ?? "";
+      for (const l of linjer) {
+        if (!l.startsWith("data:")) continue;
+        try {
+          const ev = JSON.parse(l.slice(5).trim());
+          if (ev.type === "response.output_text.delta") ut += ev.delta;
+        } catch { /* ignorer */ }
+      }
+    }
+    if (!ut) throw new Error("Fant ingen fakturadata i dokumentet");
+    return JSON.parse(ut) as LestBilag;
   });
