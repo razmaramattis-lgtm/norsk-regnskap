@@ -110,7 +110,7 @@ function Anleggsmidler() {
       return;
     }
     const { error: e2 } = await supabase.from("voucher_lines").insert(
-      bilagslinjer.map((l, i) => ({
+      linjer.map((l, i) => ({
         voucher_id: v.id,
         company_id: company.id,
         konto: l.konto,
@@ -145,16 +145,29 @@ function Anleggsmidler() {
         title="Anleggsmidler"
         sub="Register og skattemessig saldoavskrivning. Satsene er veiledende og må kontrolleres mot Skatteetaten for inntektsåret."
         actions={
-          <select
-            className={selectCls}
-            value={valgtAar}
-            onChange={(e) => setAar(Number(e.target.value))}
-            aria-label="Inntektsår"
-          >
-            {[aar - 2, aar - 1, aar, aar + 1].map((y) => (
-              <option key={y}>{y}</option>
-            ))}
-          </select>
+          <>
+            <div className="flex rounded-md border">
+              {(["maaned", "aar"] as const).map((v) => (
+                <button
+                  key={v}
+                  onClick={() => setVisning(v)}
+                  className={`px-3 py-1.5 text-sm ${visning === v ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+                >
+                  {v === "maaned" ? "Månedlig" : "Årlig"}
+                </button>
+              ))}
+            </div>
+            <select
+              className={selectCls}
+              value={valgtAar}
+              onChange={(e) => setAar(Number(e.target.value))}
+              aria-label="Inntektsår"
+            >
+              {[aar - 2, aar - 1, aar, aar + 1].map((y) => (
+                <option key={y}>{y}</option>
+              ))}
+            </select>
+          </>
         }
       />
 
