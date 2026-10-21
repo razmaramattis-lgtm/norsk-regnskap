@@ -49,7 +49,7 @@ export function CompanyProvider({
   useEffect(() => {
     setActiveId(localStorage.getItem(KEY));
   }, []);
-  const current = memberships.find((m) => m.company.id === activeId) ?? memberships[0];
+  const current = (memberships.find((m) => m.company.id === activeId) ?? memberships[0])!;
   const setActive = (id: string) => {
     localStorage.setItem(KEY, id);
     setActiveId(id);

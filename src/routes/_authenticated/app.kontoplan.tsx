@@ -28,9 +28,9 @@ function Kontoplan() {
 
   async function add(e: React.FormEvent) {
     e.preventDefault();
-    if (!/^\d{4,6}$/.test(nr)) return toast.error("Kontonummer må være 4–6 siffer");
+    if (!/^\d{4,6}$/.test(nr)) { toast.error("Kontonummer må være 4–6 siffer"); return; }
     const { error } = await supabase.from("accounts").insert({ company_id: company.id, number: nr, name: navn });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setNr(""); setNavn("");
     qc.invalidateQueries({ queryKey: ["accounts"] });
   }
@@ -51,10 +51,10 @@ function Kontoplan() {
           <table className="w-full text-sm">
             <tbody>
               {filtrert.map((a, i) => {
-                const ny = i === 0 || filtrert[i - 1].number[0] !== a.number[0];
+                const ny = i === 0 || filtrert[i - 1]!.number[0] !== a.number[0];
                 return (
                   <Fragment key={a.id}>
-                    {ny && <tr key={"k" + a.number[0]} className="bg-muted/60"><td colSpan={3} className="px-4 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">Klasse {a.number[0]} · {KLASSER[a.number[0]]}</td></tr>}
+                    {ny && <tr key={"k" + a.number[0]} className="bg-muted/60"><td colSpan={3} className="px-4 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">Klasse {a.number[0]} · {KLASSER[a.number[0] ?? ""]}</td></tr>}
                     <tr key={a.id} className="border-b"><td className="w-24 px-4 py-2 font-mono">{a.number}</td><td className="px-4 py-2">{a.name}</td><td className="px-4 py-2 text-right font-mono text-xs text-muted-foreground">{a.mva_kode ? `MVA ${a.mva_kode}` : ""}</td></tr>
                   </Fragment>
                 );

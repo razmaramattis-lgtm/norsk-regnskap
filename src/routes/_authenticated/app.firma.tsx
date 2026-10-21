@@ -48,12 +48,12 @@ function Firma() {
 
   async function lagre(e: React.FormEvent) {
     e.preventDefault();
-    if (f.org_nr && !gyldigOrgNr(f.org_nr)) return toast.error("Ugyldig organisasjonsnummer");
+    if (f.org_nr && !gyldigOrgNr(f.org_nr)) { toast.error("Ugyldig organisasjonsnummer"); return; }
     const { error } = await supabase.from("companies").update({
       name: f.name, org_nr: f.org_nr, mva_registrert: f.mva_registrert, mva_termin: f.mva_termin,
       adresse: f.adresse, postnr: f.postnr, poststed: f.poststed, kontonummer: f.kontonummer, epost: f.epost,
     }).eq("id", company.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Lagret");
     qc.invalidateQueries({ queryKey: ["memberships"] });
   }
@@ -61,7 +61,7 @@ function Firma() {
   async function inviter(e: React.FormEvent) {
     e.preventDefault();
     const { error } = await supabase.from("company_invites").insert({ company_id: company.id, email: epost.toLowerCase(), role: rolle });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success(`${epost} får tilgang når de logger inn med denne e-posten.`);
     setEpost("");
     qc.invalidateQueries({ queryKey: ["invites"] });

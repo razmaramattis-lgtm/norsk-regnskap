@@ -115,7 +115,7 @@ function FakturaSide() {
             </div>
             <div className="text-right">
               <div className="font-serif text-3xl">Faktura</div>
-              <Badge variant={STATUS[f.status].v} className="mt-2">{STATUS[f.status].t}</Badge>
+              <Badge variant={STATUS[f.status]!.v} className="mt-2">{STATUS[f.status]!.t}</Badge>
             </div>
           </div>
           <div className="mt-10 grid grid-cols-2 gap-8 text-sm">

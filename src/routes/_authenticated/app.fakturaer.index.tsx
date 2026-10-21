@@ -29,9 +29,9 @@ function Fakturaer() {
   });
 
   async function ny() {
-    if (!kunder.length) return toast.error("Legg til en kunde først");
+    if (!kunder.length) { toast.error("Legg til en kunde først"); return; }
     const { data, error } = await supabase.from("invoices").insert({ company_id: company.id, customer_id: kunder[0].id }).select("id").single();
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     nav({ to: "/app/fakturaer/$id", params: { id: data.id } });
   }
 
@@ -53,7 +53,7 @@ function Fakturaer() {
                     <td className="px-4 py-3">{f.customers?.navn}</td>
                     <td className="px-4 py-3">{dato(f.fakturadato)}</td>
                     <td className={`px-4 py-3 ${forfalt ? "text-destructive" : ""}`}>{f.status !== "utkast" && dato(f.forfallsdato)}</td>
-                    <td className="px-4 py-3"><Badge variant={forfalt ? "destructive" : STATUS[f.status].v}>{forfalt ? "Forfalt" : STATUS[f.status].t}</Badge></td>
+                    <td className="px-4 py-3"><Badge variant={forfalt ? "destructive" : STATUS[f.status]!.v}>{forfalt ? "Forfalt" : STATUS[f.status]!.t}</Badge></td>
                     <td className="num px-4 py-3">{kr(f.total)}</td>
                   </tr>
                 );

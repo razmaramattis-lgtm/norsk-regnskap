@@ -65,7 +65,7 @@ function BilagSide() {
         actions={canWrite && (
           <Button variant="outline" onClick={async () => {
             const { data, error } = await supabase.rpc("reverse_voucher", { _voucher: id });
-            if (error) return toast.error(error.message);
+            if (error) { toast.error(error.message); return; }
             toast.success("Korreksjonsbilag bokført");
             qc.invalidateQueries();
             nav({ to: "/app/bilag/$id", params: { id: data } });

@@ -18,7 +18,7 @@ function Oversikt() {
   const { data: år = [] } = usePostedLines(`${y}-01-01`, `${y}-12-31`);
   const { data: alt = [] } = usePostedLines(`1900-01-01`, idag());
   const t = terminer(y, company.mva_termin);
-  const termin = t[company.mva_termin === "aarlig" ? 0 : Math.floor(new Date().getMonth() / 2)];
+  const termin = t[company.mva_termin === "aarlig" ? 0 : Math.floor(new Date().getMonth() / 2)] ?? t[0]!;
   const { data: tl = [] } = usePostedLines(termin.fra, termin.til);
   const { data: åpne = [] } = useQuery({
     queryKey: ["open-invoices", company.id],

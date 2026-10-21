@@ -19,7 +19,7 @@ export function NyttFirma({ onDone }: { onDone?: () => void }) {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (org && !gyldigOrgNr(org)) return toast.error("Ugyldig organisasjonsnummer");
+    if (org && !gyldigOrgNr(org)) { toast.error("Ugyldig organisasjonsnummer"); return; }
     setBusy(true);
     const { data: u } = await supabase.auth.getUser();
     const { data, error } = await supabase
@@ -28,7 +28,7 @@ export function NyttFirma({ onDone }: { onDone?: () => void }) {
       .select("id")
       .single();
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setActiveCompanyId(data.id);
     await qc.invalidateQueries();
     toast.success("Firmaet er opprettet med standard kontoplan (NS 4102).");

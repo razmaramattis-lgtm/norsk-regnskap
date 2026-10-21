@@ -48,10 +48,10 @@ export function BilagEditor({
 
   function lagFraUtgift() {
     const b = Number(brutto.replace(",", "."));
-    if (!b) return toast.error("Skriv inn beløp");
+    if (!b) { toast.error("Skriv inn beløp"); return; }
     const mvaOk = company.mva_registrert && sats > 0;
     const { netto, mva } = mvaOk ? splittBrutto(b, sats) : { netto: b, mva: 0 };
-    const ink = INNGAENDE_KONTO[sats];
+    const ink = INNGAENDE_KONTO[sats] ?? { konto: "2710", kode: "1" };
     const ls: EditLinje[] = [
       { konto: kostKonto, tekst: beskr, debet: String(netto), kredit: "", mva_kode: mvaOk ? ink.kode : "" },
     ];
@@ -62,9 +62,9 @@ export function BilagEditor({
   }
 
   async function lagre(bokfor: boolean) {
-    if (!beskr.trim()) return toast.error("Legg inn en beskrivelse");
+    if (!beskr.trim()) { toast.error("Legg inn en beskrivelse"); return; }
     const rader = linjer.filter((l) => l.konto && (Number(l.debet) || Number(l.kredit)));
-    for (const r of rader) if (!kontoer.find((a) => a.number === r.konto)) return toast.error(`Konto ${r.konto} finnes ikke i kontoplanen`);
+    for (const r of rader) if (!kontoer.find((a) => a.number === r.konto)) { toast.error(`Konto ${r.konto} finnes ikke i kontoplanen`); return; }
     setBusy(true);
     try {
       let id = voucherId;

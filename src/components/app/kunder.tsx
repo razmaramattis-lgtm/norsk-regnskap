@@ -37,13 +37,13 @@ export function NyKunde({ onCreated }: { onCreated?: (id: string) => void }) {
   const up = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => setF({ ...f, [k]: e.target.value });
   async function save(e: React.FormEvent) {
     e.preventDefault();
-    if (f.org_nr && f.land === "NO" && !gyldigOrgNr(f.org_nr)) return toast.error("Ugyldig organisasjonsnummer");
+    if (f.org_nr && f.land === "NO" && !gyldigOrgNr(f.org_nr)) { toast.error("Ugyldig organisasjonsnummer"); return; }
     const { data, error } = await supabase
       .from("customers")
       .insert({ ...f, org_nr: f.org_nr.replace(/\s/g, "") || null, land: f.land.toUpperCase(), betalingsfrist: Number(f.betalingsfrist), company_id: company.id })
       .select("id")
       .single();
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     qc.invalidateQueries({ queryKey: ["customers"] });
     setOpen(false);
     onCreated?.(data.id);

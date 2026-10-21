@@ -16,7 +16,7 @@ function Mva() {
   const [valgtAar, setAar] = useState(aar);
   const t = terminer(valgtAar, company.mva_termin);
   const [idx, setIdx] = useState(company.mva_termin === "aarlig" ? 0 : Math.floor(new Date().getMonth() / 2));
-  const termin = t[Math.min(idx, t.length - 1)];
+  const termin = t[Math.min(idx, t.length - 1)] ?? t[0]!;
   const { data = [], isLoading } = usePostedLines(termin.fra, termin.til);
   const m = beregnMvaMelding(data);
 

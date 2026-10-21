@@ -19,7 +19,7 @@ describe("MVA", () => {
     expect(m.utgaende).toBe(250);
     expect(m.inngaende).toBe(100);
     expect(m.aBetale).toBe(150);
-    expect(m.rader.find((r) => r.kode === "3")!.grunnlag).toBe(1000);
+    expect(m.rader.find((r) => r.kode === "3")?.grunnlag).toBe(1000);
   });
   it("har seks tomånedlige terminer", () => {
     const t = terminer(2026, "tomaaned");
