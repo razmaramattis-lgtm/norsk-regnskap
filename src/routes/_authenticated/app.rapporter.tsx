@@ -20,6 +20,7 @@ const RES_GRUPPER = [
   { navn: "Finansinntekter", fra: 8000, til: 8099, fortegn: -1 },
   { navn: "Finanskostnader", fra: 8100, til: 8199, fortegn: 1 },
   { navn: "Skattekostnad", fra: 8300, til: 8399, fortegn: 1 },
+  { navn: "Andre resultatposter", fra: 8400, til: 8799, fortegn: 1 },
 ];
 
 const MAANEDER = ["januar", "februar", "mars", "april", "mai", "juni", "juli", "august", "september", "oktober", "november", "desember"];
@@ -48,7 +49,8 @@ function Rapporter() {
   const ib = saldo(hist.filter((l) => l.dato < fra && Number(l.konto) < 3000));
   const bevegelse = saldo(iAar);
   const ub = saldo(hist.filter((l) => Number(l.konto) < 3000));
-  const res = [...saldo(iAar.filter((l) => Number(l.konto) >= 3000)).entries()].filter(([, v]) => Math.abs(v) > 0.004).sort(([a], [b]) => a.localeCompare(b));
+  // 88xx (årsresultat/disponering) holdes utenfor årets resultat – ellers blir resultatet 0 etter årsavslutning
+  const res = [...saldo(iAar.filter((l) => Number(l.konto) >= 3000 && Number(l.konto) < 8800)).entries()].filter(([, v]) => Math.abs(v) > 0.004).sort(([a], [b]) => a.localeCompare(b));
   const bal = [...ub.entries()].filter(([, v]) => Math.abs(v) > 0.004).sort(([a], [b]) => a.localeCompare(b));
   const resultatHittil = -[...saldo(hist.filter((l) => Number(l.konto) >= 3000)).values()].reduce((s, v) => s + v, 0);
   const aarsresultat = -res.reduce((s, [, v]) => s + v, 0);

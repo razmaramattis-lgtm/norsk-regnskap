@@ -1,209 +1,210 @@
--- Fakturahåndtering: leveringsdato (bokføringsforskriften § 5-1-1), kjøpers og vår referanse (EHF BuyerReference),
--- rabatt og enhet per linje, delbetalinger og repeterende fakturaer.
-
-ALTER TABLE public.invoices
-  ADD COLUMN leveringsdato date,
-  ADD COLUMN deres_ref text CHECK (deres_ref IS NULL OR char_length(deres_ref) <= 120),
-  ADD COLUMN var_ref text CHECK (var_ref IS NULL OR char_length(var_ref) <= 120),
-  ADD COLUMN innbetalt numeric(14,2) NOT NULL DEFAULT 0;
-
-ALTER TABLE public.invoice_lines
-  ADD COLUMN rabatt_prosent numeric(5,2) NOT NULL DEFAULT 0 CHECK (rabatt_prosent >= 0 AND rabatt_prosent <= 100),
-  ADD COLUMN enhet text CHECK (enhet IS NULL OR char_length(enhet) <= 20);
-
--- Beløp bokført på fakturaer som allerede er betalt
-UPDATE public.invoices SET innbetalt = total WHERE status = 'betalt';
-
-CREATE OR REPLACE FUNCTION public.send_invoice(_invoice uuid) RETURNS int LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-DECLARE _i public.invoices; _c public.companies; _cust public.customers; _nr int; _vid uuid; _netto numeric := 0; _mva numeric := 0; r record; _ln int := 1;
-  _inntekt text; _mvakonto text; _kode text;
-BEGIN
-  SELECT * INTO _i FROM public.invoices WHERE id = _invoice FOR UPDATE;
-  IF NOT public.can_write(_i.company_id) THEN RAISE EXCEPTION 'Ingen tilgang'; END IF;
-  IF _i.status <> 'utkast' THEN RAISE EXCEPTION 'Fakturaen er allerede sendt'; END IF;
-  SELECT * INTO _c FROM public.companies WHERE id = _i.company_id;
-  SELECT * INTO _cust FROM public.customers WHERE id = _i.customer_id;
-  IF NOT EXISTS (SELECT 1 FROM public.invoice_lines WHERE invoice_id = _invoice) THEN RAISE EXCEPTION 'Fakturaen har ingen linjer'; END IF;
-
-  UPDATE public.companies SET neste_fakturanr = neste_fakturanr + 1 WHERE id = _c.id RETURNING neste_fakturanr - 1 INTO _nr;
-
-  INSERT INTO public.vouchers (company_id, dato, beskrivelse, kilde, created_by)
-  VALUES (_i.company_id, _i.fakturadato, 'Faktura ' || _nr || ' – ' || _cust.navn, 'faktura', auth.uid()) RETURNING id INTO _vid;
-
-  FOR r IN
-    SELECT mva_sats, sum(round(antall * enhetspris * (1 - rabatt_prosent / 100), 2)) AS netto
-    FROM public.invoice_lines WHERE invoice_id = _invoice GROUP BY mva_sats
-  LOOP
-    IF NOT _c.mva_registrert THEN
-      _inntekt := '3200'; _mvakonto := NULL; _kode := NULL;
-    ELSIF r.mva_sats = 25 THEN _inntekt := '3000'; _mvakonto := '2700'; _kode := '3';
-    ELSIF r.mva_sats = 15 THEN _inntekt := '3010'; _mvakonto := '2701'; _kode := '31';
-    ELSIF r.mva_sats = 12 THEN _inntekt := '3020'; _mvakonto := '2702'; _kode := '33';
-    ELSIF _cust.land <> 'NO' THEN _inntekt := '3250'; _mvakonto := NULL; _kode := '52';
-    ELSE _inntekt := '3100'; _mvakonto := NULL; _kode := '5';
-    END IF;
-    INSERT INTO public.voucher_lines (voucher_id, company_id, konto, tekst, kredit, mva_kode, linjenr)
-      VALUES (_vid, _i.company_id, _inntekt, 'Salg ' || r.mva_sats || '%', r.netto, _kode, _ln); _ln := _ln + 1;
-    _netto := _netto + r.netto;
-    IF _mvakonto IS NOT NULL AND r.mva_sats > 0 THEN
-      INSERT INTO public.voucher_lines (voucher_id, company_id, konto, tekst, kredit, mva_kode, linjenr)
-        VALUES (_vid, _i.company_id, _mvakonto, 'Utgående mva ' || r.mva_sats || '%', round(r.netto * r.mva_sats / 100, 2), _kode, _ln); _ln := _ln + 1;
-      _mva := _mva + round(r.netto * r.mva_sats / 100, 2);
-    END IF;
-  END LOOP;
-  IF _netto <= 0 THEN RAISE EXCEPTION 'Fakturabeløpet må være større enn null'; END IF;
-  INSERT INTO public.voucher_lines (voucher_id, company_id, konto, tekst, debet, linjenr)
-    VALUES (_vid, _i.company_id, '1500', 'Kundefordring ' || _cust.navn, _netto + _mva, 0);
-  PERFORM public.post_voucher(_vid);
-
-  UPDATE public.invoices SET status = 'sendt', fakturanr = _nr, kid = public.kid_mod10(lpad(_nr::text, 8, '0')),
-    netto = _netto, mva = _mva, total = _netto + _mva, voucher_id = _vid,
-    forfallsdato = _i.fakturadato + _cust.betalingsfrist,
-    leveringsdato = COALESCE(_i.leveringsdato, _i.fakturadato)
-  WHERE id = _invoice;
-  RETURN _nr;
-END $$;
-GRANT EXECUTE ON FUNCTION public.send_invoice(uuid) TO authenticated;
-
-CREATE OR REPLACE FUNCTION public.credit_invoice(_invoice uuid) RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-DECLARE _i public.invoices; _new uuid; _vid uuid; _nr int;
-BEGIN
-  SELECT * INTO _i FROM public.invoices WHERE id = _invoice FOR UPDATE;
-  IF NOT public.can_write(_i.company_id) THEN RAISE EXCEPTION 'Ingen tilgang'; END IF;
-  IF _i.status <> 'sendt' THEN RAISE EXCEPTION 'Kun sendte, ubetalte fakturaer kan krediteres'; END IF;
-  IF _i.er_kreditnota THEN RAISE EXCEPTION 'En kreditnota kan ikke krediteres'; END IF;
-  IF _i.innbetalt <> 0 THEN RAISE EXCEPTION 'Fakturaen er delvis betalt. Krediter restbeløpet manuelt eller tilbakefør innbetalingen først.'; END IF;
-  _vid := public.reverse_voucher(_i.voucher_id);
-  UPDATE public.companies SET neste_fakturanr = neste_fakturanr + 1 WHERE id = _i.company_id RETURNING neste_fakturanr - 1 INTO _nr;
-  INSERT INTO public.invoices (company_id, customer_id, fakturanr, fakturadato, forfallsdato, status, netto, mva, total, merknad, voucher_id, kreditnota_for, er_kreditnota, leveringsdato, deres_ref, var_ref)
-  VALUES (_i.company_id, _i.customer_id, _nr, current_date, current_date, 'kreditert', -_i.netto, -_i.mva, -_i.total, 'Kreditnota for faktura ' || _i.fakturanr, _vid, _i.id, true, _i.leveringsdato, _i.deres_ref, _i.var_ref)
-  RETURNING id INTO _new;
-  INSERT INTO public.invoice_lines (invoice_id, company_id, beskrivelse, antall, enhetspris, mva_sats, linjenr, rabatt_prosent, enhet)
-  SELECT _new, company_id, beskrivelse, -antall, enhetspris, mva_sats, linjenr, rabatt_prosent, enhet FROM public.invoice_lines WHERE invoice_id = _invoice;
-  UPDATE public.invoices SET status = 'kreditert' WHERE id = _invoice;
-  RETURN _new;
-END $$;
-GRANT EXECUTE ON FUNCTION public.credit_invoice(uuid) TO authenticated;
-
--- Hel- eller delbetaling. Fakturaen blir «betalt» når restbeløpet er under 50 øre.
-CREATE OR REPLACE FUNCTION public.registrer_innbetaling(_invoice uuid, _dato date, _belop numeric, _konto text DEFAULT '1920')
-RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-DECLARE _i public.invoices; _vid uuid; _ny numeric;
-BEGIN
-  SELECT * INTO _i FROM public.invoices WHERE id = _invoice FOR UPDATE;
-  IF NOT public.can_write(_i.company_id) THEN RAISE EXCEPTION 'Ingen tilgang'; END IF;
-  IF _i.status <> 'sendt' THEN RAISE EXCEPTION 'Kun sendte fakturaer kan registreres som betalt'; END IF;
-  IF _belop IS NULL OR _belop <= 0 THEN RAISE EXCEPTION 'Beløpet må være større enn null'; END IF;
-  IF _belop > _i.total - _i.innbetalt + 0.5 THEN RAISE EXCEPTION 'Beløpet er større enn det som gjenstår (% kr)', _i.total - _i.innbetalt; END IF;
-  IF _konto NOT IN ('1900','1920','1950') THEN RAISE EXCEPTION 'Ugyldig konto for innbetaling'; END IF;
-  INSERT INTO public.vouchers (company_id, dato, beskrivelse, kilde, created_by)
-  VALUES (_i.company_id, _dato, 'Innbetaling faktura ' || _i.fakturanr, 'innbetaling', auth.uid()) RETURNING id INTO _vid;
-  INSERT INTO public.voucher_lines (voucher_id, company_id, konto, tekst, debet, linjenr) VALUES (_vid, _i.company_id, _konto, 'Innbetaling', _belop, 0);
-  INSERT INTO public.voucher_lines (voucher_id, company_id, konto, tekst, kredit, linjenr) VALUES (_vid, _i.company_id, '1500', 'Kundefordring', _belop, 1);
-  PERFORM public.post_voucher(_vid);
-  _ny := _i.innbetalt + _belop;
-  UPDATE public.invoices SET innbetalt = _ny,
-    status = CASE WHEN abs(_i.total - _ny) < 0.5 THEN 'betalt'::invoice_status ELSE status END,
-    betalt_voucher_id = CASE WHEN abs(_i.total - _ny) < 0.5 THEN _vid ELSE betalt_voucher_id END
-  WHERE id = _invoice;
-  RETURN _vid;
-END $$;
-REVOKE ALL ON FUNCTION public.registrer_innbetaling(uuid, date, numeric, text) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.registrer_innbetaling(uuid, date, numeric, text) TO authenticated;
-
--- Den gamle helbetalingen går via den nye, så innbetalt-feltet alltid stemmer
-CREATE OR REPLACE FUNCTION public.register_invoice_payment(_invoice uuid, _dato date) RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-DECLARE _i public.invoices;
-BEGIN
-  SELECT * INTO _i FROM public.invoices WHERE id = _invoice;
-  RETURN public.registrer_innbetaling(_invoice, _dato, _i.total - _i.innbetalt, '1920');
-END $$;
-
--- Repeterende fakturaer: en sendt faktura brukes som mal. Utkast lages når datoen er nådd; brukeren sender selv.
-CREATE TABLE public.repeterende_fakturaer (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  company_id uuid NOT NULL REFERENCES public.companies(id) ON DELETE CASCADE,
-  mal_faktura uuid NOT NULL REFERENCES public.invoices(id) ON DELETE CASCADE,
-  intervall text NOT NULL CHECK (intervall IN ('maaned','kvartal','halvaar','aar')),
-  neste_dato date NOT NULL,
-  aktiv boolean NOT NULL DEFAULT true,
-  opprettet_av uuid DEFAULT auth.uid(),
-  created_at timestamptz NOT NULL DEFAULT now()
-);
-CREATE INDEX ON public.repeterende_fakturaer (company_id, neste_dato);
-REVOKE ALL ON public.repeterende_fakturaer FROM PUBLIC, anon;
-GRANT SELECT, INSERT, UPDATE, DELETE ON public.repeterende_fakturaer TO authenticated;
-GRANT ALL ON public.repeterende_fakturaer TO service_role;
-ALTER TABLE public.repeterende_fakturaer ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "members read rep" ON public.repeterende_fakturaer FOR SELECT TO authenticated USING (public.is_member(company_id));
-CREATE POLICY "writers insert rep" ON public.repeterende_fakturaer FOR INSERT TO authenticated WITH CHECK (public.can_write(company_id));
-CREATE POLICY "writers update rep" ON public.repeterende_fakturaer FOR UPDATE TO authenticated USING (public.can_write(company_id)) WITH CHECK (public.can_write(company_id));
-CREATE POLICY "writers delete rep" ON public.repeterende_fakturaer FOR DELETE TO authenticated USING (public.can_write(company_id));
-
--- Lager utkast fra malen og flytter neste dato. Kalles fra oversikten («Til behandling»).
-CREATE OR REPLACE FUNCTION public.lag_repeterende_utkast(_id uuid) RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-DECLARE _r public.repeterende_fakturaer; _m public.invoices; _new uuid; _mnd int;
-BEGIN
-  SELECT * INTO _r FROM public.repeterende_fakturaer WHERE id = _id FOR UPDATE;
-  IF NOT public.can_write(_r.company_id) THEN RAISE EXCEPTION 'Ingen tilgang'; END IF;
-  IF NOT _r.aktiv THEN RAISE EXCEPTION 'Repeteringen er stoppet'; END IF;
-  SELECT * INTO _m FROM public.invoices WHERE id = _r.mal_faktura;
-  INSERT INTO public.invoices (company_id, customer_id, fakturadato, leveringsdato, merknad, deres_ref, var_ref)
-  VALUES (_r.company_id, _m.customer_id, _r.neste_dato, _r.neste_dato, _m.merknad, _m.deres_ref, _m.var_ref) RETURNING id INTO _new;
-  INSERT INTO public.invoice_lines (invoice_id, company_id, beskrivelse, antall, enhetspris, mva_sats, linjenr, rabatt_prosent, enhet)
-  SELECT _new, company_id, beskrivelse, abs(antall), enhetspris, mva_sats, linjenr, rabatt_prosent, enhet FROM public.invoice_lines WHERE invoice_id = _m.id;
-  _mnd := CASE _r.intervall WHEN 'maaned' THEN 1 WHEN 'kvartal' THEN 3 WHEN 'halvaar' THEN 6 ELSE 12 END;
-  UPDATE public.repeterende_fakturaer SET neste_dato = (neste_dato + make_interval(months => _mnd))::date WHERE id = _id;
-  RETURN _new;
-END $$;
-REVOKE ALL ON FUNCTION public.lag_repeterende_utkast(uuid) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.lag_repeterende_utkast(uuid) TO authenticated;
-
--- Bankavstemming mot faktura godtar nå delbetaling
-CREATE OR REPLACE FUNCTION public.book_bank_transaction(_tx uuid, _motkonto text, _mva_sats numeric, _invoice uuid, _supplier_invoice uuid) RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-DECLARE _t public.bank_transactions; _c public.companies; _vid uuid; _abs numeric; _netto numeric; _mva numeric; _mk text; _kode text; _i public.invoices; _si public.supplier_invoices;
-BEGIN
-  SELECT * INTO _t FROM public.bank_transactions WHERE id = _tx FOR UPDATE;
-  IF NOT public.can_write(_t.company_id) THEN RAISE EXCEPTION 'Ingen tilgang'; END IF;
-  IF _t.status <> 'ny' THEN RAISE EXCEPTION 'Transaksjonen er allerede avstemt'; END IF;
-  SELECT * INTO _c FROM public.companies WHERE id = _t.company_id;
-  _abs := abs(_t.belop);
-
-  IF _invoice IS NOT NULL THEN
-    SELECT * INTO _i FROM public.invoices WHERE id = _invoice AND company_id = _t.company_id FOR UPDATE;
-    IF _i.status <> 'sendt' THEN RAISE EXCEPTION 'Fakturaen er ikke åpen'; END IF;
-    IF _t.belop <= 0 OR _t.belop > _i.total - _i.innbetalt + 0.5 THEN
-      RAISE EXCEPTION 'Beløpet (%) er større enn det som gjenstår på fakturaen (%)', _t.belop, _i.total - _i.innbetalt;
-    END IF;
-    _vid := public.registrer_innbetaling(_invoice, _t.dato, _t.belop, _t.bankkonto);
-  ELSIF _supplier_invoice IS NOT NULL THEN
-    SELECT * INTO _si FROM public.supplier_invoices WHERE id = _supplier_invoice AND company_id = _t.company_id FOR UPDATE;
-    IF -_t.belop <> _si.total THEN RAISE EXCEPTION 'Beløpet (%) stemmer ikke med leverandørfakturaen (%)', _t.belop, _si.total; END IF;
-    _vid := public.pay_supplier_invoice(_supplier_invoice, _t.dato);
-  ELSE
-    IF NOT EXISTS (SELECT 1 FROM public.accounts WHERE company_id = _t.company_id AND number = _motkonto) THEN RAISE EXCEPTION 'Ukjent konto %', _motkonto; END IF;
-    INSERT INTO public.vouchers (company_id, dato, beskrivelse, kilde, created_by)
-    VALUES (_t.company_id, _t.dato, _t.tekst, 'bank', auth.uid()) RETURNING id INTO _vid;
-    IF _c.mva_registrert AND COALESCE(_mva_sats, 0) > 0 THEN
-      _mva := round(_abs * _mva_sats / (100 + _mva_sats), 2);
-    ELSE _mva := 0; END IF;
-    _netto := _abs - _mva;
-    IF _t.belop < 0 THEN
-      _mk := CASE _mva_sats WHEN 25 THEN '2710' WHEN 15 THEN '2711' WHEN 12 THEN '2712' END;
-      _kode := CASE _mva_sats WHEN 25 THEN '1' WHEN 15 THEN '11' WHEN 12 THEN '13' END;
-      INSERT INTO public.voucher_lines (voucher_id, company_id, konto, tekst, debet, mva_kode, linjenr) VALUES (_vid, _t.company_id, _motkonto, _t.tekst, _netto, CASE WHEN _mva > 0 THEN _kode END, 0);
-      IF _mva > 0 THEN INSERT INTO public.voucher_lines (voucher_id, company_id, konto, tekst, debet, mva_kode, linjenr) VALUES (_vid, _t.company_id, _mk, 'Inngående mva', _mva, _kode, 1); END IF;
-      INSERT INTO public.voucher_lines (voucher_id, company_id, konto, tekst, kredit, linjenr) VALUES (_vid, _t.company_id, _t.bankkonto, _t.tekst, _abs, 2);
-    ELSE
-      _mk := CASE _mva_sats WHEN 25 THEN '2700' WHEN 15 THEN '2701' WHEN 12 THEN '2702' END;
-      _kode := CASE _mva_sats WHEN 25 THEN '3' WHEN 15 THEN '31' WHEN 12 THEN '33' END;
-      INSERT INTO public.voucher_lines (voucher_id, company_id, konto, tekst, debet, linjenr) VALUES (_vid, _t.company_id, _t.bankkonto, _t.tekst, _abs, 0);
-      INSERT INTO public.voucher_lines (voucher_id, company_id, konto, tekst, kredit, mva_kode, linjenr) VALUES (_vid, _t.company_id, _motkonto, _t.tekst, _netto, CASE WHEN _mva > 0 THEN _kode END, 1);
-      IF _mva > 0 THEN INSERT INTO public.voucher_lines (voucher_id, company_id, konto, tekst, kredit, mva_kode, linjenr) VALUES (_vid, _t.company_id, _mk, 'Utgående mva', _mva, _kode, 2); END IF;
-    END IF;
-    PERFORM public.post_voucher(_vid);
-  END IF;
-  UPDATE public.bank_transactions SET status = 'avstemt', voucher_id = _vid WHERE id = _tx;
-  RETURN _vid;
-END $$;
-GRANT EXECUTE ON FUNCTION public.book_bank_transaction(uuid, text, numeric, uuid, uuid) TO authenticated;
+-- The content of this migration cannot be applied: den samme endringen kjøres på nytt via et nytt migrasjonssteg fordi den opprinnelige filen aldri ble registrert som kjørt i databasen, og dobbelkjøring ga konflikt.
+-- -- Fakturahåndtering: leveringsdato (bokføringsforskriften § 5-1-1), kjøpers og vår referanse (EHF BuyerReference),
+-- -- rabatt og enhet per linje, delbetalinger og repeterende fakturaer.
+-- 
+-- ALTER TABLE public.invoices
+--   ADD COLUMN leveringsdato date,
+--   ADD COLUMN deres_ref text CHECK (deres_ref IS NULL OR char_length(deres_ref) <= 120),
+--   ADD COLUMN var_ref text CHECK (var_ref IS NULL OR char_length(var_ref) <= 120),
+--   ADD COLUMN innbetalt numeric(14,2) NOT NULL DEFAULT 0;
+-- 
+-- ALTER TABLE public.invoice_lines
+--   ADD COLUMN rabatt_prosent numeric(5,2) NOT NULL DEFAULT 0 CHECK (rabatt_prosent >= 0 AND rabatt_prosent <= 100),
+--   ADD COLUMN enhet text CHECK (enhet IS NULL OR char_length(enhet) <= 20);
+-- 
+-- -- Beløp bokført på fakturaer som allerede er betalt
+-- UPDATE public.invoices SET innbetalt = total WHERE status = 'betalt';
+-- 
+-- CREATE OR REPLACE FUNCTION public.send_invoice(_invoice uuid) RETURNS int LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+-- DECLARE _i public.invoices; _c public.companies; _cust public.customers; _nr int; _vid uuid; _netto numeric := 0; _mva numeric := 0; r record; _ln int := 1;
+--   _inntekt text; _mvakonto text; _kode text;
+-- BEGIN
+--   SELECT * INTO _i FROM public.invoices WHERE id = _invoice FOR UPDATE;
+--   IF NOT public.can_write(_i.company_id) THEN RAISE EXCEPTION 'Ingen tilgang'; END IF;
+--   IF _i.status <> 'utkast' THEN RAISE EXCEPTION 'Fakturaen er allerede sendt'; END IF;
+--   SELECT * INTO _c FROM public.companies WHERE id = _i.company_id;
+--   SELECT * INTO _cust FROM public.customers WHERE id = _i.customer_id;
+--   IF NOT EXISTS (SELECT 1 FROM public.invoice_lines WHERE invoice_id = _invoice) THEN RAISE EXCEPTION 'Fakturaen har ingen linjer'; END IF;
+-- 
+--   UPDATE public.companies SET neste_fakturanr = neste_fakturanr + 1 WHERE id = _c.id RETURNING neste_fakturanr - 1 INTO _nr;
+-- 
+--   INSERT INTO public.vouchers (company_id, dato, beskrivelse, kilde, created_by)
+--   VALUES (_i.company_id, _i.fakturadato, 'Faktura ' || _nr || ' – ' || _cust.navn, 'faktura', auth.uid()) RETURNING id INTO _vid;
+-- 
+--   FOR r IN
+--     SELECT mva_sats, sum(round(antall * enhetspris * (1 - rabatt_prosent / 100), 2)) AS netto
+--     FROM public.invoice_lines WHERE invoice_id = _invoice GROUP BY mva_sats
+--   LOOP
+--     IF NOT _c.mva_registrert THEN
+--       _inntekt := '3200'; _mvakonto := NULL; _kode := NULL;
+--     ELSIF r.mva_sats = 25 THEN _inntekt := '3000'; _mvakonto := '2700'; _kode := '3';
+--     ELSIF r.mva_sats = 15 THEN _inntekt := '3010'; _mvakonto := '2701'; _kode := '31';
+--     ELSIF r.mva_sats = 12 THEN _inntekt := '3020'; _mvakonto := '2702'; _kode := '33';
+--     ELSIF _cust.land <> 'NO' THEN _inntekt := '3250'; _mvakonto := NULL; _kode := '52';
+--     ELSE _inntekt := '3100'; _mvakonto := NULL; _kode := '5';
+--     END IF;
+--     INSERT INTO public.voucher_lines (voucher_id, company_id, konto, tekst, kredit, mva_kode, linjenr)
+--       VALUES (_vid, _i.company_id, _inntekt, 'Salg ' || r.mva_sats || '%', r.netto, _kode, _ln); _ln := _ln + 1;
+--     _netto := _netto + r.netto;
+--     IF _mvakonto IS NOT NULL AND r.mva_sats > 0 THEN
+--       INSERT INTO public.voucher_lines (voucher_id, company_id, konto, tekst, kredit, mva_kode, linjenr)
+--         VALUES (_vid, _i.company_id, _mvakonto, 'Utgående mva ' || r.mva_sats || '%', round(r.netto * r.mva_sats / 100, 2), _kode, _ln); _ln := _ln + 1;
+--       _mva := _mva + round(r.netto * r.mva_sats / 100, 2);
+--     END IF;
+--   END LOOP;
+--   IF _netto <= 0 THEN RAISE EXCEPTION 'Fakturabeløpet må være større enn null'; END IF;
+--   INSERT INTO public.voucher_lines (voucher_id, company_id, konto, tekst, debet, linjenr)
+--     VALUES (_vid, _i.company_id, '1500', 'Kundefordring ' || _cust.navn, _netto + _mva, 0);
+--   PERFORM public.post_voucher(_vid);
+-- 
+--   UPDATE public.invoices SET status = 'sendt', fakturanr = _nr, kid = public.kid_mod10(lpad(_nr::text, 8, '0')),
+--     netto = _netto, mva = _mva, total = _netto + _mva, voucher_id = _vid,
+--     forfallsdato = _i.fakturadato + _cust.betalingsfrist,
+--     leveringsdato = COALESCE(_i.leveringsdato, _i.fakturadato)
+--   WHERE id = _invoice;
+--   RETURN _nr;
+-- END $$;
+-- GRANT EXECUTE ON FUNCTION public.send_invoice(uuid) TO authenticated;
+-- 
+-- CREATE OR REPLACE FUNCTION public.credit_invoice(_invoice uuid) RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+-- DECLARE _i public.invoices; _new uuid; _vid uuid; _nr int;
+-- BEGIN
+--   SELECT * INTO _i FROM public.invoices WHERE id = _invoice FOR UPDATE;
+--   IF NOT public.can_write(_i.company_id) THEN RAISE EXCEPTION 'Ingen tilgang'; END IF;
+--   IF _i.status <> 'sendt' THEN RAISE EXCEPTION 'Kun sendte, ubetalte fakturaer kan krediteres'; END IF;
+--   IF _i.er_kreditnota THEN RAISE EXCEPTION 'En kreditnota kan ikke krediteres'; END IF;
+--   IF _i.innbetalt <> 0 THEN RAISE EXCEPTION 'Fakturaen er delvis betalt. Krediter restbeløpet manuelt eller tilbakefør innbetalingen først.'; END IF;
+--   _vid := public.reverse_voucher(_i.voucher_id);
+--   UPDATE public.companies SET neste_fakturanr = neste_fakturanr + 1 WHERE id = _i.company_id RETURNING neste_fakturanr - 1 INTO _nr;
+--   INSERT INTO public.invoices (company_id, customer_id, fakturanr, fakturadato, forfallsdato, status, netto, mva, total, merknad, voucher_id, kreditnota_for, er_kreditnota, leveringsdato, deres_ref, var_ref)
+--   VALUES (_i.company_id, _i.customer_id, _nr, current_date, current_date, 'kreditert', -_i.netto, -_i.mva, -_i.total, 'Kreditnota for faktura ' || _i.fakturanr, _vid, _i.id, true, _i.leveringsdato, _i.deres_ref, _i.var_ref)
+--   RETURNING id INTO _new;
+--   INSERT INTO public.invoice_lines (invoice_id, company_id, beskrivelse, antall, enhetspris, mva_sats, linjenr, rabatt_prosent, enhet)
+--   SELECT _new, company_id, beskrivelse, -antall, enhetspris, mva_sats, linjenr, rabatt_prosent, enhet FROM public.invoice_lines WHERE invoice_id = _invoice;
+--   UPDATE public.invoices SET status = 'kreditert' WHERE id = _invoice;
+--   RETURN _new;
+-- END $$;
+-- GRANT EXECUTE ON FUNCTION public.credit_invoice(uuid) TO authenticated;
+-- 
+-- -- Hel- eller delbetaling. Fakturaen blir «betalt» når restbeløpet er under 50 øre.
+-- CREATE OR REPLACE FUNCTION public.registrer_innbetaling(_invoice uuid, _dato date, _belop numeric, _konto text DEFAULT '1920')
+-- RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+-- DECLARE _i public.invoices; _vid uuid; _ny numeric;
+-- BEGIN
+--   SELECT * INTO _i FROM public.invoices WHERE id = _invoice FOR UPDATE;
+--   IF NOT public.can_write(_i.company_id) THEN RAISE EXCEPTION 'Ingen tilgang'; END IF;
+--   IF _i.status <> 'sendt' THEN RAISE EXCEPTION 'Kun sendte fakturaer kan registreres som betalt'; END IF;
+--   IF _belop IS NULL OR _belop <= 0 THEN RAISE EXCEPTION 'Beløpet må være større enn null'; END IF;
+--   IF _belop > _i.total - _i.innbetalt + 0.5 THEN RAISE EXCEPTION 'Beløpet er større enn det som gjenstår (% kr)', _i.total - _i.innbetalt; END IF;
+--   IF _konto NOT IN ('1900','1920','1950') THEN RAISE EXCEPTION 'Ugyldig konto for innbetaling'; END IF;
+--   INSERT INTO public.vouchers (company_id, dato, beskrivelse, kilde, created_by)
+--   VALUES (_i.company_id, _dato, 'Innbetaling faktura ' || _i.fakturanr, 'innbetaling', auth.uid()) RETURNING id INTO _vid;
+--   INSERT INTO public.voucher_lines (voucher_id, company_id, konto, tekst, debet, linjenr) VALUES (_vid, _i.company_id, _konto, 'Innbetaling', _belop, 0);
+--   INSERT INTO public.voucher_lines (voucher_id, company_id, konto, tekst, kredit, linjenr) VALUES (_vid, _i.company_id, '1500', 'Kundefordring', _belop, 1);
+--   PERFORM public.post_voucher(_vid);
+--   _ny := _i.innbetalt + _belop;
+--   UPDATE public.invoices SET innbetalt = _ny,
+--     status = CASE WHEN abs(_i.total - _ny) < 0.5 THEN 'betalt'::invoice_status ELSE status END,
+--     betalt_voucher_id = CASE WHEN abs(_i.total - _ny) < 0.5 THEN _vid ELSE betalt_voucher_id END
+--   WHERE id = _invoice;
+--   RETURN _vid;
+-- END $$;
+-- REVOKE ALL ON FUNCTION public.registrer_innbetaling(uuid, date, numeric, text) FROM PUBLIC, anon;
+-- GRANT EXECUTE ON FUNCTION public.registrer_innbetaling(uuid, date, numeric, text) TO authenticated;
+-- 
+-- -- Den gamle helbetalingen går via den nye, så innbetalt-feltet alltid stemmer
+-- CREATE OR REPLACE FUNCTION public.register_invoice_payment(_invoice uuid, _dato date) RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+-- DECLARE _i public.invoices;
+-- BEGIN
+--   SELECT * INTO _i FROM public.invoices WHERE id = _invoice;
+--   RETURN public.registrer_innbetaling(_invoice, _dato, _i.total - _i.innbetalt, '1920');
+-- END $$;
+-- 
+-- -- Repeterende fakturaer: en sendt faktura brukes som mal. Utkast lages når datoen er nådd; brukeren sender selv.
+-- CREATE TABLE public.repeterende_fakturaer (
+--   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+--   company_id uuid NOT NULL REFERENCES public.companies(id) ON DELETE CASCADE,
+--   mal_faktura uuid NOT NULL REFERENCES public.invoices(id) ON DELETE CASCADE,
+--   intervall text NOT NULL CHECK (intervall IN ('maaned','kvartal','halvaar','aar')),
+--   neste_dato date NOT NULL,
+--   aktiv boolean NOT NULL DEFAULT true,
+--   opprettet_av uuid DEFAULT auth.uid(),
+--   created_at timestamptz NOT NULL DEFAULT now()
+-- );
+-- CREATE INDEX ON public.repeterende_fakturaer (company_id, neste_dato);
+-- REVOKE ALL ON public.repeterende_fakturaer FROM PUBLIC, anon;
+-- GRANT SELECT, INSERT, UPDATE, DELETE ON public.repeterende_fakturaer TO authenticated;
+-- GRANT ALL ON public.repeterende_fakturaer TO service_role;
+-- ALTER TABLE public.repeterende_fakturaer ENABLE ROW LEVEL SECURITY;
+-- CREATE POLICY "members read rep" ON public.repeterende_fakturaer FOR SELECT TO authenticated USING (public.is_member(company_id));
+-- CREATE POLICY "writers insert rep" ON public.repeterende_fakturaer FOR INSERT TO authenticated WITH CHECK (public.can_write(company_id));
+-- CREATE POLICY "writers update rep" ON public.repeterende_fakturaer FOR UPDATE TO authenticated USING (public.can_write(company_id)) WITH CHECK (public.can_write(company_id));
+-- CREATE POLICY "writers delete rep" ON public.repeterende_fakturaer FOR DELETE TO authenticated USING (public.can_write(company_id));
+-- 
+-- -- Lager utkast fra malen og flytter neste dato. Kalles fra oversikten («Til behandling»).
+-- CREATE OR REPLACE FUNCTION public.lag_repeterende_utkast(_id uuid) RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+-- DECLARE _r public.repeterende_fakturaer; _m public.invoices; _new uuid; _mnd int;
+-- BEGIN
+--   SELECT * INTO _r FROM public.repeterende_fakturaer WHERE id = _id FOR UPDATE;
+--   IF NOT public.can_write(_r.company_id) THEN RAISE EXCEPTION 'Ingen tilgang'; END IF;
+--   IF NOT _r.aktiv THEN RAISE EXCEPTION 'Repeteringen er stoppet'; END IF;
+--   SELECT * INTO _m FROM public.invoices WHERE id = _r.mal_faktura;
+--   INSERT INTO public.invoices (company_id, customer_id, fakturadato, leveringsdato, merknad, deres_ref, var_ref)
+--   VALUES (_r.company_id, _m.customer_id, _r.neste_dato, _r.neste_dato, _m.merknad, _m.deres_ref, _m.var_ref) RETURNING id INTO _new;
+--   INSERT INTO public.invoice_lines (invoice_id, company_id, beskrivelse, antall, enhetspris, mva_sats, linjenr, rabatt_prosent, enhet)
+--   SELECT _new, company_id, beskrivelse, abs(antall), enhetspris, mva_sats, linjenr, rabatt_prosent, enhet FROM public.invoice_lines WHERE invoice_id = _m.id;
+--   _mnd := CASE _r.intervall WHEN 'maaned' THEN 1 WHEN 'kvartal' THEN 3 WHEN 'halvaar' THEN 6 ELSE 12 END;
+--   UPDATE public.repeterende_fakturaer SET neste_dato = (neste_dato + make_interval(months => _mnd))::date WHERE id = _id;
+--   RETURN _new;
+-- END $$;
+-- REVOKE ALL ON FUNCTION public.lag_repeterende_utkast(uuid) FROM PUBLIC, anon;
+-- GRANT EXECUTE ON FUNCTION public.lag_repeterende_utkast(uuid) TO authenticated;
+-- 
+-- -- Bankavstemming mot faktura godtar nå delbetaling
+-- CREATE OR REPLACE FUNCTION public.book_bank_transaction(_tx uuid, _motkonto text, _mva_sats numeric, _invoice uuid, _supplier_invoice uuid) RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+-- DECLARE _t public.bank_transactions; _c public.companies; _vid uuid; _abs numeric; _netto numeric; _mva numeric; _mk text; _kode text; _i public.invoices; _si public.supplier_invoices;
+-- BEGIN
+--   SELECT * INTO _t FROM public.bank_transactions WHERE id = _tx FOR UPDATE;
+--   IF NOT public.can_write(_t.company_id) THEN RAISE EXCEPTION 'Ingen tilgang'; END IF;
+--   IF _t.status <> 'ny' THEN RAISE EXCEPTION 'Transaksjonen er allerede avstemt'; END IF;
+--   SELECT * INTO _c FROM public.companies WHERE id = _t.company_id;
+--   _abs := abs(_t.belop);
+-- 
+--   IF _invoice IS NOT NULL THEN
+--     SELECT * INTO _i FROM public.invoices WHERE id = _invoice AND company_id = _t.company_id FOR UPDATE;
+--     IF _i.status <> 'sendt' THEN RAISE EXCEPTION 'Fakturaen er ikke åpen'; END IF;
+--     IF _t.belop <= 0 OR _t.belop > _i.total - _i.innbetalt + 0.5 THEN
+--       RAISE EXCEPTION 'Beløpet (%) er større enn det som gjenstår på fakturaen (%)', _t.belop, _i.total - _i.innbetalt;
+--     END IF;
+--     _vid := public.registrer_innbetaling(_invoice, _t.dato, _t.belop, _t.bankkonto);
+--   ELSIF _supplier_invoice IS NOT NULL THEN
+--     SELECT * INTO _si FROM public.supplier_invoices WHERE id = _supplier_invoice AND company_id = _t.company_id FOR UPDATE;
+--     IF -_t.belop <> _si.total THEN RAISE EXCEPTION 'Beløpet (%) stemmer ikke med leverandørfakturaen (%)', _t.belop, _si.total; END IF;
+--     _vid := public.pay_supplier_invoice(_supplier_invoice, _t.dato);
+--   ELSE
+--     IF NOT EXISTS (SELECT 1 FROM public.accounts WHERE company_id = _t.company_id AND number = _motkonto) THEN RAISE EXCEPTION 'Ukjent konto %', _motkonto; END IF;
+--     INSERT INTO public.vouchers (company_id, dato, beskrivelse, kilde, created_by)
+--     VALUES (_t.company_id, _t.dato, _t.tekst, 'bank', auth.uid()) RETURNING id INTO _vid;
+--     IF _c.mva_registrert AND COALESCE(_mva_sats, 0) > 0 THEN
+--       _mva := round(_abs * _mva_sats / (100 + _mva_sats), 2);
+--     ELSE _mva := 0; END IF;
+--     _netto := _abs - _mva;
+--     IF _t.belop < 0 THEN
+--       _mk := CASE _mva_sats WHEN 25 THEN '2710' WHEN 15 THEN '2711' WHEN 12 THEN '2712' END;
+--       _kode := CASE _mva_sats WHEN 25 THEN '1' WHEN 15 THEN '11' WHEN 12 THEN '13' END;
+--       INSERT INTO public.voucher_lines (voucher_id, company_id, konto, tekst, debet, mva_kode, linjenr) VALUES (_vid, _t.company_id, _motkonto, _t.tekst, _netto, CASE WHEN _mva > 0 THEN _kode END, 0);
+--       IF _mva > 0 THEN INSERT INTO public.voucher_lines (voucher_id, company_id, konto, tekst, debet, mva_kode, linjenr) VALUES (_vid, _t.company_id, _mk, 'Inngående mva', _mva, _kode, 1); END IF;
+--       INSERT INTO public.voucher_lines (voucher_id, company_id, konto, tekst, kredit, linjenr) VALUES (_vid, _t.company_id, _t.bankkonto, _t.tekst, _abs, 2);
+--     ELSE
+--       _mk := CASE _mva_sats WHEN 25 THEN '2700' WHEN 15 THEN '2701' WHEN 12 THEN '2702' END;
+--       _kode := CASE _mva_sats WHEN 25 THEN '3' WHEN 15 THEN '31' WHEN 12 THEN '33' END;
+--       INSERT INTO public.voucher_lines (voucher_id, company_id, konto, tekst, debet, linjenr) VALUES (_vid, _t.company_id, _t.bankkonto, _t.tekst, _abs, 0);
+--       INSERT INTO public.voucher_lines (voucher_id, company_id, konto, tekst, kredit, mva_kode, linjenr) VALUES (_vid, _t.company_id, _motkonto, _t.tekst, _netto, CASE WHEN _mva > 0 THEN _kode END, 1);
+--       IF _mva > 0 THEN INSERT INTO public.voucher_lines (voucher_id, company_id, konto, tekst, kredit, mva_kode, linjenr) VALUES (_vid, _t.company_id, _mk, 'Utgående mva', _mva, _kode, 2); END IF;
+--     END IF;
+--     PERFORM public.post_voucher(_vid);
+--   END IF;
+--   UPDATE public.bank_transactions SET status = 'avstemt', voucher_id = _vid WHERE id = _tx;
+--   RETURN _vid;
+-- END $$;
+-- GRANT EXECUTE ON FUNCTION public.book_bank_transaction(uuid, text, numeric, uuid, uuid) TO authenticated;
