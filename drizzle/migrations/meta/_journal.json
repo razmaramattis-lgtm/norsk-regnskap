@@ -120,6 +120,13 @@
       "when": 1792615813490,
       "tag": "0016_aapne_periode_og_aar",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1792616441708,
+      "tag": "0017_nummer_og_duplikatsperrer",
+      "breakpoints": true
     }
   ]
 }
