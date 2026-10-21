@@ -75,7 +75,7 @@ function Aar() {
           <Input type="date" className="mb-3 mt-1.5" value={laas} onChange={(e) => setLaas(e.target.value)} disabled={!isAdmin} />
           <div className="flex flex-wrap gap-2">
             <Button disabled={!isAdmin || busy} onClick={() => run(async () => { const { error } = await supabase.rpc("set_period_lock", { _company: company.id, _dato: laas }); if (error) throw error; }, "Periodelåsen er oppdatert")}>Lås / lås opp til dato</Button>
-            <Button variant="outline" disabled={!isAdmin || busy || !company.laast_til} onClick={() => run(async () => { const { error } = await supabase.rpc("set_period_lock", { _company: company.id, _dato: null }); if (error) throw error; }, "Periodelåsen er fjernet")}>Fjern lås helt</Button>
+            <Button variant="outline" disabled={!isAdmin || busy || !company.laast_til} onClick={() => run(async () => { const { error } = await supabase.rpc("set_period_lock", { _company: company.id, _dato: null as unknown as string }); if (error) throw error; }, "Periodelåsen er fjernet")}>Fjern lås helt</Button>
           </div>
         </Panel>
         <Panel className="p-6">
