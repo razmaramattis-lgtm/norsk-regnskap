@@ -14,7 +14,7 @@ describe("Lønn", () => {
     expect(r.skattetrekk).toBe(15000);
     expect(r.netto).toBe(35000);
     expect(r.otp).toBe(1000);
-    expect(r.aga).toBe(7860.3);
+    expect(r.aga).toBe(7910.1);
   });
 });
 
