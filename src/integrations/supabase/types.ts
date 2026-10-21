@@ -573,13 +573,13 @@ export type Database = {
       }
       documents: {
         Row: {
-          notat: string | null
           company_id: string
           created_at: string
           filnavn: string
           id: string
           lastet_opp_av: string | null
           mime: string | null
+          notat: string | null
           oppbevares_til: string
           path: string
           sha256: string | null
@@ -588,13 +588,13 @@ export type Database = {
           voucher_id: string | null
         }
         Insert: {
-          notat?: string | null
           company_id: string
           created_at?: string
           filnavn: string
           id?: string
           lastet_opp_av?: string | null
           mime?: string | null
+          notat?: string | null
           oppbevares_til?: string
           path: string
           sha256?: string | null
@@ -603,13 +603,13 @@ export type Database = {
           voucher_id?: string | null
         }
         Update: {
-          notat?: string | null
           company_id?: string
           created_at?: string
           filnavn?: string
           id?: string
           lastet_opp_av?: string | null
           mime?: string | null
+          notat?: string | null
           oppbevares_til?: string
           path?: string
           sha256?: string | null
