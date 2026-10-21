@@ -245,6 +245,52 @@ export function byggAvskrivningsbilag(
   ];
 }
 
+export type MaanedsRad = {
+  /** Månedsnummer 1–12. */
+  maaned: number;
+  /** ISO-dato for siste dag i måneden. */
+  dato: string;
+  linjer: AvskrivningsLinje[];
+  sum: number;
+};
+
+/**
+ * Fordeler årets avskrivning på tolv månedsbilag. Måned 1–11 får avskrivning/12 avrundet til
+ * nærmeste øre; desember får resten, slik at summene alltid blir nøyaktig lik årsavskrivningen.
+ */
+export function byggMaanedsplan(
+  rader: SaldoRad[],
+  aar: number,
+  kontoFor: (r: SaldoRad) => string = (r) => SALDOGRUPPER[r.gruppe].konto,
+): MaanedsRad[] {
+  const plan: MaanedsRad[] = [];
+  for (let m = 1; m <= 12; m++) {
+    const debet = new Map<string, number>();
+    const kredit = new Map<string, number>();
+    for (const r of rader) {
+      if (r.avskrivning <= 0) continue;
+      const perMnd = r2(r.avskrivning / 12);
+      const belop = m < 12 ? perMnd : r2(r.avskrivning - perMnd * 11);
+      if (belop <= 0) continue;
+      const g = SALDOGRUPPER[r.gruppe];
+      debet.set(g.avskrivningskonto, r2((debet.get(g.avskrivningskonto) ?? 0) + belop));
+      const k = kontoFor(r);
+      kredit.set(k, r2((kredit.get(k) ?? 0) + belop));
+    }
+    const linjer: AvskrivningsLinje[] = [
+      ...[...debet].sort().map(([konto, belop]) => ({ konto, tekst: `Avskrivning ${m}/${aar}`, debet: belop, kredit: 0 })),
+      ...[...kredit].sort().map(([konto, belop]) => ({ konto, tekst: `Avskrivning ${m}/${aar}`, debet: 0, kredit: belop })),
+    ];
+    plan.push({
+      maaned: m,
+      dato: new Date(Date.UTC(aar, m, 0)).toISOString().slice(0, 10),
+      linjer,
+      sum: r2(linjer.reduce((s, l) => s + l.debet, 0)),
+    });
+  }
+  return plan;
+}
+
 export function sumSkattemessig(rader: SaldoRad[]) {
   return {
     avskrivning: r2(rader.reduce((s, r) => s + r.avskrivning, 0)),
