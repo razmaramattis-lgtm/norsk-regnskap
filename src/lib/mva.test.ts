@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { beregnMvaMelding, byggMvaOppgjor, splittBrutto, terminer } from "./mva";
+import { beregnMvaMelding, byggMvaOppgjor, byggOmvendtAvgift, MVA_KODER, splittBrutto, terminer } from "./mva";
 import { gyldigOrgNr, kidMod10 } from "./format";
 
 describe("MVA", () => {
@@ -90,5 +90,69 @@ describe("byggMvaOppgjor", () => {
     ]);
     const [d, k] = sum(o);
     expect(Math.round(d * 100)).toBe(Math.round(k * 100));
+  });
+});
+
+describe("omvendt avgiftsplikt", () => {
+  const sum = (ls: { debet: number; kredit: number }[]) => [ls.reduce((a, l) => a + l.debet, 0), ls.reduce((a, l) => a + l.kredit, 0)] as const;
+
+  it("kode 86 med fradrag: avgiften går i null og grunnlaget rapporteres", () => {
+    const ls = byggOmvendtAvgift(1000, "86", "6800", "2400");
+    const [d, k] = sum(ls);
+    expect(d).toBe(k);
+    const m = beregnMvaMelding(ls);
+    const rad = m.rader.find((r) => r.kode === "86")!;
+    expect(rad.grunnlag).toBe(1000);
+    expect(rad.avgift).toBe(250);
+    expect(rad.fradrag).toBe(250);
+    expect(m.utgaende).toBe(250);
+    expect(m.inngaende).toBe(250);
+    expect(m.aBetale).toBe(0);
+  });
+
+  it("kode 87 uten fradrag: avgiften skal betales og kostnadsføres", () => {
+    const ls = byggOmvendtAvgift(1000, "87", "6800", "2400");
+    const [d, k] = sum(ls);
+    expect(d).toBe(k);
+    const m = beregnMvaMelding(ls);
+    const rad = m.rader.find((r) => r.kode === "87")!;
+    expect(rad.grunnlag).toBe(1000); // den ikke-fradragsberettigede avgiften teller ikke som grunnlag
+    expect(rad.avgift).toBe(250);
+    expect(m.inngaende).toBe(0);
+    expect(m.aBetale).toBe(250);
+    expect(ls.find((l) => l.tekst === "Ikke fradragsberettiget mva")?.debet).toBe(250);
+  });
+
+  it("lav sats (88) bruker 2702 og 2712", () => {
+    const ls = byggOmvendtAvgift(500, "88", "7140", "2400");
+    expect(ls.map((l) => l.konto)).toEqual(["7140", "2712", "2702", "2400"]);
+    expect(ls[2]?.kredit).toBe(60);
+  });
+
+  it("vanlige koder påvirkes ikke og summeres sammen med omvendt", () => {
+    const m = beregnMvaMelding([
+      { konto: "3000", debet: 0, kredit: 1000, mva_kode: "3" },
+      { konto: "2700", debet: 0, kredit: 250, mva_kode: "3" },
+      ...byggOmvendtAvgift(400, "86", "6800", "2400"),
+    ]);
+    expect(m.utgaende).toBe(350);
+    expect(m.inngaende).toBe(100);
+    expect(m.aBetale).toBe(250);
+  });
+
+  it("MVA-oppgjør nuller ut beregnet avgift sammen med øvrig mva", () => {
+    const o = byggMvaOppgjor(byggOmvendtAvgift(1000, "86", "6800", "2400"));
+    expect(o.map((l) => l.konto)).toEqual(["2700", "2710"]); // begge nulles, ingen 2740-linje siden netto er 0
+    expect(sum(o)[0]).toBe(sum(o)[1]);
+  });
+
+  it("nekter koder uten omvendt avgiftsplikt og ugyldig beløp", () => {
+    expect(() => byggOmvendtAvgift(100, "1", "6800", "2400")).toThrow();
+    expect(() => byggOmvendtAvgift(0, "86", "6800", "2400")).toThrow();
+  });
+
+  it("alle koder er unike", () => {
+    const k = MVA_KODER.map((x) => x.kode);
+    expect(new Set(k).size).toBe(k.length);
   });
 });

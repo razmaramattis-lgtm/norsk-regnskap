@@ -132,6 +132,40 @@ describe("EHF / Peppol BIS Billing 3.0", () => {
   });
 });
 
+describe("EHF kreditnota (Peppol Credit Note)", () => {
+  const kn = (over: Partial<EhfInput> = {}) =>
+    faktura({ type: "kreditnota", opprinneligFakturanr: 1001, fakturanr: 1002, ...over });
+
+  it("bygger CreditNote-2 med type 381, referanse til opprinnelig faktura og positive beløp", () => {
+    const doc = parse(byggEhfFaktura(kn()));
+    expect(doc.getElementsByTagName("parsererror")).toHaveLength(0);
+    expect(doc.documentElement.localName).toBe("CreditNote");
+    expect(doc.documentElement.namespaceURI).toBe("urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2");
+    const tekst = (navn: string) => doc.getElementsByTagNameNS("*", navn)[0]?.textContent;
+    expect(tekst("CreditNoteTypeCode")).toBe("381");
+    expect(doc.getElementsByTagNameNS("*", "InvoiceTypeCode")).toHaveLength(0);
+    expect(doc.getElementsByTagNameNS("*", "DueDate")).toHaveLength(0);
+    expect(doc.getElementsByTagNameNS("*", "InvoiceDocumentReference")[0]?.textContent?.trim()).toBe("1001");
+    expect(doc.getElementsByTagNameNS("*", "CreditNoteLine").length).toBeGreaterThan(0);
+    expect(doc.getElementsByTagNameNS("*", "InvoiceLine")).toHaveLength(0);
+    expect(byggEhfFaktura(kn())).not.toMatch(/>-\d/);
+  });
+
+  it("krever referanse til opprinnelig faktura, men ikke forfall eller bankkonto", () => {
+    const uten = validerEhf(kn({ opprinneligFakturanr: null, forfallsdato: "", kontonummer: null, kid: null }));
+    const felt = uten.filter((f) => f.alvor === "feil").map((f) => f.felt);
+    expect(felt).toContain("opprinneligFakturanr");
+    expect(felt).not.toContain("forfallsdato");
+    expect(felt).not.toContain("kontonummer");
+    expect(validerEhf(kn({ forfallsdato: "", kontonummer: null, kid: null })).filter((f) => f.alvor === "feil")).toHaveLength(0);
+  });
+
+  it("avviser negative beløp (kreditnota skal ha positive tall)", () => {
+    const f = validerEhf(kn({ linjer: [{ beskrivelse: "Tjeneste", antall: -1, enhetspris: 1000, mvaSats: 25 }] }));
+    expect(f.some((x) => x.alvor === "feil" && x.felt === "linjer[0]")).toBe(true);
+  });
+});
+
 describe("pain.001.001.03", () => {
   const fil = (over: Partial<Betalingsfil> = {}): Betalingsfil => ({
     meldingsId: "FB-20261021-1",

@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Link } from "@tanstack/react-router";
 import { Download, Send } from "lucide-react";
@@ -35,6 +37,7 @@ export type EhfFaktura = {
   mva: number | string;
   total: number | string;
   er_kreditnota?: boolean | null;
+  kreditnota_for?: string | null;
   customers: Kunde | null;
   invoice_lines: Linje[];
 };
@@ -43,18 +46,26 @@ export type EhfFaktura = {
 export function EhfPanel({ faktura, company }: { faktura: EhfFaktura; company: Company }) {
   const [referanse, setReferanse] = useState("");
   const k = faktura.customers;
-
-  if (faktura.er_kreditnota) {
-    return (
-      <Panel className="mb-6 p-4 text-sm text-muted-foreground print:hidden">
-        Kreditnota som EHF (Peppol BIS «Credit Note») er ikke støttet ennå. Send kreditnotaen på
-        annen måte.
-      </Panel>
-    );
-  }
+  const kreditnota = !!faktura.er_kreditnota;
+  const { data: opprinnelig } = useQuery({
+    queryKey: ["invoice-original-nr", faktura.kreditnota_for],
+    enabled: kreditnota && !!faktura.kreditnota_for,
+    queryFn: async () =>
+      (
+        await supabase
+          .from("invoices")
+          .select("fakturanr")
+          .eq("id", faktura.kreditnota_for!)
+          .single()
+      ).data?.fakturanr ?? null,
+  });
   if (!k) return null;
 
+  // Kreditnotaer lagres med negative tall; Peppol Credit Note bruker positive beløp.
+  const fortegn = kreditnota ? -1 : 1;
   const input: EhfInput = {
+    type: kreditnota ? "kreditnota" : "faktura",
+    opprinneligFakturanr: opprinnelig ?? null,
     fakturanr: faktura.fakturanr ?? "",
     fakturadato: faktura.fakturadato,
     forfallsdato: faktura.forfallsdato,
@@ -76,7 +87,7 @@ export function EhfPanel({ faktura, company }: { faktura: EhfFaktura; company: C
     },
     linjer: faktura.invoice_lines.map((l) => ({
       beskrivelse: l.beskrivelse,
-      antall: Number(l.antall),
+      antall: Number(l.antall) * fortegn,
       enhetspris: Number(l.enhetspris),
       mvaSats: Number(l.mva_sats),
     })),
@@ -85,9 +96,9 @@ export function EhfPanel({ faktura, company }: { faktura: EhfFaktura; company: C
     kjopersReferanse: referanse,
     merknad: faktura.merknad,
     lagretTotal: {
-      netto: Number(faktura.netto),
-      mva: Number(faktura.mva),
-      total: Number(faktura.total),
+      netto: Number(faktura.netto) * fortegn,
+      mva: Number(faktura.mva) * fortegn,
+      total: Number(faktura.total) * fortegn,
     },
   };
   const funn = validerEhf(input);
@@ -109,8 +120,8 @@ export function EhfPanel({ faktura, company }: { faktura: EhfFaktura; company: C
         <div>
           <h2 className="text-lg">E-faktura (EHF / Peppol)</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Fakturaen kan lastes ned som Peppol BIS Billing 3.0. Sending via Peppol krever en
-            aksesspunkt-leverandør.
+            {kreditnota ? "Kreditnotaen" : "Fakturaen"} kan lastes ned som Peppol BIS Billing 3.0
+            {kreditnota ? " Credit Note" : ""}. Sending via Peppol krever en aksesspunkt-leverandør.
           </p>
         </div>
         <div className="flex gap-2">
@@ -119,7 +130,7 @@ export function EhfPanel({ faktura, company }: { faktura: EhfFaktura; company: C
             disabled={feil.length > 0}
             onClick={() =>
               lastNed(
-                `${filnavn(`faktura-${faktura.fakturanr ?? "uten-nr"}`)}.xml`,
+                `${filnavn(`${kreditnota ? "kreditnota" : "faktura"}-${faktura.fakturanr ?? "uten-nr"}`)}.xml`,
                 byggEhfFaktura(input),
               )
             }

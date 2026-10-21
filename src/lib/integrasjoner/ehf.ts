@@ -36,6 +36,10 @@ export type EhfLinje = {
 };
 
 export type EhfInput = {
+  /** Standard er faktura (380). Kreditnota (381) bruker positive beløp og viser til opprinnelig faktura. */
+  type?: "faktura" | "kreditnota";
+  /** Påkrevd for kreditnota: nummeret på fakturaen som krediteres. */
+  opprinneligFakturanr?: string | number | null;
   fakturanr: string | number;
   fakturadato: string;
   forfallsdato: string;
@@ -115,15 +119,35 @@ export function validerEhf(i: EhfInput): Valideringsfeil[] {
   if (i.linjer.length === 0) feil("linjer", "Fakturaen har ingen linjer.");
   if (!/^\d{4}-\d{2}-\d{2}$/.test(i.fakturadato))
     feil("fakturadato", "Fakturadato må være YYYY-MM-DD.");
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(i.forfallsdato))
-    feil("forfallsdato", "Forfallsdato må være YYYY-MM-DD.");
-  if (i.forfallsdato < i.fakturadato)
-    feil("forfallsdato", "Forfallsdato kan ikke være før fakturadato.");
-  if (!i.kontonummer || !gyldigKontonummer(i.kontonummer))
-    feil("kontonummer", "Selgers bankkontonummer mangler eller er ugyldig (11 siffer).");
+  const kreditnota = i.type === "kreditnota";
+  if (kreditnota) {
+    if (
+      i.opprinneligFakturanr === undefined ||
+      i.opprinneligFakturanr === null ||
+      String(i.opprinneligFakturanr).trim() === ""
+    )
+      feil(
+        "opprinneligFakturanr",
+        "Kreditnotaen må vise til nummeret på fakturaen som krediteres.",
+      );
+    i.linjer.forEach((l, n) => {
+      if (l.antall < 0 || l.enhetspris < 0)
+        feil(
+          `linjer[${n}]`,
+          "Kreditnota skal ha positive beløp og antall; typen viser at det er en kreditering.",
+        );
+    });
+  } else {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(i.forfallsdato))
+      feil("forfallsdato", "Forfallsdato må være YYYY-MM-DD.");
+    if (i.forfallsdato < i.fakturadato)
+      feil("forfallsdato", "Forfallsdato kan ikke være før fakturadato.");
+    if (!i.kontonummer || !gyldigKontonummer(i.kontonummer))
+      feil("kontonummer", "Selgers bankkontonummer mangler eller er ugyldig (11 siffer).");
+  }
   if (!i.kjopersReferanse?.trim())
     adv("kjopersReferanse", "Kjøpers referanse mangler. Offentlige kjøpere krever dette.");
-  if (!i.kid) adv("kid", "KID mangler. Betalingen blir vanskeligere å avstemme.");
+  if (!kreditnota && !i.kid) adv("kid", "KID mangler. Betalingen blir vanskeligere å avstemme.");
 
   i.linjer.forEach((l, n) => {
     if (!l.beskrivelse.trim()) feil(`linjer[${n}]`, "Linjen mangler beskrivelse.");
@@ -175,6 +199,7 @@ function partXml(p: EhfPart, rolle: "selger" | "kjoper"): string {
 }
 
 export function byggEhfFaktura(i: EhfInput): string {
+  if (i.type === "kreditnota") return byggKreditnota(i);
   const valuta = i.valuta ?? "NOK";
   const s = beregnEhfSummer(i.linjer);
   const kontonr = i.kontonummer ? i.kontonummer.replace(/[\s.]/g, "") : null;
@@ -251,5 +276,77 @@ export function byggEhfFaktura(i: EhfInput): string {
   </cac:LegalMonetaryTotal>
   ${linjer}
 </Invoice>
+`;
+}
+
+/** Peppol BIS Billing 3.0 Credit Note (UBL CreditNote-2, type 381). Alle beløp er positive. */
+function byggKreditnota(i: EhfInput): string {
+  const valuta = i.valuta ?? "NOK";
+  const s = beregnEhfSummer(i.linjer);
+
+  const skattesubtotaler = s.perSats
+    .map(
+      (g) => `<cac:TaxSubtotal>
+      <cbc:TaxableAmount currencyID="${valuta}">${f2(g.grunnlag)}</cbc:TaxableAmount>
+      <cbc:TaxAmount currencyID="${valuta}">${f2(g.mva)}</cbc:TaxAmount>
+      <cac:TaxCategory>
+        <cbc:ID>${g.kategori}</cbc:ID>
+        <cbc:Percent>${g.sats.toFixed(2)}</cbc:Percent>
+        <cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme>
+      </cac:TaxCategory>
+    </cac:TaxSubtotal>`,
+    )
+    .join("\n    ");
+
+  const linjer = i.linjer
+    .map(
+      (l, n) => `<cac:CreditNoteLine>
+    <cbc:ID>${n + 1}</cbc:ID>
+    <cbc:CreditedQuantity unitCode="${xmlEsc(l.enhet ?? "C62")}">${l.antall}</cbc:CreditedQuantity>
+    <cbc:LineExtensionAmount currencyID="${valuta}">${f2(s.linjer[n]!)}</cbc:LineExtensionAmount>
+    <cac:Item>
+      <cbc:Name>${xmlEsc(l.beskrivelse)}</cbc:Name>
+      <cac:ClassifiedTaxCategory>
+        <cbc:ID>${l.mvaSats > 0 ? "S" : "Z"}</cbc:ID>
+        <cbc:Percent>${l.mvaSats.toFixed(2)}</cbc:Percent>
+        <cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme>
+      </cac:ClassifiedTaxCategory>
+    </cac:Item>
+    <cac:Price><cbc:PriceAmount currencyID="${valuta}">${f2(l.enhetspris)}</cbc:PriceAmount></cac:Price>
+  </cac:CreditNoteLine>`,
+    )
+    .join("\n  ");
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<CreditNote xmlns="urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+  <cbc:CustomizationID>${EHF_CUSTOMIZATION_ID}</cbc:CustomizationID>
+  <cbc:ProfileID>${EHF_PROFILE_ID}</cbc:ProfileID>
+  <cbc:ID>${xmlEsc(i.fakturanr)}</cbc:ID>
+  <cbc:IssueDate>${xmlEsc(i.fakturadato)}</cbc:IssueDate>
+  <cbc:CreditNoteTypeCode>381</cbc:CreditNoteTypeCode>
+  ${i.merknad ? `<cbc:Note>${xmlEsc(i.merknad)}</cbc:Note>` : ""}
+  <cbc:DocumentCurrencyCode>${valuta}</cbc:DocumentCurrencyCode>
+  <cbc:BuyerReference>${xmlEsc(i.kjopersReferanse?.trim() || "ikke oppgitt")}</cbc:BuyerReference>
+  <cac:BillingReference>
+    <cac:InvoiceDocumentReference><cbc:ID>${xmlEsc(i.opprinneligFakturanr)}</cbc:ID></cac:InvoiceDocumentReference>
+  </cac:BillingReference>
+  <cac:AccountingSupplierParty>
+    ${partXml(i.selger, "selger")}
+  </cac:AccountingSupplierParty>
+  <cac:AccountingCustomerParty>
+    ${partXml(i.kjoper, "kjoper")}
+  </cac:AccountingCustomerParty>
+  <cac:TaxTotal>
+    <cbc:TaxAmount currencyID="${valuta}">${f2(s.mva)}</cbc:TaxAmount>
+    ${skattesubtotaler}
+  </cac:TaxTotal>
+  <cac:LegalMonetaryTotal>
+    <cbc:LineExtensionAmount currencyID="${valuta}">${f2(s.netto)}</cbc:LineExtensionAmount>
+    <cbc:TaxExclusiveAmount currencyID="${valuta}">${f2(s.netto)}</cbc:TaxExclusiveAmount>
+    <cbc:TaxInclusiveAmount currencyID="${valuta}">${f2(s.total)}</cbc:TaxInclusiveAmount>
+    <cbc:PayableAmount currencyID="${valuta}">${f2(s.total)}</cbc:PayableAmount>
+  </cac:LegalMonetaryTotal>
+  ${linjer}
+</CreditNote>
 `;
 }

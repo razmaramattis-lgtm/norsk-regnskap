@@ -43,7 +43,7 @@ function Mva() {
   const klar = innsendinger.find((i) => i.status === "klar");
 
   async function lagreKlar() {
-    const payload = { orgNr: company.org_nr, aar: valgtAar, termin: periodeNokkel, fra: termin.fra, til: termin.til, rader: m.rader.filter((r) => r.grunnlag || r.avgift).map((r) => ({ kode: r.kode, grunnlag: r.grunnlag, avgift: r.avgift })), utgaende: m.utgaende, inngaende: m.inngaende, aBetale: m.aBetale, beregnet: new Date().toISOString() };
+    const payload = { orgNr: company.org_nr, aar: valgtAar, termin: periodeNokkel, fra: termin.fra, til: termin.til, rader: m.rader.filter((r) => r.grunnlag || r.avgift || r.fradrag).map((r) => ({ kode: r.kode, grunnlag: r.grunnlag, avgift: r.avgift, fradrag: r.fradrag })), utgaende: m.utgaende, inngaende: m.inngaende, aBetale: m.aBetale, beregnet: new Date().toISOString() };
     const { error } = klar
       ? await supabase.from("innsendinger").update({ payload }).eq("id", klar.id)
       : await supabase.from("innsendinger").insert({ company_id: company.id, domene: "mva_innsending", type: "mva_melding", periode: periodeNokkel, status: "klar", payload });
@@ -105,24 +105,26 @@ function Mva() {
         {isLoading ? <Empty>Laster …</Empty> : (
           <table className="w-full text-sm">
             <thead className="border-b text-left text-xs uppercase tracking-wide text-muted-foreground">
-              <tr><th className="px-4 py-3">Kode</th><th className="px-4 py-3">Beskrivelse</th><th className="px-4 py-3 text-right">Grunnlag</th><th className="px-4 py-3 text-right">Avgift</th></tr>
+              <tr><th className="px-4 py-3">Kode</th><th className="px-4 py-3">Beskrivelse</th><th className="px-4 py-3 text-right">Grunnlag</th><th className="px-4 py-3 text-right">Avgift</th><th className="px-4 py-3 text-right">Fradrag</th></tr>
             </thead>
             <tbody>
               {m.rader.map((r) => (
-                <tr key={r.kode} className={`border-b ${r.grunnlag || r.avgift ? "" : "text-muted-foreground"}`}>
+                <tr key={r.kode} className={`border-b ${r.grunnlag || r.avgift || r.fradrag ? "" : "text-muted-foreground"}`}>
                   <td className="px-4 py-3 font-mono">{r.kode}</td>
                   <td className="px-4 py-3">{r.navn}</td>
                   <td className="num px-4 py-3">{kr(r.grunnlag)}</td>
                   <td className="num px-4 py-3">{kr(r.avgift)}</td>
+                  <td className="num px-4 py-3">{r.fradrag ? kr(r.fradrag) : ""}</td>
                 </tr>
               ))}
             </tbody>
             <tfoot className="bg-muted/50">
-              <tr><td colSpan={3} className="px-4 py-2">Sum utgående avgift</td><td className="num px-4 py-2">{kr(m.utgaende)}</td></tr>
-              <tr><td colSpan={3} className="px-4 py-2">Sum fradragsberettiget inngående avgift</td><td className="num px-4 py-2">− {kr(m.inngaende)}</td></tr>
+              <tr><td colSpan={3} className="px-4 py-2">Sum utgående avgift</td><td className="num px-4 py-2">{kr(m.utgaende)}</td><td /></tr>
+              <tr><td colSpan={3} className="px-4 py-2">Sum fradragsberettiget inngående avgift</td><td className="num px-4 py-2">− {kr(m.inngaende)}</td><td /></tr>
               <tr className="border-t text-base font-semibold">
                 <td colSpan={3} className="px-4 py-3">{m.aBetale >= 0 ? "Å betale" : "Til gode"}</td>
                 <td className="num px-4 py-3">{kr(Math.abs(m.aBetale))}</td>
+                <td />
               </tr>
             </tfoot>
           </table>

@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "@/lib/company";
 import { kr, idag } from "@/lib/format";
-import { MVA_KODER, INNGAENDE_KONTO, splittBrutto } from "@/lib/mva";
+import { MVA_KODER, OMVENDT_KODER, INNGAENDE_KONTO, byggOmvendtAvgift, splittBrutto } from "@/lib/mva";
 import { KATEGORI_NAVN, bruk, malerFor } from "@/lib/bokforingsmaler";
 import { useAccounts, Panel } from "./ui";
 import { Button } from "@/components/ui/button";
@@ -52,6 +52,22 @@ export function BilagEditor({
     if (!b) { toast.error("Skriv inn beløp"); return; }
     setLinjer(bruk(valgtMal, b).map((p) => ({ konto: p.konto, tekst: p.tekst, debet: p.debet ? String(p.debet) : "", kredit: p.kredit ? String(p.kredit) : "", mva_kode: "" })));
     if (!beskr.trim()) setBeskr(valgtMal.navn);
+    toast.success("Posteringer laget – kontroller og bokfør.");
+  }
+
+  // Kjøp fra utlandet (omvendt avgiftsplikt)
+  const [uBelop, setUBelop] = useState("");
+  const [uKode, setUKode] = useState("86");
+  const [uKonto, setUKonto] = useState("6800");
+  const [uMot, setUMot] = useState("2400");
+
+  function lagFraUtlandet() {
+    const b = Number(uBelop.replace(",", "."));
+    if (!b || b <= 0) { toast.error("Skriv inn beløp uten mva"); return; }
+    if (!company.mva_registrert) { toast.error("Firmaet er ikke mva-registrert. Omvendt avgiftsplikt krever registrering."); return; }
+    const ls = byggOmvendtAvgift(b, uKode, uKonto, uMot);
+    setLinjer(ls.map((l) => ({ konto: l.konto, tekst: l.tekst, debet: l.debet ? String(l.debet) : "", kredit: l.kredit ? String(l.kredit) : "", mva_kode: l.mva_kode ?? "" })));
+    if (!beskr.trim()) setBeskr("Kjøp fra utlandet");
     toast.success("Posteringer laget – kontroller og bokfør.");
   }
 
@@ -138,6 +154,7 @@ export function BilagEditor({
       <Tabs defaultValue={initial ? "manuell" : "utgift"}>
         <TabsList>
           <TabsTrigger value="utgift">Kjøp / utgift</TabsTrigger>
+          <TabsTrigger value="utland">Kjøp fra utlandet</TabsTrigger>
           <TabsTrigger value="mal">Fra mal</TabsTrigger>
           <TabsTrigger value="manuell">Posteringer</TabsTrigger>
         </TabsList>
@@ -165,6 +182,32 @@ export function BilagEditor({
               <KontoInput value={betaltFra} onChange={setBetaltFra} kontoer={kontoer} />
             </div>
             <Button type="button" variant="secondary" onClick={lagFraUtgift}>Lag posteringer</Button>
+          </Panel>
+        </TabsContent>
+        <TabsContent value="utland">
+          <Panel className="grid items-end gap-4 p-6 md:grid-cols-5">
+            <div className="space-y-1.5">
+              <Label>Beløp uten mva</Label>
+              <Input className="num" value={uBelop} onChange={(e) => setUBelop(e.target.value)} placeholder="0,00" />
+            </div>
+            <div className="space-y-1.5 md:col-span-2">
+              <Label>Type kjøp</Label>
+              <select className="h-9 w-full rounded-md border border-input bg-card px-2 text-sm" value={uKode} onChange={(e) => setUKode(e.target.value)}>
+                {OMVENDT_KODER.map((k) => <option key={k.kode} value={k.kode}>{k.kode} · {k.navn}</option>)}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Kostnadskonto</Label>
+              <KontoInput value={uKonto} onChange={setUKonto} kontoer={kontoer} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Motkonto</Label>
+              <KontoInput value={uMot} onChange={setUMot} kontoer={kontoer} />
+            </div>
+            <Button type="button" variant="secondary" onClick={lagFraUtlandet}>Lag posteringer</Button>
+            <p className="text-sm text-muted-foreground md:col-span-5">
+              Du beregner norsk mva selv på kjøp av tjenester fra utlandet og på innførsel som ikke er avgiftsbelagt ved grensen. Avgiften føres som utgående, og som inngående hvis du har fradragsrett, slik at den går i null. Velg «uten fradragsrett» bare når kjøpet ikke er til bruk i avgiftspliktig virksomhet.
+            </p>
           </Panel>
         </TabsContent>
         <TabsContent value="mal">
