@@ -70,6 +70,88 @@ export type Database = {
           },
         ]
       }
+      agent_proposals: {
+        Row: {
+          agent_navn: string | null
+          avgjort_at: string | null
+          avgjort_av: string | null
+          avvisningsgrunn: string | null
+          bank_transaction_id: string | null
+          begrunnelse: string | null
+          company_id: string
+          created_at: string
+          id: string
+          kilde: string
+          opprettet_av: string | null
+          payload: Json
+          sikkerhet: number | null
+          status: string
+          tittel: string
+          type: string
+          voucher_id: string | null
+        }
+        Insert: {
+          agent_navn?: string | null
+          avgjort_at?: string | null
+          avgjort_av?: string | null
+          avvisningsgrunn?: string | null
+          bank_transaction_id?: string | null
+          begrunnelse?: string | null
+          company_id: string
+          created_at?: string
+          id?: string
+          kilde?: string
+          opprettet_av?: string | null
+          payload: Json
+          sikkerhet?: number | null
+          status?: string
+          tittel: string
+          type?: string
+          voucher_id?: string | null
+        }
+        Update: {
+          agent_navn?: string | null
+          avgjort_at?: string | null
+          avgjort_av?: string | null
+          avvisningsgrunn?: string | null
+          bank_transaction_id?: string | null
+          begrunnelse?: string | null
+          company_id?: string
+          created_at?: string
+          id?: string
+          kilde?: string
+          opprettet_av?: string | null
+          payload?: Json
+          sikkerhet?: number | null
+          status?: string
+          tittel?: string
+          type?: string
+          voucher_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_proposals_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_proposals_bank_transaction_id_fkey"
+            columns: ["bank_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "bank_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_proposals_voucher_id_fkey"
+            columns: ["voucher_id"]
+            isOneToOne: false
+            referencedRelation: "vouchers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       articles: {
         Row: {
           aktiv: boolean
@@ -514,6 +596,118 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "employees_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      innsendinger: {
+        Row: {
+          company_id: string
+          created_at: string
+          dokument: string | null
+          domene: string
+          feil: Json | null
+          id: string
+          kvittering: Json | null
+          objekt_id: string | null
+          oppdatert_at: string
+          opprettet_av: string | null
+          payload: Json | null
+          periode: string | null
+          referanse: string | null
+          sendt_at: string | null
+          status: string
+          type: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          dokument?: string | null
+          domene: string
+          feil?: Json | null
+          id?: string
+          kvittering?: Json | null
+          objekt_id?: string | null
+          oppdatert_at?: string
+          opprettet_av?: string | null
+          payload?: Json | null
+          periode?: string | null
+          referanse?: string | null
+          sendt_at?: string | null
+          status?: string
+          type: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          dokument?: string | null
+          domene?: string
+          feil?: Json | null
+          id?: string
+          kvittering?: Json | null
+          objekt_id?: string | null
+          oppdatert_at?: string
+          opprettet_av?: string | null
+          payload?: Json | null
+          periode?: string | null
+          referanse?: string | null
+          sendt_at?: string | null
+          status?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "innsendinger_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integrations: {
+        Row: {
+          company_id: string
+          domene: string
+          id: string
+          konfig: Json
+          leverandor: string | null
+          miljo: string
+          notat: string | null
+          oppdatert_at: string
+          oppdatert_av: string | null
+          status: string
+        }
+        Insert: {
+          company_id: string
+          domene: string
+          id?: string
+          konfig?: Json
+          leverandor?: string | null
+          miljo?: string
+          notat?: string | null
+          oppdatert_at?: string
+          oppdatert_av?: string | null
+          status?: string
+        }
+        Update: {
+          company_id?: string
+          domene?: string
+          id?: string
+          konfig?: Json
+          leverandor?: string | null
+          miljo?: string
+          notat?: string | null
+          oppdatert_at?: string
+          oppdatert_av?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integrations_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
@@ -1114,6 +1308,7 @@ export type Database = {
     }
     Functions: {
       accept_my_invites: { Args: never; Returns: number }
+      approve_proposal: { Args: { _id: string }; Returns: string }
       book_bank_transaction: {
         Args: {
           _invoice: string
@@ -1147,6 +1342,10 @@ export type Database = {
         Returns: string
       }
       post_voucher: { Args: { _voucher: string }; Returns: number }
+      reject_proposal: {
+        Args: { _grunn?: string; _id: string }
+        Returns: undefined
+      }
       register_invoice_payment: {
         Args: { _dato: string; _invoice: string }
         Returns: string

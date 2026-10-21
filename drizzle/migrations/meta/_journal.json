@@ -29,6 +29,20 @@
       "when": 1792599934166,
       "tag": "0003_bilag_storage_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792600928093,
+      "tag": "0004_integrasjoner_innsendinger",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792601028093,
+      "tag": "0005_agent_forslag",
+      "breakpoints": true
     }
   ]
 }
