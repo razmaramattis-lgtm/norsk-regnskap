@@ -25,10 +25,12 @@ import { Route as AuthenticatedAppForslagRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAppFristerRouteImport } from './routes/_authenticated/app.frister'
 import { Route as AuthenticatedAppHovedbokRouteImport } from './routes/_authenticated/app.hovedbok'
 import { Route as AuthenticatedAppIntegrasjonerRouteImport } from './routes/_authenticated/app.integrasjoner'
+import { Route as AuthenticatedAppKlienterRouteImport } from './routes/_authenticated/app.klienter'
 import { Route as AuthenticatedAppKontoplanRouteImport } from './routes/_authenticated/app.kontoplan'
 import { Route as AuthenticatedAppKunderRouteImport } from './routes/_authenticated/app.kunder'
 import { Route as AuthenticatedAppLeverandorerRouteImport } from './routes/_authenticated/app.leverandorer'
 import { Route as AuthenticatedAppLoggRouteImport } from './routes/_authenticated/app.logg'
+import { Route as AuthenticatedAppMaanedsavslutningRouteImport } from './routes/_authenticated/app.maanedsavslutning'
 import { Route as AuthenticatedAppMvaRouteImport } from './routes/_authenticated/app.mva'
 import { Route as AuthenticatedAppRapporterRouteImport } from './routes/_authenticated/app.rapporter'
 import { Route as AuthenticatedAppReskontroRouteImport } from './routes/_authenticated/app.reskontro'
@@ -127,6 +129,12 @@ const AuthenticatedAppIntegrasjonerRoute =
     path: '/integrasjoner',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppKlienterRoute =
+  AuthenticatedAppKlienterRouteImport.update({
+    id: '/klienter',
+    path: '/klienter',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppKontoplanRoute =
   AuthenticatedAppKontoplanRouteImport.update({
     id: '/kontoplan',
@@ -149,6 +157,12 @@ const AuthenticatedAppLoggRoute = AuthenticatedAppLoggRouteImport.update({
   path: '/logg',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppMaanedsavslutningRoute =
+  AuthenticatedAppMaanedsavslutningRouteImport.update({
+    id: '/maanedsavslutning',
+    path: '/maanedsavslutning',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 const AuthenticatedAppMvaRoute = AuthenticatedAppMvaRouteImport.update({
   id: '/mva',
   path: '/mva',
@@ -238,10 +252,12 @@ export interface FileRoutesByFullPath {
   '/app/frister': typeof AuthenticatedAppFristerRoute
   '/app/hovedbok': typeof AuthenticatedAppHovedbokRoute
   '/app/integrasjoner': typeof AuthenticatedAppIntegrasjonerRoute
+  '/app/klienter': typeof AuthenticatedAppKlienterRoute
   '/app/kontoplan': typeof AuthenticatedAppKontoplanRoute
   '/app/kunder': typeof AuthenticatedAppKunderRoute
   '/app/leverandorer': typeof AuthenticatedAppLeverandorerRoute
   '/app/logg': typeof AuthenticatedAppLoggRoute
+  '/app/maanedsavslutning': typeof AuthenticatedAppMaanedsavslutningRoute
   '/app/mva': typeof AuthenticatedAppMvaRoute
   '/app/rapporter': typeof AuthenticatedAppRapporterRoute
   '/app/reskontro': typeof AuthenticatedAppReskontroRoute
@@ -271,10 +287,12 @@ export interface FileRoutesByTo {
   '/app/frister': typeof AuthenticatedAppFristerRoute
   '/app/hovedbok': typeof AuthenticatedAppHovedbokRoute
   '/app/integrasjoner': typeof AuthenticatedAppIntegrasjonerRoute
+  '/app/klienter': typeof AuthenticatedAppKlienterRoute
   '/app/kontoplan': typeof AuthenticatedAppKontoplanRoute
   '/app/kunder': typeof AuthenticatedAppKunderRoute
   '/app/leverandorer': typeof AuthenticatedAppLeverandorerRoute
   '/app/logg': typeof AuthenticatedAppLoggRoute
+  '/app/maanedsavslutning': typeof AuthenticatedAppMaanedsavslutningRoute
   '/app/mva': typeof AuthenticatedAppMvaRoute
   '/app/rapporter': typeof AuthenticatedAppRapporterRoute
   '/app/reskontro': typeof AuthenticatedAppReskontroRoute
@@ -307,10 +325,12 @@ export interface FileRoutesById {
   '/_authenticated/app/frister': typeof AuthenticatedAppFristerRoute
   '/_authenticated/app/hovedbok': typeof AuthenticatedAppHovedbokRoute
   '/_authenticated/app/integrasjoner': typeof AuthenticatedAppIntegrasjonerRoute
+  '/_authenticated/app/klienter': typeof AuthenticatedAppKlienterRoute
   '/_authenticated/app/kontoplan': typeof AuthenticatedAppKontoplanRoute
   '/_authenticated/app/kunder': typeof AuthenticatedAppKunderRoute
   '/_authenticated/app/leverandorer': typeof AuthenticatedAppLeverandorerRoute
   '/_authenticated/app/logg': typeof AuthenticatedAppLoggRoute
+  '/_authenticated/app/maanedsavslutning': typeof AuthenticatedAppMaanedsavslutningRoute
   '/_authenticated/app/mva': typeof AuthenticatedAppMvaRoute
   '/_authenticated/app/rapporter': typeof AuthenticatedAppRapporterRoute
   '/_authenticated/app/reskontro': typeof AuthenticatedAppReskontroRoute
@@ -343,10 +363,12 @@ export interface FileRouteTypes {
     | '/app/frister'
     | '/app/hovedbok'
     | '/app/integrasjoner'
+    | '/app/klienter'
     | '/app/kontoplan'
     | '/app/kunder'
     | '/app/leverandorer'
     | '/app/logg'
+    | '/app/maanedsavslutning'
     | '/app/mva'
     | '/app/rapporter'
     | '/app/reskontro'
@@ -376,10 +398,12 @@ export interface FileRouteTypes {
     | '/app/frister'
     | '/app/hovedbok'
     | '/app/integrasjoner'
+    | '/app/klienter'
     | '/app/kontoplan'
     | '/app/kunder'
     | '/app/leverandorer'
     | '/app/logg'
+    | '/app/maanedsavslutning'
     | '/app/mva'
     | '/app/rapporter'
     | '/app/reskontro'
@@ -411,10 +435,12 @@ export interface FileRouteTypes {
     | '/_authenticated/app/frister'
     | '/_authenticated/app/hovedbok'
     | '/_authenticated/app/integrasjoner'
+    | '/_authenticated/app/klienter'
     | '/_authenticated/app/kontoplan'
     | '/_authenticated/app/kunder'
     | '/_authenticated/app/leverandorer'
     | '/_authenticated/app/logg'
+    | '/_authenticated/app/maanedsavslutning'
     | '/_authenticated/app/mva'
     | '/_authenticated/app/rapporter'
     | '/_authenticated/app/reskontro'
@@ -552,6 +578,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppIntegrasjonerRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/klienter': {
+      id: '/_authenticated/app/klienter'
+      path: '/klienter'
+      fullPath: '/app/klienter'
+      preLoaderRoute: typeof AuthenticatedAppKlienterRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/kontoplan': {
       id: '/_authenticated/app/kontoplan'
       path: '/kontoplan'
@@ -578,6 +611,13 @@ declare module '@tanstack/react-router' {
       path: '/logg'
       fullPath: '/app/logg'
       preLoaderRoute: typeof AuthenticatedAppLoggRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/maanedsavslutning': {
+      id: '/_authenticated/app/maanedsavslutning'
+      path: '/maanedsavslutning'
+      fullPath: '/app/maanedsavslutning'
+      preLoaderRoute: typeof AuthenticatedAppMaanedsavslutningRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/mva': {
@@ -685,10 +725,12 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppFristerRoute: typeof AuthenticatedAppFristerRoute
   AuthenticatedAppHovedbokRoute: typeof AuthenticatedAppHovedbokRoute
   AuthenticatedAppIntegrasjonerRoute: typeof AuthenticatedAppIntegrasjonerRoute
+  AuthenticatedAppKlienterRoute: typeof AuthenticatedAppKlienterRoute
   AuthenticatedAppKontoplanRoute: typeof AuthenticatedAppKontoplanRoute
   AuthenticatedAppKunderRoute: typeof AuthenticatedAppKunderRoute
   AuthenticatedAppLeverandorerRoute: typeof AuthenticatedAppLeverandorerRoute
   AuthenticatedAppLoggRoute: typeof AuthenticatedAppLoggRoute
+  AuthenticatedAppMaanedsavslutningRoute: typeof AuthenticatedAppMaanedsavslutningRoute
   AuthenticatedAppMvaRoute: typeof AuthenticatedAppMvaRoute
   AuthenticatedAppRapporterRoute: typeof AuthenticatedAppRapporterRoute
   AuthenticatedAppReskontroRoute: typeof AuthenticatedAppReskontroRoute
@@ -716,10 +758,13 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppFristerRoute: AuthenticatedAppFristerRoute,
   AuthenticatedAppHovedbokRoute: AuthenticatedAppHovedbokRoute,
   AuthenticatedAppIntegrasjonerRoute: AuthenticatedAppIntegrasjonerRoute,
+  AuthenticatedAppKlienterRoute: AuthenticatedAppKlienterRoute,
   AuthenticatedAppKontoplanRoute: AuthenticatedAppKontoplanRoute,
   AuthenticatedAppKunderRoute: AuthenticatedAppKunderRoute,
   AuthenticatedAppLeverandorerRoute: AuthenticatedAppLeverandorerRoute,
   AuthenticatedAppLoggRoute: AuthenticatedAppLoggRoute,
+  AuthenticatedAppMaanedsavslutningRoute:
+    AuthenticatedAppMaanedsavslutningRoute,
   AuthenticatedAppMvaRoute: AuthenticatedAppMvaRoute,
   AuthenticatedAppRapporterRoute: AuthenticatedAppRapporterRoute,
   AuthenticatedAppReskontroRoute: AuthenticatedAppReskontroRoute,

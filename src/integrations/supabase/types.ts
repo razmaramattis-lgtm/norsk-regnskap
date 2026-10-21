@@ -1398,6 +1398,22 @@ export type Database = {
       agent_hent_banktransaksjoner: { Args: { _grense?: number; _key: string }; Returns: Json }
       agent_hent_kontoplan: { Args: { _key: string }; Returns: Json }
       approve_proposal: { Args: { _id: string }; Returns: string }
+      byraa_oversikt: {
+        Args: never
+        Returns: {
+          bilagsutkast: number
+          company_id: string
+          forfalt_kundebelop: number
+          forfalt_leverandorbelop: number
+          forfalte_kundefakturaer: number
+          forfalte_leverandorfakturaer: number
+          har_ansatte: boolean
+          siste_bilagsdato: string
+          siste_bokforte_bilagsdato: string
+          ubehandlede_banktransaksjoner: number
+          ventende_forslag: number
+        }[]
+      }
       create_agent_key: { Args: { _company: string; _navn: string }; Returns: string }
       revoke_agent_key: { Args: { _id: string }; Returns: undefined }
       book_bank_transaction: {

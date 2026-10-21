@@ -64,6 +64,13 @@
       "when": 1792601328093,
       "tag": "0008_anleggsmidler",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792601428093,
+      "tag": "0009_byraa_oversikt",
+      "breakpoints": true
     }
   ]
 }

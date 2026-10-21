@@ -113,7 +113,27 @@ vi.mock("@/integrations/supabase/client", () => {
   return {
     supabase: {
       from: (t: string) => bygg(t),
-      rpc: async () => ({ data: 0, error: null }),
+      rpc: async (navn: string) => ({
+        data:
+          navn === "byraa_oversikt"
+            ? [
+                {
+                  company_id: "c1",
+                  ubehandlede_banktransaksjoner: 4,
+                  bilagsutkast: 1,
+                  ventende_forslag: 1,
+                  forfalte_kundefakturaer: 0,
+                  forfalt_kundebelop: 0,
+                  forfalte_leverandorfakturaer: 0,
+                  forfalt_leverandorbelop: 0,
+                  har_ansatte: false,
+                  siste_bilagsdato: "2026-10-15",
+                  siste_bokforte_bilagsdato: "2026-10-15",
+                },
+              ]
+            : 0,
+        error: null,
+      }),
       auth: {
         getUser: async () => ({ data: { user: { id: "u1" } } }),
         signOut: async () => ({}),
@@ -215,5 +235,18 @@ describe("nye sider rendrer med innhold", () => {
   it("mva viser fradragskolonne", async () => {
     await vis("/app/mva");
     expect(await screen.findByText("Fradrag")).toBeInTheDocument();
+  });
+
+  it("klientoversikt viser firmaet med status og avvik", async () => {
+    await vis("/app/klienter");
+    expect(await screen.findByText("4 uavstemte banktransaksjoner")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Åpne Testfirma AS" })).toBeInTheDocument();
+  });
+
+  it("månedsavslutning viser automatiske og manuelle punkter", async () => {
+    await vis("/app/maanedsavslutning");
+    await waitFor(() => expect(screen.getByText("Alle banktransaksjoner er avstemt")).toBeInTheDocument());
+    expect(screen.getByText("4 transaksjoner mangler avstemming.")).toBeInTheDocument();
+    expect(screen.getByText("Banksaldo i Fjordbok stemmer med kontoutskriften")).toBeInTheDocument();
   });
 });

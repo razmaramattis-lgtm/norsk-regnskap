@@ -33,6 +33,7 @@
 - [x] Omvendt avgiftsplikt og innførsel: MVA-kodene 14, 15, 81–89 i MVA-meldingen, egen fane «Kjøp fra utlandet» i bilagseditoren (kodene bør kontrolleres mot Skatteetatens gjeldende kodeliste)
 - [x] EHF kreditnota (Peppol Credit Note, type 381) fra kreditert faktura
 - [x] Anleggsmidler: register, saldogrupper a–j, skattemessig saldoavskrivning, avskrivningsbilag som utkast (satser må kontrolleres for inntektsåret)
+- [x] Klientoversikt for byrå (alle firmaer, mest hastende først) og månedsavslutning-sjekkliste
 - [x] MCP-server (`mcp/fjordbok-mcp.mjs`) for AI-agenter, uten avhengigheter
 - [x] Agentnøkler: scopede nøkler som kun kan lese kontoplan/banktransaksjoner og foreslå bilag (`docs/AI-AGENTER.md`)
 
