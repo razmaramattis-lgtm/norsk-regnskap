@@ -70,10 +70,13 @@ function Aar() {
         <Panel className="p-6">
           <Lock className="mb-3 h-5 w-5 text-primary" />
           <h2 className="mb-2 text-xl">Lås periode</h2>
-          <p className="mb-4 text-sm text-muted-foreground">Etter låsing kan ingen bilag bokføres med dato i perioden. Låsingen kan ikke oppheves.</p>
+          <p className="mb-4 text-sm text-muted-foreground">Etter låsing kan ingen bilag bokføres med dato i perioden. Låsen kan flyttes tilbake eller fjernes helt – alle endringer logges i revisjonsloggen.</p>
           <Label>Lås til og med</Label>
           <Input type="date" className="mb-3 mt-1.5" value={laas} onChange={(e) => setLaas(e.target.value)} disabled={!isAdmin} />
-          <Button disabled={!isAdmin || busy} onClick={() => run(async () => { const { error } = await supabase.rpc("set_period_lock", { _company: company.id, _dato: laas }); if (error) throw error; }, "Perioden er låst")}>Lås periode</Button>
+          <div className="flex flex-wrap gap-2">
+            <Button disabled={!isAdmin || busy} onClick={() => run(async () => { const { error } = await supabase.rpc("set_period_lock", { _company: company.id, _dato: laas }); if (error) throw error; }, "Periodelåsen er oppdatert")}>Lås / lås opp til dato</Button>
+            <Button variant="outline" disabled={!isAdmin || busy || !company.laast_til} onClick={() => run(async () => { const { error } = await supabase.rpc("set_period_lock", { _company: company.id, _dato: null as unknown as string }); if (error) throw error; }, "Periodelåsen er fjernet")}>Fjern lås helt</Button>
+          </div>
         </Panel>
         <Panel className="p-6">
           <h2 className="mb-2 text-xl">Årsavslutning</h2>
@@ -81,7 +84,11 @@ function Aar() {
             Overfører årsresultatet (konto 8800) til {company.company_type === "as" ? "annen egenkapital (2050) eller udekket tap (2080)" : "egenkapital (2050)"} per 31.12. Før dette: bokfør avskrivninger, periodiseringer{company.company_type === "as" ? ", skattekostnad (8300/2500) og eventuelt utbytte (8920/2800)" : ""}.
           </p>
           <select className={`${selectCls} mb-3 w-full`} value={aar} onChange={(e) => setAar(Number(e.target.value))}>{[y - 3, y - 2, y - 1, y].map((x) => <option key={x}>{x}</option>)}</select>
-          <Button disabled={!isAdmin || busy} onClick={() => run(async () => { const { error } = await supabase.rpc("close_year", { _company: company.id, _aar: aar }); if (error) throw error; }, `Året ${aar} er avsluttet`)}>Avslutt {aar}</Button>
+          <div className="flex flex-wrap gap-2">
+            <Button disabled={!isAdmin || busy} onClick={() => run(async () => { const { error } = await supabase.rpc("close_year", { _company: company.id, _aar: aar }); if (error) throw error; }, `Året ${aar} er avsluttet`)}>Avslutt {aar}</Button>
+            <Button variant="outline" disabled={!isAdmin || busy} onClick={() => run(async () => { const { error } = await supabase.rpc("reopen_year", { _company: company.id, _aar: aar }); if (error) throw error; }, `Året ${aar} er åpnet igjen – disponeringen er korrigert bort`)}>Åpne {aar} igjen</Button>
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">Åpning sletter ingenting: det opprettes et korreksjonsbilag som nuller ut disponeringen, og året kan avsluttes på nytt.</p>
           <ul className="mt-6 space-y-1 text-xs text-muted-foreground">
             {company.company_type === "as" ? (<><li>• Årsregnskap til Regnskapsregisteret: 31. juli</li><li>• Skattemelding for AS (RF-1028) med næringsspesifikasjon: 31. mai</li><li>• Aksjonærregisteroppgave: 31. januar</li></>) : (<li>• Skattemelding med næringsspesifikasjon for ENK: 31. mai</li>)}
           </ul>
