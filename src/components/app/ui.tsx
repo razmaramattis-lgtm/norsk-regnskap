@@ -59,3 +59,11 @@ export function usePostedLines(fra: string, til: string) {
 export function Empty({ children }: { children: ReactNode }) {
   return <div className="px-6 py-16 text-center text-sm text-muted-foreground">{children}</div>;
 }
+
+export const selectCls = "h-9 rounded-md border border-input bg-card px-2 text-sm";
+
+export function Th({ children, right }: { children?: ReactNode; right?: boolean }) {
+  return <th className={`px-4 py-3 ${right ? "text-right" : ""}`}>{children}</th>;
+}
+
+export const theadCls = "border-b text-left text-xs uppercase tracking-wide text-muted-foreground";
