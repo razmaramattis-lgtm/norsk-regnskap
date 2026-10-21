@@ -78,6 +78,20 @@
       "when": 1792601528093,
       "tag": "0010_maanedsavslutning",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1792601628093,
+      "tag": "0011_lonn_avansert",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1792601728093,
+      "tag": "0012_faktura",
+      "breakpoints": true
     }
   ]
 }

@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Link } from "@tanstack/react-router";
 import { Download, Send } from "lucide-react";
 import type { Company } from "@/lib/company";
+import { enhetskode } from "@/lib/faktura";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,6 +27,8 @@ type Linje = {
   antall: number | string;
   enhetspris: number | string;
   mva_sats: number | string;
+  rabatt_prosent?: number | string | null;
+  enhet?: string | null;
 };
 export type EhfFaktura = {
   fakturanr: number | null;
@@ -38,13 +41,14 @@ export type EhfFaktura = {
   total: number | string;
   er_kreditnota?: boolean | null;
   kreditnota_for?: string | null;
+  deres_ref?: string | null;
   customers: Kunde | null;
   invoice_lines: Linje[];
 };
 
 /** E-faktura (EHF / Peppol BIS Billing 3.0): kontroll, nedlasting av XML og sending når en leverandør er koblet på. */
 export function EhfPanel({ faktura, company }: { faktura: EhfFaktura; company: Company }) {
-  const [referanse, setReferanse] = useState("");
+  const [referanse, setReferanse] = useState(faktura.deres_ref ?? "");
   const k = faktura.customers;
   const kreditnota = !!faktura.er_kreditnota;
   const { data: opprinnelig } = useQuery({
@@ -90,6 +94,8 @@ export function EhfPanel({ faktura, company }: { faktura: EhfFaktura; company: C
       antall: Number(l.antall) * fortegn,
       enhetspris: Number(l.enhetspris),
       mvaSats: Number(l.mva_sats),
+      rabattProsent: Number(l.rabatt_prosent ?? 0),
+      enhet: enhetskode(l.enhet),
     })),
     kid: faktura.kid,
     kontonummer: company.kontonummer,

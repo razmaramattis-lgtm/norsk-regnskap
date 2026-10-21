@@ -48,10 +48,34 @@
 
 - [x] Månedsavslutning lagrer avkrysning med hvem og når (migrasjon 0010)
 
+## Avansert lønn (fase 5)
+- [x] Lønnsarter med a-meldingskode: fastlønn, timelønn, overtid 50/100 %, tillegg, bonus, provisjon, styrehonorar, utbetalte feriepenger
+- [x] Naturalytelser (fri telefon, bil, forsikring) med trekk og AGA, uten utbetaling (5280/5290)
+- [x] Trekkfrie godtgjørelser (km, diett) og trekk i lønn (fagforening, forskudd, kantine)
+- [x] Prosenttrekk eller tabelltrekk med halvt trekk
+- [x] Feriepenger med 2,3 prosentpoeng ekstra fra 60 år, OTP av lønn mellom 1 G og 12 G (G må kontrolleres årlig)
+- [x] Lønnsslipp (utskrift/PDF) og grunnlag for a-melding med frist
+- [x] Endre ansatte, fødselsdato, aktiv/inaktiv
+- [ ] Skattekort-API og a-melding via Maskinporten
+
+## Fakturahåndtering (fase 5)
+- [x] Leveringsdato (bokføringsforskriften § 5-1-1), deres og vår referanse (EHF BuyerReference)
+- [x] Enhet og rabatt per linje, også i EHF (prisrabatt og UN/ECE-enhetskoder)
+- [x] Delbetaling, også ved bankavstemming; kreditering sperret for delbetalte fakturaer
+- [x] Kopier faktura, repeterende fakturaer (måned, kvartal, halvår, år) med varsel under «Til behandling»
+- [x] Purring på restbeløpet
+
+## Bilagsføring (fase 5)
+- [x] Kontroll mens du skriver: balanse, ukjent konto, låst periode, debet og kredit på samme linje, mva-konto uten kode, kjøp uten inngående mva, dato langt frem/tidligere år
+- [x] Varsel om mulig duplikat (samme dato og beløp)
+- [x] «Fyll differanse», Ctrl/⌘ + Enter for å bokføre
+- [x] Kvittering kan legges ved før bilaget er lagret
+- [x] Kopier bilag; søk og filter (status, måned, beløp) i bilagslisten
+
 ## Neste faser
 - [ ] Velg og koble på leverandører: Peppol-aksesspunkt, Skatteetaten (MVA, skattemelding, a-melding), bank
 - [x] SAF-T-import: kontoplan, kunder, leverandører og åpningsbalanse som utkast (`/app/import`)
-- [ ] Periodiseringer, tilbud, ordre, repeterende fakturaer
+- [ ] Periodiseringer, tilbud, ordre
 - [ ] Prosjekter/avdelinger (dimensjoner), kontoregler for automatisk kontering
 - [ ] Kjørebok og reiseregning
 - [ ] Skattekonto-avstemming

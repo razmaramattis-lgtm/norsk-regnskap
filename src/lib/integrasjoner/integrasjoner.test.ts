@@ -258,3 +258,11 @@ describe("adapter-register", () => {
     });
   });
 });
+
+describe("EHF med rabatt", () => {
+  it("linjebeløpet tar hensyn til rabatt og prisen får AllowanceCharge", async () => {
+    const { beregnEhfSummer } = await import("./ehf");
+    const s = beregnEhfSummer([{ beskrivelse: "Timer", antall: 3, enhetspris: 333.33, mvaSats: 25, rabattProsent: 10 }]);
+    expect(s.linjer[0]).toBe(899.99);
+  });
+});

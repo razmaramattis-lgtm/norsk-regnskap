@@ -20,7 +20,12 @@ const RANG: Record<GjoremaalTone, number> = { bad: 0, warn: 1, info: 2 };
  * Lager «Til behandling» for ett firma fra `byraa_oversikt()`, med det som haster øverst.
  * Lista er tom når alt er à jour, slik at oversikten kan si det rett ut.
  */
-export function lagGjoremaal(firma: KlientFirma, r: OversiktRad, idag: string): Gjoremaal[] {
+export function lagGjoremaal(
+  firma: KlientFirma,
+  r: OversiktRad,
+  idag: string,
+  ekstra: { repeterendeKlare?: number } = {},
+): Gjoremaal[] {
   const ut: Gjoremaal[] = [];
 
   const frist = kommendeFrister(idag, fristValgFor(firma, r.har_ansatte), 1)[0];
@@ -69,6 +74,14 @@ export function lagGjoremaal(firma: KlientFirma, r: OversiktRad, idag: string): 
       tittel: `${flertall(r.ubehandlede_banktransaksjoner, "banktransaksjon", "banktransaksjoner")} å avstemme`,
       tone: "warn",
       lenke: "/app/bank",
+    });
+  if (ekstra.repeterendeKlare)
+    ut.push({
+      id: "repeterende",
+      tittel: flertall(ekstra.repeterendeKlare, "repeterende faktura er klar", "repeterende fakturaer er klare"),
+      detalj: "Lag utkast, kontroller og send",
+      tone: "warn",
+      lenke: "/app/fakturaer",
     });
   if (r.bilagsutkast > 0)
     ut.push({

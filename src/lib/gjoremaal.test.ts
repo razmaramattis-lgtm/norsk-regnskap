@@ -49,6 +49,13 @@ describe("lagGjoremaal", () => {
   });
 });
 
+describe("repeterende fakturaer", () => {
+  it("vises når de er klare", () => {
+    const g = lagGjoremaal(enk, rad(), "2026-10-21", { repeterendeKlare: 2 });
+    expect(g).toEqual([expect.objectContaining({ id: "repeterende", tittel: "2 repeterende fakturaer er klare", lenke: "/app/fakturaer" })]);
+  });
+});
+
 describe("komIGang", () => {
   it("markerer ferdige steg", () => {
     const s = komIGang({ org_nr: "923609016", kontonummer: null }, { harBokfort: false, harBank: true, harFaktura: false });
