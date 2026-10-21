@@ -65,6 +65,7 @@ export const grupper = [
       { to: "/app/frister", label: "Frister", icon: CalendarClock },
       { to: "/app/rapporter", label: "Resultat og balanse", icon: BarChart3 },
       { to: "/app/hovedbok", label: "Hovedbok", icon: ScrollText },
+      { to: "/app/bilagsjournal", label: "Bilagsjournal", icon: BookOpen },
       { to: "/app/reskontro", label: "Reskontro", icon: Scale },
     ],
   },
