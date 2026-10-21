@@ -236,12 +236,65 @@ function Anleggsmidler() {
           </label>
           <span className="ml-auto" />
           {canWrite && (
-            <Button variant="outline" disabled={!bilagslinjer.length} onClick={lagBilag}>
-              Opprett avskrivningsbilag
+            <Button
+              variant="outline"
+              disabled={!bilagslinjer.length}
+              onClick={() => lagBilag(bilagslinjer, `${valgtAar}-12-31`, `Avskrivning ${valgtAar}`)}
+            >
+              Opprett avskrivningsbilag for hele året
             </Button>
           )}
         </div>
       </Panel>
+
+      {visning === "maaned" && saldo.length > 0 && (
+        <Panel className="mb-6">
+          <div className="border-b px-5 py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Månedlig avskrivning {valgtAar}
+          </div>
+          <table className="w-full text-sm">
+            <thead className={theadCls}>
+              <tr>
+                <Th>Måned</Th>
+                <Th>Bilagsdato</Th>
+                <Th right>Avskrivning</Th>
+                <Th right>Løpende sum</Th>
+                <Th />
+              </tr>
+            </thead>
+            <tbody>
+              {(() => {
+                let lopende = 0;
+                return maanedsplan.map((md) => {
+                  lopende += md.sum;
+                  return (
+                    <tr key={md.maaned} className="border-b">
+                      <td className="px-4 py-2">{dato(md.dato).slice(3)}</td>
+                      <td className="px-4 py-2 text-muted-foreground">{dato(md.dato)}</td>
+                      <td className="num px-4 py-2 text-right">{md.sum ? kr(md.sum) : "–"}</td>
+                      <td className="num px-4 py-2 text-right text-muted-foreground">{kr(lopende)}</td>
+                      <td className="px-4 py-2 text-right">
+                        {canWrite && md.sum > 0 && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => lagBilag(md.linjer, md.dato, `Avskrivning ${md.maaned}/${valgtAar}`)}
+                          >
+                            Opprett bilag
+                          </Button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                });
+              })()}
+            </tbody>
+          </table>
+          <p className="border-t px-5 py-3 text-xs text-muted-foreground">
+            Årets avskrivning fordeles likt på tolv måneder; desember tar avrundingsresten slik at summen blir nøyaktig lik årsavskrivningen. Opprett enten månedsbilag eller årsbilag – ikke begge.
+          </p>
+        </Panel>
+      )}
 
       {canWrite && (
         <NyttMiddel onLagret={() => qc.invalidateQueries({ queryKey: ["anleggsmidler"] })} />
