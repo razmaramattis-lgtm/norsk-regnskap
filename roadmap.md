@@ -44,7 +44,7 @@
 - [x] Mobilmeny
 - [x] Lær kontoregler av avstemte banktransaksjoner: samme motpart to ganger på samme konto gir forslag (`src/lib/laering.ts`)
 - [x] Veiviser for nytt firma (Enhetsregisteret, MVA-termin, kontonummer) og «Kom i gang» på oversikten
-- [ ] «Hva har skjedd?»-registrering (kjøp/salg/overføring) som førstevalg
+- [x] «Hva har skjedd?»-registrering (kjøp, salg, overføring, eier inn/ut) som førstevalg i nytt bilag (`src/lib/hendelser.ts`)
 
 ## Neste faser
 - [ ] Velg og koble på leverandører: Peppol-aksesspunkt, Skatteetaten (MVA, skattemelding, a-melding), bank

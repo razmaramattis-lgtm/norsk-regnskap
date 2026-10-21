@@ -6,7 +6,7 @@ export const Route = createFileRoute("/_authenticated/app/bilag/ny")({
   head: () => ({ meta: [{ title: "Nytt bilag – Fjordbok" }] }),
   component: () => (
     <>
-      <PageHeader title="Nytt bilag" sub="Registrer et kjøp raskt, eller før posteringer manuelt." />
+      <PageHeader title="Nytt bilag" sub="Fortell hva som har skjedd, så lager vi posteringene. Du kan alltid justere dem." />
       <BilagEditor />
     </>
   ),

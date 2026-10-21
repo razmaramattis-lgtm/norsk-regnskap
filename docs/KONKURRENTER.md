@@ -92,7 +92,7 @@ og lansering mot årsskiftet.
 2. **Lær av godkjente forslag**: når samme motpart er ført på samme konto to ganger, foreslås kontoen automatisk. *Gjort.*
 3. **Faktura-PDF** og «send på e-post», med purring på forfalte fakturaer. *Gjort* via eget e-postprogram; automatisk utsendelse krever e-postleverandør.
 4. **Veiviser for nytt firma**: hent fra Enhetsregisteret, velg MVA-termin, importer første kontoutskrift. *Gjort.*
-5. **Fiken-lignende registrering**: «Hva har skjedd?» med kjøp/salg/overføring som førstevalg i «Registrer bilag».
+5. **Fiken-lignende registrering**: «Hva har skjedd?» med kjøp/salg/overføring som førstevalg i «Registrer bilag». *Gjort.*
 6. **Lagre avkrysning i månedsavslutningen.**
 
 ### Krever leverandør eller avtale
