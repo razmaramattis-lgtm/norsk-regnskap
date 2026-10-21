@@ -1620,6 +1620,7 @@ export type Database = {
         Args: { _grunn?: string; _id: string }
         Returns: undefined
       }
+      reopen_year: { Args: { _aar: number; _company: string }; Returns: string }
       reverse_voucher: { Args: { _voucher: string }; Returns: string }
       revoke_agent_key: { Args: { _id: string }; Returns: undefined }
       send_invoice: { Args: { _invoice: string }; Returns: number }

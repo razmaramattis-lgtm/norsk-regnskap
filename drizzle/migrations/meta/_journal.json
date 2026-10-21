@@ -113,6 +113,13 @@
       "when": 1792615203569,
       "tag": "0015_0012_faktura",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1792615813490,
+      "tag": "0016_aapne_periode_og_aar",
+      "breakpoints": true
     }
   ]
 }
