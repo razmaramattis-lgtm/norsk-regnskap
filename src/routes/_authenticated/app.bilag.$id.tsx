@@ -7,6 +7,7 @@ import { useCompany } from "@/lib/company";
 import { dato, kr } from "@/lib/format";
 import { PageHeader, Panel, Empty, useAccounts } from "@/components/app/ui";
 import { BilagEditor } from "@/components/app/BilagEditor";
+import { Vedlegg } from "@/components/app/Vedlegg";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/app/bilag/$id")({
@@ -44,6 +45,7 @@ function BilagSide() {
             }}>Slett utkast</Button>
           )}
         />
+        <div className="mb-4"><Vedlegg voucherId={id} /></div>
         <BilagEditor
           voucherId={id}
           initial={{
@@ -75,6 +77,7 @@ function BilagSide() {
       <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
         <Lock className="h-4 w-4" /> Bokført {v.bokfort_at ? new Date(v.bokfort_at).toLocaleString("nb-NO") : ""} – kan ikke endres.
       </div>
+      <div className="mb-4"><Vedlegg voucherId={id} /></div>
       <Panel>
         <table className="w-full text-sm">
           <thead className="border-b text-left text-xs uppercase tracking-wide text-muted-foreground">

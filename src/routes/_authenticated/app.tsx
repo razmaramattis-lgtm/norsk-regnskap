@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
-import { BookOpen, Building2, FileText, LayoutDashboard, ListTree, LogOut, Receipt, BarChart3, Users } from "lucide-react";
+import { Archive, BookOpen, Building2, CalendarCheck, FileInput, FileText, History, Landmark, LayoutDashboard, ListTree, LogOut, Package, Receipt, BarChart3, ScrollText, Truck, Users, Wallet, Scale } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CompanyProvider, useCompany, useMemberships, ROLLENAVN } from "@/lib/company";
 import { NyttFirma } from "@/components/app/NyttFirma";
@@ -33,15 +33,35 @@ function AppLayout() {
   );
 }
 
-const nav = [
-  { to: "/app", label: "Oversikt", icon: LayoutDashboard, exact: true },
-  { to: "/app/bilag", label: "Bilag", icon: BookOpen },
-  { to: "/app/fakturaer", label: "Fakturaer", icon: FileText },
-  { to: "/app/kunder", label: "Kunder", icon: Users },
-  { to: "/app/mva", label: "MVA-melding", icon: Receipt },
-  { to: "/app/rapporter", label: "Rapporter", icon: BarChart3 },
-  { to: "/app/kontoplan", label: "Kontoplan", icon: ListTree },
-  { to: "/app/firma", label: "Firma og brukere", icon: Building2 },
+const grupper = [
+  { tittel: "", lenker: [{ to: "/app", label: "Oversikt", icon: LayoutDashboard, exact: true }] },
+  { tittel: "Salg", lenker: [
+    { to: "/app/fakturaer", label: "Fakturaer", icon: FileText },
+    { to: "/app/kunder", label: "Kunder", icon: Users },
+    { to: "/app/varer", label: "Varer og tjenester", icon: Package },
+  ] },
+  { tittel: "Kjøp", lenker: [
+    { to: "/app/leverandorfakturaer", label: "Inngående fakturaer", icon: FileInput },
+    { to: "/app/leverandorer", label: "Leverandører", icon: Truck },
+  ] },
+  { tittel: "Regnskap", lenker: [
+    { to: "/app/bilag", label: "Bilag", icon: BookOpen },
+    { to: "/app/bank", label: "Bank", icon: Landmark },
+    { to: "/app/lonn", label: "Lønn", icon: Wallet },
+    { to: "/app/arkiv", label: "Bilagsarkiv", icon: Archive },
+  ] },
+  { tittel: "Rapporter", lenker: [
+    { to: "/app/mva", label: "MVA-melding", icon: Receipt },
+    { to: "/app/rapporter", label: "Resultat og balanse", icon: BarChart3 },
+    { to: "/app/hovedbok", label: "Hovedbok", icon: ScrollText },
+    { to: "/app/reskontro", label: "Reskontro", icon: Scale },
+  ] },
+  { tittel: "Innstillinger", lenker: [
+    { to: "/app/aarsavslutning", label: "Perioder og årsoppgjør", icon: CalendarCheck },
+    { to: "/app/kontoplan", label: "Kontoplan", icon: ListTree },
+    { to: "/app/logg", label: "Revisjonslogg", icon: History },
+    { to: "/app/firma", label: "Firma og brukere", icon: Building2 },
+  ] },
 ] as const;
 
 function Shell() {
@@ -69,18 +89,23 @@ function Shell() {
             {company.company_type === "as" ? "AS" : "ENK"} · {formatOrgNr(company.org_nr) || "uten org.nr"} · {ROLLENAVN[role]}
           </div>
         </div>
-        <nav className="flex-1 space-y-0.5 px-3">
-          {nav.map(({ to, label, icon: Icon, ...rest }) => (
-            <Link
-              key={to}
-              to={to}
-              activeOptions={{ exact: "exact" in rest }}
-              className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors hover:bg-sidebar-accent"
-              activeProps={{ className: "bg-sidebar-accent text-sidebar-primary" }}
-            >
-              <Icon className="h-4 w-4" />
-              {label}
-            </Link>
+        <nav className="flex-1 space-y-4 overflow-y-auto px-3 pb-4">
+          {grupper.map((g) => (
+            <div key={g.tittel}>
+              {g.tittel && <div className="px-3 pb-1 text-[10px] uppercase tracking-[0.15em] opacity-50">{g.tittel}</div>}
+              {g.lenker.map(({ to, label, icon: Icon, ...rest }) => (
+                <Link
+                  key={to}
+                  to={to}
+                  activeOptions={{ exact: "exact" in rest }}
+                  className="flex items-center gap-3 rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-sidebar-accent"
+                  activeProps={{ className: "bg-sidebar-accent text-sidebar-primary" }}
+                >
+                  <Icon className="h-4 w-4" />
+                  {label}
+                </Link>
+              ))}
+            </div>
           ))}
         </nav>
         <button

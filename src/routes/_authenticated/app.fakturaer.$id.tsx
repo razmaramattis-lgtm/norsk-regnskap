@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useCustomers, NyKunde, STATUS } from "@/components/app/kunder";
+import { useArticles } from "@/components/app/hooks";
 
 export const Route = createFileRoute("/_authenticated/app/fakturaer/$id")({
   head: () => ({ meta: [{ title: "Faktura – Fjordbok" }] }),
@@ -24,6 +25,7 @@ function FakturaSide() {
   const { id } = Route.useParams();
   const { company, canWrite } = useCompany();
   const { data: kunder = [] } = useCustomers();
+  const { data: varer = [] } = useArticles();
   const qc = useQueryClient();
   const nav = useNavigate();
   const { data: f, isLoading } = useQuery({
@@ -91,12 +93,16 @@ function FakturaSide() {
     return (
       <>
         <PageHeader
-          title={`Faktura ${f.fakturanr}`}
+          title={`${f.er_kreditnota ? "Kreditnota" : "Faktura"} ${f.fakturanr}`}
           sub={c.navn}
           actions={
             <>
               <Button variant="outline" onClick={() => window.print()}><Printer /> Skriv ut / PDF</Button>
               {f.voucher_id && <Button variant="ghost" asChild><Link to="/app/bilag/$id" params={{ id: f.voucher_id }}>Se bilag</Link></Button>}
+              {f.status === "sendt" && !f.er_kreditnota && canWrite && (
+                <Button variant="outline" disabled={busy} onClick={() => run(async () => { const { data, error } = await supabase.rpc("credit_invoice", { _invoice: id }); if (error) throw error; nav({ to: "/app/fakturaer/$id", params: { id: data } }); }, "Kreditnota opprettet og bokført")}>Krediter</Button>
+              )}
+              {f.kreditnota_for && <Button variant="ghost" asChild><Link to="/app/fakturaer/$id" params={{ id: f.kreditnota_for }}>Opprinnelig faktura</Link></Button>}
             </>
           }
         />
@@ -114,7 +120,7 @@ function FakturaSide() {
               {company.company_type === "as" ? null : <div className="text-sm text-muted-foreground">Enkeltpersonforetak</div>}
             </div>
             <div className="text-right">
-              <div className="font-serif text-3xl">Faktura</div>
+              <div className="font-serif text-3xl">{f.er_kreditnota ? "Kreditnota" : "Faktura"}</div>
               <Badge variant={STATUS[f.status]!.v} className="mt-2">{STATUS[f.status]!.t}</Badge>
             </div>
           </div>
@@ -180,7 +186,14 @@ function FakturaSide() {
               const set = (k: keyof L, v: string | number) => setLinjer((ls) => ls.map((x, j) => (j === i ? { ...x, [k]: v } : x)));
               return (
                 <tr key={i} className="border-b">
-                  <td className="px-4 py-2"><Input value={l.beskrivelse} onChange={(e) => set("beskrivelse", e.target.value)} /></td>
+                  <td className="px-4 py-2">
+                    <Input list="vareliste" value={l.beskrivelse} onChange={(e) => {
+                      const v = varer.find((a) => a.navn === e.target.value);
+                      if (v) setLinjer((ls) => ls.map((x, j) => (j === i ? { ...x, beskrivelse: v.navn, enhetspris: String(v.pris), mva_sats: Number(v.mva_sats) } : x)));
+                      else set("beskrivelse", e.target.value);
+                    }} />
+                    <datalist id="vareliste">{varer.map((a) => <option key={a.id} value={a.navn} />)}</datalist>
+                  </td>
                   <td className="w-24 px-4 py-2"><Input className="num" value={l.antall} onChange={(e) => set("antall", e.target.value.replace(",", "."))} /></td>
                   <td className="w-36 px-4 py-2"><Input className="num" value={l.enhetspris} onChange={(e) => set("enhetspris", e.target.value.replace(",", "."))} /></td>
                   <td className="w-32 px-4 py-2">
