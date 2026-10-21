@@ -56,6 +56,54 @@ export function usePostedLines(fra: string, til: string) {
   });
 }
 
+export type BokfortVoucherLinje = {
+  konto: string;
+  debet: number;
+  kredit: number;
+  voucher_id: string;
+  bilagsnr: number | null;
+  dato: string;
+  beskrivelse: string;
+};
+
+/** Bokførte linjer på bilagsnivå – brukes til å gå ned på bilagene bak en konto i rapportene. */
+export function usePostedVoucherLines(fra: string, til: string) {
+  const { company } = useCompany();
+  return useQuery({
+    queryKey: ["voucher-lines", company.id, fra, til],
+    queryFn: async () => {
+      const out: BokfortVoucherLinje[] = [];
+      for (let from = 0; ; from += 1000) {
+        const { data, error } = await supabase
+          .from("voucher_lines")
+          .select("konto, debet, kredit, voucher_id, vouchers!inner(bilagsnr, dato, beskrivelse, status)")
+          .eq("company_id", company.id)
+          .eq("vouchers.status", "bokfort")
+          .gte("vouchers.dato", fra)
+          .lte("vouchers.dato", til)
+          .range(from, from + 999);
+        if (error) throw error;
+        out.push(
+          ...(data ?? []).map((l) => {
+            const v = l.vouchers as unknown as { bilagsnr: number | null; dato: string; beskrivelse: string };
+            return {
+              konto: l.konto,
+              debet: Number(l.debet),
+              kredit: Number(l.kredit),
+              voucher_id: l.voucher_id,
+              bilagsnr: v.bilagsnr,
+              dato: v.dato,
+              beskrivelse: v.beskrivelse,
+            };
+          }),
+        );
+        if (!data || data.length < 1000) break;
+      }
+      return out;
+    },
+  });
+}
+
 export function Empty({ children }: { children: ReactNode }) {
   return <div className="px-6 py-16 text-center text-sm text-muted-foreground">{children}</div>;
 }
