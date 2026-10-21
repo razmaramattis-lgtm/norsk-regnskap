@@ -42,7 +42,7 @@
 - [x] Graf over inntekter og kostnader per måned på oversikten
 - [x] Søk og hurtigvalg med ⌘K / Ctrl+K (sider, oppgaver, bytt firma)
 - [x] Mobilmeny
-- [ ] Lær kontoregler av godkjente forslag
+- [x] Lær kontoregler av avstemte banktransaksjoner: samme motpart to ganger på samme konto gir forslag (`src/lib/laering.ts`)
 - [ ] Veiviser for nytt firma (Enhetsregisteret, MVA-termin, første kontoutskrift)
 - [ ] «Hva har skjedd?»-registrering (kjøp/salg/overføring) som førstevalg
 

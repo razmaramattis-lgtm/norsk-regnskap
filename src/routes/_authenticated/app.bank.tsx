@@ -7,7 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "@/lib/company";
 import { dato, kr } from "@/lib/format";
 import { parseBankCsv, radHash } from "@/lib/bankimport";
-import { foreslaaForListe } from "@/lib/kontoforslag";
+import { foreslaaForListe, STANDARDREGLER } from "@/lib/kontoforslag";
+import { laerRegler } from "@/lib/laering";
 import { PageHeader, Panel, Empty, useAccounts, usePostedLines, selectCls, theadCls } from "@/components/app/ui";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -51,10 +52,32 @@ function Bank() {
     qc.invalidateQueries({ queryKey: ["bank"] });
   }
 
+  /** Regler lært av de siste avstemte transaksjonene, så samme motpart får samme konto som sist. */
+  async function lærteRegler() {
+    const avstemt = txs.filter((t) => t.voucher_id).slice(0, 200);
+    if (avstemt.length < 2) return [];
+    const { data, error } = await supabase
+      .from("voucher_lines")
+      .select("voucher_id, konto, debet, kredit, mva_kode")
+      .in("voucher_id", avstemt.map((t) => t.voucher_id!));
+    if (error || !data) return [];
+    return laerRegler(
+      avstemt.map((t) => ({
+        tekst: t.tekst,
+        belop: Number(t.belop),
+        linjer: data
+          .filter((l) => l.voucher_id === t.voucher_id)
+          .map((l) => ({ konto: l.konto, debet: Number(l.debet), kredit: Number(l.kredit), mva_kode: l.mva_kode })),
+      })),
+    );
+  }
+
   async function foreslaa() {
+    const lært = await lærteRegler();
     const { forslag, utenTreff } = foreslaaForListe(
       uavstemt.map((t) => ({ id: t.id, dato: t.dato, tekst: t.tekst, belop: Number(t.belop) })),
       company.mva_registrert,
+      [...lært, ...STANDARDREGLER],
     );
     const { data: eksisterende, error: e1 } = await supabase.from("agent_proposals").select("bank_transaction_id").eq("company_id", company.id).eq("status", "ventende");
     if (e1) { toast.error(e1.message); return; }
