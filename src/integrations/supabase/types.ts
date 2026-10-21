@@ -829,31 +829,37 @@ export type Database = {
           antall: number
           beskrivelse: string
           company_id: string
+          enhet: string | null
           enhetspris: number
           id: string
           invoice_id: string
           linjenr: number
           mva_sats: number
+          rabatt_prosent: number
         }
         Insert: {
           antall?: number
           beskrivelse: string
           company_id: string
+          enhet?: string | null
           enhetspris?: number
           id?: string
           invoice_id: string
           linjenr?: number
           mva_sats?: number
+          rabatt_prosent?: number
         }
         Update: {
           antall?: number
           beskrivelse?: string
           company_id?: string
+          enhet?: string | null
           enhetspris?: number
           id?: string
           invoice_id?: string
           linjenr?: number
           mva_sats?: number
+          rabatt_prosent?: number
         }
         Relationships: [
           {
@@ -878,18 +884,22 @@ export type Database = {
           company_id: string
           created_at: string
           customer_id: string
+          deres_ref: string | null
           er_kreditnota: boolean
           fakturadato: string
           fakturanr: number | null
           forfallsdato: string
           id: string
+          innbetalt: number
           kid: string | null
           kreditnota_for: string | null
+          leveringsdato: string | null
           merknad: string | null
           mva: number
           netto: number
           status: Database["public"]["Enums"]["invoice_status"]
           total: number
+          var_ref: string | null
           voucher_id: string | null
         }
         Insert: {
@@ -897,18 +907,22 @@ export type Database = {
           company_id: string
           created_at?: string
           customer_id: string
+          deres_ref?: string | null
           er_kreditnota?: boolean
           fakturadato?: string
           fakturanr?: number | null
           forfallsdato?: string
           id?: string
+          innbetalt?: number
           kid?: string | null
           kreditnota_for?: string | null
+          leveringsdato?: string | null
           merknad?: string | null
           mva?: number
           netto?: number
           status?: Database["public"]["Enums"]["invoice_status"]
           total?: number
+          var_ref?: string | null
           voucher_id?: string | null
         }
         Update: {
@@ -916,18 +930,22 @@ export type Database = {
           company_id?: string
           created_at?: string
           customer_id?: string
+          deres_ref?: string | null
           er_kreditnota?: boolean
           fakturadato?: string
           fakturanr?: number | null
           forfallsdato?: string
           id?: string
+          innbetalt?: number
           kid?: string | null
           kreditnota_for?: string | null
+          leveringsdato?: string | null
           merknad?: string | null
           mva?: number
           netto?: number
           status?: Database["public"]["Enums"]["invoice_status"]
           total?: number
+          var_ref?: string | null
           voucher_id?: string | null
         }
         Relationships: [
@@ -1147,6 +1165,54 @@ export type Database = {
           id?: string
         }
         Relationships: []
+      }
+      repeterende_fakturaer: {
+        Row: {
+          aktiv: boolean
+          company_id: string
+          created_at: string
+          id: string
+          intervall: string
+          mal_faktura: string
+          neste_dato: string
+          opprettet_av: string | null
+        }
+        Insert: {
+          aktiv?: boolean
+          company_id: string
+          created_at?: string
+          id?: string
+          intervall: string
+          mal_faktura: string
+          neste_dato: string
+          opprettet_av?: string | null
+        }
+        Update: {
+          aktiv?: boolean
+          company_id?: string
+          created_at?: string
+          id?: string
+          intervall?: string
+          mal_faktura?: string
+          neste_dato?: string
+          opprettet_av?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repeterende_fakturaer_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "repeterende_fakturaer_mal_faktura_fkey"
+            columns: ["mal_faktura"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       supplier_invoice_lines: {
         Row: {
@@ -1521,6 +1587,7 @@ export type Database = {
       is_admin: { Args: { _company: string }; Returns: boolean }
       is_member: { Args: { _company: string }; Returns: boolean }
       kid_mod10: { Args: { _base: string }; Returns: string }
+      lag_repeterende_utkast: { Args: { _id: string }; Returns: string }
       log_audit: {
         Args: {
           _company: string
@@ -1538,6 +1605,15 @@ export type Database = {
       post_voucher: { Args: { _voucher: string }; Returns: number }
       register_invoice_payment: {
         Args: { _dato: string; _invoice: string }
+        Returns: string
+      }
+      registrer_innbetaling: {
+        Args: {
+          _belop: number
+          _dato: string
+          _invoice: string
+          _konto?: string
+        }
         Returns: string
       }
       reject_proposal: {
