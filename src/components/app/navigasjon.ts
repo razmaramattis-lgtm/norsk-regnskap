@@ -1,5 +1,6 @@
 import {
   Archive,
+  Inbox,
   Upload,
   Briefcase,
   BookOpen,
@@ -48,6 +49,7 @@ export const grupper = [
   {
     tittel: "Regnskap",
     lenker: [
+      { to: "/app/mottak", label: "Bilagsmottak", icon: Inbox },
       { to: "/app/bilag", label: "Bilag", icon: BookOpen },
       { to: "/app/bank", label: "Bank", icon: Landmark },
       { to: "/app/lonn", label: "Lønn", icon: Wallet },

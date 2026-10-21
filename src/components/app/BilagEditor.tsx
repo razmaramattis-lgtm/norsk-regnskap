@@ -5,13 +5,15 @@ import { CircleAlert, CircleCheck, Paperclip, Plus, Scale, Trash2, TriangleAlert
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "@/lib/company";
-import { kr, idag } from "@/lib/format";
+import { dato as visDato, kr, idag } from "@/lib/format";
 import { MVA_KODER, OMVENDT_KODER, INNGAENDE_KONTO, byggOmvendtAvgift, splittBrutto } from "@/lib/mva";
 import { KATEGORI_NAVN, bruk, malerFor } from "@/lib/bokforingsmaler";
 import { BETALT_FRA, HENDELSER, KJOPSTYPER, byggHendelse, type HendelseType } from "@/lib/hendelser";
 import { useAccounts, Panel } from "./ui";
 import { lastOppDokument } from "./Vedlegg";
 import { differanse, kontrollerBilag } from "@/lib/bilagskontroll";
+import { forslagFraHistorikk, skalerLinjer } from "@/lib/hukommelse";
+import { useTidligereBilag } from "./hooks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,6 +38,23 @@ export function BilagEditor({
   const [beskr, setBeskr] = useState(initial?.beskrivelse ?? "");
   const [linjer, setLinjer] = useState<EditLinje[]>(initial?.linjer ?? [tom_(), tom_()]);
   const [busy, setBusy] = useState(false);
+
+  // Tidligere føringer med samme tekst
+  const { data: historikk = [] } = useTidligereBilag();
+  const forslag = voucherId ? [] : forslagFraHistorikk(beskr, historikk);
+  function brukForslag(f: (typeof forslag)[number]) {
+    const b = Number(hBelop.replace(/\s/g, "").replace(",", ".")) || f.belop;
+    setLinjer(
+      skalerLinjer(f.bilag.linjer, b).map((l) => ({
+        konto: l.konto,
+        tekst: l.tekst ?? "",
+        debet: l.debet ? String(l.debet) : "",
+        kredit: l.kredit ? String(l.kredit) : "",
+        mva_kode: l.mva_kode ?? "",
+      })),
+    );
+    toast.success("Samme kontering som sist. Kontroller beløpet og bokfør.");
+  }
 
   // Hva har skjedd?
   const [hType, setHType] = useState<HendelseType>("kjop");
@@ -235,7 +254,26 @@ export function BilagEditor({
         </div>
         <div className="space-y-1.5">
           <Label>Beskrivelse</Label>
-          <Input value={beskr} onChange={(e) => setBeskr(e.target.value)} placeholder="F.eks. Kontorrekvisita fra Staples" />
+          <Input list="tidligere-tekster" value={beskr} onChange={(e) => setBeskr(e.target.value)} placeholder="F.eks. Kontorrekvisita fra Staples" />
+          <datalist id="tidligere-tekster">
+            {[...new Set(historikk.map((h) => h.beskrivelse))].slice(0, 200).map((t) => <option key={t} value={t} />)}
+          </datalist>
+          {forslag.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
+              <span className="text-muted-foreground">Ført før:</span>
+              {forslag.map((f) => (
+                <button
+                  key={f.bilag.id}
+                  type="button"
+                  onClick={() => brukForslag(f)}
+                  className="rounded-full border border-primary/30 bg-primary/5 px-2.5 py-1 text-primary transition hover:bg-primary/10"
+                >
+                  {f.bilag.linjer.filter((l) => l.debet).map((l) => l.konto).join(" + ")} · {kr(f.belop)} · {visDato(f.bilag.dato)}
+                  {f.antall > 1 ? ` (${f.antall}×)` : ""}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </Panel>
 

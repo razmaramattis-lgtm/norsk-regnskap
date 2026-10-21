@@ -6,12 +6,12 @@ import { dato, idag, kr } from "@/lib/format";
 import { dagerTil, kommendeFrister } from "@/lib/frister";
 import { useHarAnsatte } from "@/lib/integrasjoner/hooks";
 import { beregnMvaMelding, terminer } from "@/lib/mva";
-import { PageHeader, Panel, StatusPill, usePostedLines } from "@/components/app/ui";
+import { Panel, StatusPill, usePostedLines } from "@/components/app/ui";
 import { Button } from "@/components/ui/button";
 import { komIGang, lagGjoremaal } from "@/lib/gjoremaal";
 import { maanedstall } from "@/lib/maanedstall";
 import { useOversikt } from "@/lib/oversikt";
-import { ArrowRight, CheckCircle2, Circle } from "lucide-react";
+import { ArrowRight, CheckCircle2, Circle, FilePlus2, PenLine, Upload } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 export const Route = createFileRoute("/_authenticated/app/")({
@@ -47,7 +47,19 @@ function Oversikt() {
           .lte("neste_dato", idag())
       ).count ?? 0,
   });
-  const gjoremaal = rad ? lagGjoremaal(company, rad, idag(), { repeterendeKlare }) : [];
+  const { data: mottak = 0 } = useQuery({
+    queryKey: ["mottak-antall", company.id],
+    queryFn: async () =>
+      (
+        await supabase
+          .from("documents")
+          .select("id", { count: "exact", head: true })
+          .eq("company_id", company.id)
+          .is("voucher_id", null)
+          .is("supplier_invoice_id", null)
+      ).count ?? 0,
+  });
+  const gjoremaal = rad ? lagGjoremaal(company, rad, idag(), { repeterendeKlare, mottak }) : [];
   const graf = maanedstall(år, y);
   const { data: antall } = useQuery({
     queryKey: ["kom-i-gang", company.id],
@@ -79,25 +91,54 @@ function Oversikt() {
   }, 6);
 
   const kort = [
-    { t: `Driftsinntekter ${y}`, v: kr(inntekt) },
-    { t: `Resultat ${y}`, v: kr(resultat) },
-    { t: "Bank og kontanter", v: kr(bank) },
-    { t: `MVA ${termin.navn}`, v: kr(mva) },
-    { t: "Utestående kundefordringer", v: kr(utestående), s: forfalt ? `${forfalt} forfalt` : undefined },
+    { t: `Driftsinntekter ${y}`, v: kr(inntekt), til: "/app/rapporter" },
+    { t: `Resultat ${y}`, v: kr(resultat), til: "/app/rapporter" },
+    { t: "Bank og kontanter", v: kr(bank), til: "/app/bank" },
+    { t: `MVA ${termin.navn}`, v: kr(mva), til: "/app/mva" },
+    { t: "Utestående hos kunder", v: kr(utestående), s: forfalt ? `${forfalt} forfalt` : undefined, til: "/app/reskontro" },
   ];
+  const time = new Date().getHours();
+  const hilsen = time < 5 ? "God natt" : time < 10 ? "God morgen" : time < 17 ? "God dag" : "God kveld";
 
   return (
     <>
-      <PageHeader
-        title={company.name}
-        sub="Oversikt fra bokførte bilag"
-        actions={canWrite && (
-          <>
-            <Button asChild variant="outline"><Link to="/app/fakturaer">Ny faktura</Link></Button>
-            <Button asChild><Link to="/app/bilag/ny">Registrer bilag</Link></Button>
-          </>
-        )}
-      />
+      <section className="relative mb-8 overflow-hidden rounded-2xl bg-fjord p-6 text-sidebar-foreground shadow-paper md:p-8">
+        <svg aria-hidden className="pointer-events-none absolute -right-10 bottom-0 h-40 w-[34rem] opacity-20" viewBox="0 0 540 160" fill="none">
+          <path d="M0 120 C 90 60, 160 150, 250 90 S 420 40, 540 100 V160 H0Z" fill="currentColor" />
+          <path d="M0 140 C 120 100, 200 160, 300 120 S 460 90, 540 130 V160 H0Z" fill="currentColor" opacity=".6" />
+        </svg>
+        <div className="relative flex flex-wrap items-end justify-between gap-6">
+          <div>
+            <div className="text-sm opacity-70">{hilsen}</div>
+            <h1 className="mt-1 text-3xl text-sidebar-accent-foreground md:text-4xl">{company.name}</h1>
+            <p className="mt-2 text-sm opacity-80">
+              {gjoremaal.length === 0 ? "Alt er à jour." : `${gjoremaal.length} ting venter på deg.`}
+            </p>
+          </div>
+          {canWrite && (
+            <div className="flex flex-wrap gap-2">
+              <Button asChild className="bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90">
+                <Link to="/app/mottak"><Upload /> Last opp kvittering</Link>
+              </Button>
+              <Button asChild variant="outline" className="border-white/25 bg-white/5 text-sidebar-accent-foreground hover:bg-white/15 hover:text-sidebar-accent-foreground">
+                <Link to="/app/fakturaer"><FilePlus2 /> Ny faktura</Link>
+              </Button>
+              <Button asChild variant="outline" className="border-white/25 bg-white/5 text-sidebar-accent-foreground hover:bg-white/15 hover:text-sidebar-accent-foreground">
+                <Link to="/app/bilag/ny"><PenLine /> Registrer bilag</Link>
+              </Button>
+            </div>
+          )}
+        </div>
+        <div className="relative mt-8 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+          {kort.map((k) => (
+            <Link key={k.t} to={k.til} className="rounded-xl bg-white/[0.07] p-4 ring-1 ring-white/10 backdrop-blur-sm transition hover:bg-white/[0.12]">
+              <div className="text-[11px] uppercase tracking-wide opacity-70">{k.t}</div>
+              <div className="num mt-2 text-left font-serif text-xl text-sidebar-accent-foreground md:text-2xl">{k.v}</div>
+              {k.s && <div className="mt-1 text-xs text-sidebar-primary">{k.s}</div>}
+            </Link>
+          ))}
+        </div>
+      </section>
       {visKomIGang && (
         <Panel className="mb-8 p-6">
           <h2 className="text-xl">Kom i gang</h2>
@@ -126,16 +167,7 @@ function Oversikt() {
           </ol>
         </Panel>
       )}
-      <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-5">
-        {kort.map((k) => (
-          <Panel key={k.t} className="p-5">
-            <div className="text-xs uppercase tracking-wide text-muted-foreground">{k.t}</div>
-            <div className="num mt-3 text-left font-serif text-2xl">{k.v}</div>
-            {k.s && <div className="mt-1 text-xs text-destructive">{k.s}</div>}
-          </Panel>
-        ))}
-      </div>
-      <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
         <Panel className="p-6">
           <h2 className="mb-3 text-xl">Til behandling</h2>
           {!rad ? (

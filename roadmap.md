@@ -72,6 +72,15 @@
 - [x] Kvittering kan legges ved før bilaget er lagret
 - [x] Kopier bilag; søk og filter (status, måned, beløp) i bilagslisten
 
+## Oversikt, mottak og hukommelse (fase 6)
+- [x] Fakturanummer kan aldri brukes to ganger: unik indeks, tellere kan ikke settes tilbake eller hoppe over etter første faktura/bilag; startnummer kan velges før første faktura (migrasjon 0013)
+- [x] Samme leverandørfaktura og samme fil kan ikke registreres to ganger
+- [x] Klikk deg ned fra resultat, balanse, saldobalanse og hovedbok til posteringer, bilag og vedlegg
+- [x] Innebygd PDF- og bildeviser; bilag og vedlegg side om side
+- [x] Bilagsmottak med dra og slipp, kamera på mobil og rask føring ved siden av dokumentet
+- [x] Husker tidligere føringer (samme tekst gir samme kontering, skalert til nytt beløp) og tidligere fakturalinjer
+- [x] Ny oversikt med hilsen, nøkkeltall og hurtigvalg; logomerke og tellere i menyen
+
 ## Neste faser
 - [ ] Velg og koble på leverandører: Peppol-aksesspunkt, Skatteetaten (MVA, skattemelding, a-melding), bank
 - [x] SAF-T-import: kontoplan, kunder, leverandører og åpningsbalanse som utkast (`/app/import`)

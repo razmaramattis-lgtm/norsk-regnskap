@@ -34,6 +34,7 @@ import { Route as AuthenticatedAppKunderRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAppLeverandorerRouteImport } from './routes/_authenticated/app.leverandorer'
 import { Route as AuthenticatedAppLoggRouteImport } from './routes/_authenticated/app.logg'
 import { Route as AuthenticatedAppMaanedsavslutningRouteImport } from './routes/_authenticated/app.maanedsavslutning'
+import { Route as AuthenticatedAppMottakRouteImport } from './routes/_authenticated/app.mottak'
 import { Route as AuthenticatedAppMvaRouteImport } from './routes/_authenticated/app.mva'
 import { Route as AuthenticatedAppRapporterRouteImport } from './routes/_authenticated/app.rapporter'
 import { Route as AuthenticatedAppReskontroRouteImport } from './routes/_authenticated/app.reskontro'
@@ -182,6 +183,11 @@ const AuthenticatedAppMaanedsavslutningRoute =
     path: '/maanedsavslutning',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppMottakRoute = AuthenticatedAppMottakRouteImport.update({
+  id: '/mottak',
+  path: '/mottak',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppMvaRoute = AuthenticatedAppMvaRouteImport.update({
   id: '/mva',
   path: '/mva',
@@ -280,6 +286,7 @@ export interface FileRoutesByFullPath {
   '/app/leverandorer': typeof AuthenticatedAppLeverandorerRoute
   '/app/logg': typeof AuthenticatedAppLoggRoute
   '/app/maanedsavslutning': typeof AuthenticatedAppMaanedsavslutningRoute
+  '/app/mottak': typeof AuthenticatedAppMottakRoute
   '/app/mva': typeof AuthenticatedAppMvaRoute
   '/app/rapporter': typeof AuthenticatedAppRapporterRoute
   '/app/reskontro': typeof AuthenticatedAppReskontroRoute
@@ -318,6 +325,7 @@ export interface FileRoutesByTo {
   '/app/leverandorer': typeof AuthenticatedAppLeverandorerRoute
   '/app/logg': typeof AuthenticatedAppLoggRoute
   '/app/maanedsavslutning': typeof AuthenticatedAppMaanedsavslutningRoute
+  '/app/mottak': typeof AuthenticatedAppMottakRoute
   '/app/mva': typeof AuthenticatedAppMvaRoute
   '/app/rapporter': typeof AuthenticatedAppRapporterRoute
   '/app/reskontro': typeof AuthenticatedAppReskontroRoute
@@ -359,6 +367,7 @@ export interface FileRoutesById {
   '/_authenticated/app/leverandorer': typeof AuthenticatedAppLeverandorerRoute
   '/_authenticated/app/logg': typeof AuthenticatedAppLoggRoute
   '/_authenticated/app/maanedsavslutning': typeof AuthenticatedAppMaanedsavslutningRoute
+  '/_authenticated/app/mottak': typeof AuthenticatedAppMottakRoute
   '/_authenticated/app/mva': typeof AuthenticatedAppMvaRoute
   '/_authenticated/app/rapporter': typeof AuthenticatedAppRapporterRoute
   '/_authenticated/app/reskontro': typeof AuthenticatedAppReskontroRoute
@@ -400,6 +409,7 @@ export interface FileRouteTypes {
     | '/app/leverandorer'
     | '/app/logg'
     | '/app/maanedsavslutning'
+    | '/app/mottak'
     | '/app/mva'
     | '/app/rapporter'
     | '/app/reskontro'
@@ -438,6 +448,7 @@ export interface FileRouteTypes {
     | '/app/leverandorer'
     | '/app/logg'
     | '/app/maanedsavslutning'
+    | '/app/mottak'
     | '/app/mva'
     | '/app/rapporter'
     | '/app/reskontro'
@@ -478,6 +489,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app/leverandorer'
     | '/_authenticated/app/logg'
     | '/_authenticated/app/maanedsavslutning'
+    | '/_authenticated/app/mottak'
     | '/_authenticated/app/mva'
     | '/_authenticated/app/rapporter'
     | '/_authenticated/app/reskontro'
@@ -678,6 +690,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppMaanedsavslutningRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/mottak': {
+      id: '/_authenticated/app/mottak'
+      path: '/mottak'
+      fullPath: '/app/mottak'
+      preLoaderRoute: typeof AuthenticatedAppMottakRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/mva': {
       id: '/_authenticated/app/mva'
       path: '/mva'
@@ -792,6 +811,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppLeverandorerRoute: typeof AuthenticatedAppLeverandorerRoute
   AuthenticatedAppLoggRoute: typeof AuthenticatedAppLoggRoute
   AuthenticatedAppMaanedsavslutningRoute: typeof AuthenticatedAppMaanedsavslutningRoute
+  AuthenticatedAppMottakRoute: typeof AuthenticatedAppMottakRoute
   AuthenticatedAppMvaRoute: typeof AuthenticatedAppMvaRoute
   AuthenticatedAppRapporterRoute: typeof AuthenticatedAppRapporterRoute
   AuthenticatedAppReskontroRoute: typeof AuthenticatedAppReskontroRoute
@@ -829,6 +849,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppLoggRoute: AuthenticatedAppLoggRoute,
   AuthenticatedAppMaanedsavslutningRoute:
     AuthenticatedAppMaanedsavslutningRoute,
+  AuthenticatedAppMottakRoute: AuthenticatedAppMottakRoute,
   AuthenticatedAppMvaRoute: AuthenticatedAppMvaRoute,
   AuthenticatedAppRapporterRoute: AuthenticatedAppRapporterRoute,
   AuthenticatedAppReskontroRoute: AuthenticatedAppReskontroRoute,

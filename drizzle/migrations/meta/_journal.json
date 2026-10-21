@@ -127,6 +127,13 @@
       "when": 1792616441708,
       "tag": "0017_nummer_og_duplikatsperrer",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1792616541708,
+      "tag": "0018_nummerteller_og_duplikater",
+      "breakpoints": true
     }
   ]
 }

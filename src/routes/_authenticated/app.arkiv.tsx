@@ -6,7 +6,9 @@ import { Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "@/lib/company";
 import { dato } from "@/lib/format";
-import { lastOppDokument, apneDokument } from "@/components/app/Vedlegg";
+import { lastOppDokument } from "@/components/app/Vedlegg";
+import { DokumentViser } from "@/components/app/DokumentViser";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { PageHeader, Panel, Empty, theadCls } from "@/components/app/ui";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +23,7 @@ function Arkiv() {
   const qc = useQueryClient();
   const ref = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
+  const [vis, setVis] = useState<{ path: string; mime: string | null; filnavn: string } | null>(null);
   const { data = [], isLoading } = useQuery({
     queryKey: ["docs-all", company.id],
     queryFn: async () => (await supabase.from("documents").select("*, vouchers(bilagsnr), supplier_invoices(fakturanr)").eq("company_id", company.id).order("created_at", { ascending: false })).data ?? [],
@@ -44,12 +47,12 @@ function Arkiv() {
             <thead className={theadCls}><tr><th className="px-4 py-3">Fil</th><th className="px-4 py-3">Lastet opp</th><th className="px-4 py-3">Koblet til</th><th className="px-4 py-3">Oppbevares til</th><th className="px-4 py-3">SHA-256</th></tr></thead>
             <tbody>{data.map((d) => (
               <tr key={d.id} className="border-b last:border-0">
-                <td className="px-4 py-3"><button className="text-primary hover:underline" onClick={() => apneDokument(d.path)}>{d.filnavn}</button></td>
+                <td className="px-4 py-3"><button className="text-primary hover:underline" onClick={() => setVis(d)}>{d.filnavn}</button></td>
                 <td className="px-4 py-3">{dato(d.created_at)}</td>
                 <td className="px-4 py-3">
                   {d.voucher_id ? <Link to="/app/bilag/$id" params={{ id: d.voucher_id }}><Badge variant="secondary">Bilag {d.vouchers?.bilagsnr ?? "utkast"}</Badge></Link>
                     : d.supplier_invoice_id ? <Link to="/app/leverandorfakturaer/$id" params={{ id: d.supplier_invoice_id }}><Badge variant="secondary">Lev.faktura {d.supplier_invoices?.fakturanr}</Badge></Link>
-                    : <Badge variant="outline">Ikke koblet</Badge>}
+                    : <Link to="/app/mottak"><Badge variant="outline">I bilagsmottaket</Badge></Link>}
                 </td>
                 <td className="px-4 py-3">{dato(d.oppbevares_til)}</td>
                 <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{d.sha256?.slice(0, 16)}…</td>
@@ -58,6 +61,12 @@ function Arkiv() {
           </table>
         )}
       </Panel>
+      <Sheet open={!!vis} onOpenChange={(o) => !o && setVis(null)}>
+        <SheetContent side="right" className="flex w-full flex-col sm:max-w-3xl">
+          <SheetHeader><SheetTitle>{vis?.filnavn}</SheetTitle></SheetHeader>
+          {vis && <DokumentViser path={vis.path} mime={vis.mime} filnavn={vis.filnavn} className="mt-4 flex-1" />}
+        </SheetContent>
+      </Sheet>
     </>
   );
 }

@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { z } from "zod";
@@ -7,6 +7,7 @@ import { useCompany } from "@/lib/company";
 import { dato, kr } from "@/lib/format";
 import { PageHeader, Panel, Empty, useAccounts, selectCls, theadCls } from "@/components/app/ui";
 import { Input } from "@/components/ui/input";
+import { BilagSheet } from "@/components/app/BilagVisning";
 
 export const Route = createFileRoute("/_authenticated/app/hovedbok")({
   validateSearch: z.object({ konto: z.string().optional() }),
@@ -25,7 +26,7 @@ type Rad = {
 
 type KontoGruppe = { konto: string; navn: string; ib: number; rader: Rad[] };
 
-function KontoTabell({ g }: { g: KontoGruppe }) {
+function KontoTabell({ g, onBilag }: { g: KontoGruppe; onBilag: (id: string) => void }) {
   let saldo = g.ib;
   return (
     <table className="w-full text-sm">
@@ -35,9 +36,9 @@ function KontoTabell({ g }: { g: KontoGruppe }) {
         {g.rader.map((r) => {
           saldo += r.debet - r.kredit;
           return (
-            <tr key={r.id} className="border-b">
+            <tr key={r.id} onClick={() => onBilag(r.v.id)} className="cursor-pointer border-b transition-colors hover:bg-primary/5">
               <td className="px-4 py-2">{dato(r.v.dato)}</td>
-              <td className="px-4 py-2 font-mono"><Link to="/app/bilag/$id" params={{ id: r.v.id }} className="text-primary hover:underline">{r.v.bilagsnr}</Link></td>
+              <td className="px-4 py-2 font-mono text-primary">{r.v.bilagsnr}</td>
               <td className="px-4 py-2">{r.tekst || r.v.beskrivelse}</td>
               <td className="px-4 py-2 font-mono">{r.mva_kode}</td>
               <td className="num px-4 py-2">{r.debet ? kr(r.debet) : ""}</td>
@@ -60,6 +61,7 @@ function Hovedbok() {
   const [konto, setKonto] = useState(k0 ?? "");
   const [fra, setFra] = useState(`${y}-01-01`);
   const [til, setTil] = useState(`${y}-12-31`);
+  const [bilag, setBilag] = useState<string | null>(null);
   const { data, isLoading } = useQuery({
     queryKey: ["gl", company.id, konto, fra, til],
     queryFn: async () => {
@@ -88,7 +90,7 @@ function Hovedbok() {
   });
   return (
     <>
-      <PageHeader title="Hovedbok" sub="Alle posteringer per konto med løpende saldo."
+      <PageHeader title="Hovedbok" sub="Alle posteringer per konto med løpende saldo. Klikk på en linje for å se bilaget og vedleggene."
         actions={<>
           <select className={selectCls} value={konto} onChange={(e) => setKonto(e.target.value)}>
             <option value="">Alle kontoer</option>
@@ -102,11 +104,12 @@ function Hovedbok() {
           {data.map((g) => (
             <Panel key={g.konto}>
               <h2 className="border-b px-4 py-3 font-mono text-sm font-semibold">{g.konto} <span className="font-sans font-normal text-muted-foreground">{g.navn}</span></h2>
-              <KontoTabell g={g} />
+              <KontoTabell g={g} onBilag={setBilag} />
             </Panel>
           ))}
         </div>
       )}
+      <BilagSheet id={bilag} onClose={() => setBilag(null)} />
     </>
   );
 }
