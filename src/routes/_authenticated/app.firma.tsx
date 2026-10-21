@@ -44,6 +44,11 @@ function Firma() {
   });
   const { data: me } = useQuery({ queryKey: ["me"], queryFn: async () => (await supabase.auth.getUser()).data.user });
 
+  const { data: harSendt = true } = useQuery({
+    queryKey: ["har-sendt-faktura", company.id],
+    queryFn: async () =>
+      ((await supabase.from("invoices").select("id", { count: "exact", head: true }).eq("company_id", company.id).not("fakturanr", "is", null)).count ?? 0) > 0,
+  });
   const [epost, setEpost] = useState("");
   const [rolle, setRolle] = useState<Role>("regnskapsforer");
 
@@ -53,6 +58,7 @@ function Firma() {
     const { error } = await supabase.from("companies").update({
       name: f.name, org_nr: f.org_nr, mva_registrert: f.mva_registrert, mva_termin: f.mva_termin, aga_sone: f.aga_sone, feriepengesats: Number(f.feriepengesats),
       adresse: f.adresse, postnr: f.postnr, poststed: f.poststed, kontonummer: f.kontonummer, epost: f.epost,
+      ...(harSendt ? {} : { neste_fakturanr: Number(f.neste_fakturanr) }),
     }).eq("id", company.id);
     if (error) { toast.error(error.message); return; }
     toast.success("Lagret");
@@ -83,6 +89,15 @@ function Firma() {
             <div className="col-span-2 space-y-1.5"><Label>Adresse</Label><Input value={f.adresse ?? ""} onChange={up("adresse")} disabled={!isAdmin} /></div>
             <div className="space-y-1.5"><Label>Postnr</Label><Input value={f.postnr ?? ""} onChange={up("postnr")} disabled={!isAdmin} /></div>
             <div className="space-y-1.5"><Label>Poststed</Label><Input value={f.poststed ?? ""} onChange={up("poststed")} disabled={!isAdmin} /></div>
+            <div className="col-span-2 space-y-1.5">
+              <Label>Første fakturanummer</Label>
+              <Input type="number" value={f.neste_fakturanr} onChange={up("neste_fakturanr")} disabled={!isAdmin || harSendt} />
+              <p className="text-xs text-muted-foreground">
+                {harSendt
+                  ? "Fakturanumrene er låst: serien er fortløpende, og et nummer brukes aldri to ganger."
+                  : "Kommer du fra Fiken eller Tripletex, fortsett serien derfra. Låses når første faktura er sendt."}
+              </p>
+            </div>
             <label className="col-span-2 flex items-center justify-between rounded-md border p-3 text-sm">MVA-registrert <Switch checked={f.mva_registrert} onCheckedChange={(v) => setF({ ...f, mva_registrert: v })} disabled={!isAdmin} /></label>
             <div className="col-span-2 space-y-1.5">
               <Label>MVA-termin</Label>

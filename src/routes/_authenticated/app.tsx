@@ -1,5 +1,6 @@
 import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { LogOut, Menu, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CompanyProvider, useCompany, useMemberships, ROLLENAVN } from "@/lib/company";
@@ -74,9 +75,29 @@ function Shell() {
 function Sidemeny({ onSøk, onVelg }: { onSøk: () => void; onVelg?: () => void }) {
   const { company, companies, setActive, role } = useCompany();
   const navigate = useNavigate();
+  const { data: mottak = 0 } = useQuery({
+    queryKey: ["mottak-antall", company.id],
+    queryFn: async () =>
+      (
+        await supabase
+          .from("documents")
+          .select("id", { count: "exact", head: true })
+          .eq("company_id", company.id)
+          .is("voucher_id", null)
+          .is("supplier_invoice_id", null)
+      ).count ?? 0,
+  });
+  const merke: Record<string, number> = { "/app/mottak": mottak };
   return (
     <>
-      <div className="px-5 pb-4 pt-6 font-serif text-xl text-sidebar-accent-foreground">Fjordbok</div>
+      <div className="flex items-center gap-2.5 px-5 pb-4 pt-6">
+        <svg aria-hidden viewBox="0 0 32 32" className="h-8 w-8 shrink-0">
+          <rect width="32" height="32" rx="8" fill="var(--sidebar-primary)" />
+          <path d="M5 21 C 9 15, 12 23, 16 17 S 23 12, 27 18" stroke="var(--sidebar)" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+          <path d="M5 25.5 C 9 21, 12 27, 16 22.5 S 23 18.5, 27 23" stroke="var(--sidebar)" strokeWidth="1.8" fill="none" strokeLinecap="round" opacity=".55" />
+        </svg>
+        <span className="font-serif text-xl text-sidebar-accent-foreground">Fjordbok</span>
+      </div>
       <div className="px-3 pb-3">
         <Select value={company.id} onValueChange={(v) => (v === "__ny" ? navigate({ to: "/app/firma", search: { ny: true } }) : setActive(v))}>
           <SelectTrigger className="border-sidebar-border bg-sidebar-accent text-sidebar-accent-foreground">
@@ -115,11 +136,14 @@ function Sidemeny({ onSøk, onVelg }: { onSøk: () => void; onVelg?: () => void 
                 to={to}
                 onClick={onVelg}
                 activeOptions={{ exact: "exact" in rest }}
-                className="flex items-center gap-3 rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-sidebar-accent"
-                activeProps={{ className: "bg-sidebar-accent text-sidebar-primary" }}
+                className="relative flex items-center gap-3 rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-sidebar-accent"
+                activeProps={{ className: "bg-sidebar-accent text-sidebar-primary before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-full before:bg-sidebar-primary" }}
               >
                 <Icon className="h-4 w-4" />
                 {label}
+                {!!merke[to] && (
+                  <span className="ml-auto rounded-full bg-sidebar-primary px-1.5 text-[11px] font-semibold leading-5 text-sidebar-primary-foreground">{merke[to]}</span>
+                )}
               </Link>
             ))}
           </div>
