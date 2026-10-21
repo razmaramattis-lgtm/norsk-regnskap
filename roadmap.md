@@ -65,6 +65,13 @@
 - [x] Kopier faktura, repeterende fakturaer (måned, kvartal, halvår, år) med varsel under «Til behandling»
 - [x] Purring på restbeløpet
 
+## Bilagsføring (fase 5)
+- [x] Kontroll mens du skriver: balanse, ukjent konto, låst periode, debet og kredit på samme linje, mva-konto uten kode, kjøp uten inngående mva, dato langt frem/tidligere år
+- [x] Varsel om mulig duplikat (samme dato og beløp)
+- [x] «Fyll differanse», Ctrl/⌘ + Enter for å bokføre
+- [x] Kvittering kan legges ved før bilaget er lagret
+- [x] Kopier bilag; søk og filter (status, måned, beløp) i bilagslisten
+
 ## Neste faser
 - [ ] Velg og koble på leverandører: Peppol-aksesspunkt, Skatteetaten (MVA, skattemelding, a-melding), bank
 - [x] SAF-T-import: kontoplan, kunder, leverandører og åpningsbalanse som utkast (`/app/import`)

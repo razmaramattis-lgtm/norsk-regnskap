@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Lock } from "lucide-react";
+import { Copy, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "@/lib/company";
 import { dato, kr } from "@/lib/format";
@@ -31,6 +31,23 @@ function BilagSide() {
     },
   });
   if (isLoading || !v) return <Empty>Laster …</Empty>;
+
+  /** Nytt utkast med samme linjer og dagens dato, f.eks. for faste månedlige posteringer. */
+  async function kopier() {
+    const { data: ny, error } = await supabase
+      .from("vouchers")
+      .insert({ company_id: v!.company_id, dato: new Date().toISOString().slice(0, 10), beskrivelse: v!.beskrivelse })
+      .select("id")
+      .single();
+    if (error) { toast.error(error.message); return; }
+    const { error: e2 } = await supabase.from("voucher_lines").insert(
+      v!.voucher_lines.map((l) => ({ voucher_id: ny.id, company_id: l.company_id, konto: l.konto, tekst: l.tekst, debet: l.debet, kredit: l.kredit, mva_kode: l.mva_kode, linjenr: l.linjenr })),
+    );
+    if (e2) { await supabase.from("vouchers").delete().eq("id", ny.id); toast.error(e2.message); return; }
+    toast.success("Kopi laget som utkast");
+    qc.invalidateQueries();
+    nav({ to: "/app/bilag/$id", params: { id: ny.id } });
+  }
 
   if (v.status === "utkast") {
     return (
@@ -65,6 +82,8 @@ function BilagSide() {
         title={`Bilag ${v.bilagsnr}`}
         sub={`${dato(v.dato)} · ${v.beskrivelse}`}
         actions={canWrite && (
+          <>
+          <Button variant="outline" onClick={kopier}><Copy /> Kopier</Button>
           <Button variant="outline" onClick={async () => {
             const { data, error } = await supabase.rpc("reverse_voucher", { _voucher: id });
             if (error) { toast.error(error.message); return; }
@@ -72,6 +91,7 @@ function BilagSide() {
             qc.invalidateQueries();
             nav({ to: "/app/bilag/$id", params: { id: data } });
           }}>Korriger (reverser)</Button>
+          </>
         )}
       />
       <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">

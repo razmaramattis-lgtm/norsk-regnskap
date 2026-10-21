@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
-import { Plus, Trash2 } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { CircleAlert, CircleCheck, Paperclip, Plus, Scale, Trash2, TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "@/lib/company";
@@ -10,6 +10,8 @@ import { MVA_KODER, OMVENDT_KODER, INNGAENDE_KONTO, byggOmvendtAvgift, splittBru
 import { KATEGORI_NAVN, bruk, malerFor } from "@/lib/bokforingsmaler";
 import { BETALT_FRA, HENDELSER, KJOPSTYPER, byggHendelse, type HendelseType } from "@/lib/hendelser";
 import { useAccounts, Panel } from "./ui";
+import { lastOppDokument } from "./Vedlegg";
+import { differanse, kontrollerBilag } from "@/lib/bilagskontroll";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,7 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export type EditLinje = { konto: string; tekst: string; debet: string; kredit: string; mva_kode: string };
 
-const tom = (): EditLinje => ({ konto: "", tekst: "", debet: "", kredit: "", mva_kode: "" });
+const tom_ = (): EditLinje => ({ konto: "", tekst: "", debet: "", kredit: "", mva_kode: "" });
 
 export function BilagEditor({
   voucherId,
@@ -32,7 +34,7 @@ export function BilagEditor({
   const qc = useQueryClient();
   const [dato, setDato] = useState(initial?.dato ?? idag());
   const [beskr, setBeskr] = useState(initial?.beskrivelse ?? "");
-  const [linjer, setLinjer] = useState<EditLinje[]>(initial?.linjer ?? [tom(), tom()]);
+  const [linjer, setLinjer] = useState<EditLinje[]>(initial?.linjer ?? [tom_(), tom_()]);
   const [busy, setBusy] = useState(false);
 
   // Hva har skjedd?
@@ -104,6 +106,57 @@ export function BilagEditor({
   const sumD = linjer.reduce((s, l) => s + Number(l.debet || 0), 0);
   const sumK = linjer.reduce((s, l) => s + Number(l.kredit || 0), 0);
   const balanse = Math.round((sumD - sumK) * 100) / 100;
+  const kLinjer = linjer.map((l) => ({ konto: l.konto, debet: Number(l.debet || 0), kredit: Number(l.kredit || 0), mva_kode: l.mva_kode }));
+  const funn = kontrollerBilag({
+    dato,
+    idag: idag(),
+    beskrivelse: beskr,
+    linjer: kLinjer,
+    kontoer,
+    mvaRegistrert: company.mva_registrert,
+    laastTil: company.laast_til,
+  });
+  const harFeil = funn.some((f) => f.alvor === "feil");
+
+  // Mulig duplikat: et annet bokført bilag samme dag med samme sum
+  const { data: duplikat } = useQuery({
+    queryKey: ["duplikat", company.id, dato, Math.round(sumD * 100)],
+    enabled: sumD > 0 && !!dato,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("vouchers")
+        .select("id, bilagsnr, beskrivelse, voucher_lines(debet)")
+        .eq("company_id", company.id)
+        .eq("dato", dato)
+        .eq("status", "bokfort");
+      return (data ?? []).find((v) => v.id !== voucherId && Math.abs(v.voucher_lines.reduce((x, l) => x + Number(l.debet), 0) - sumD) < 0.005) ?? null;
+    },
+  });
+
+  function fyllDifferanse() {
+    const d = differanse(kLinjer);
+    if (!d) return;
+    const tom = linjer.findIndex((l) => !Number(l.debet) && !Number(l.kredit));
+    const ny = { debet: d < 0 ? String(-d) : "", kredit: d > 0 ? String(d) : "" };
+    setLinjer((ls) => (tom >= 0 ? ls.map((l, i) => (i === tom ? { ...l, ...ny } : l)) : [...ls, { ...tom_(), ...ny }]));
+  }
+
+  // Vedlegg valgt før bilaget er lagret, lastes opp når bilaget får id
+  const [ventende, setVentende] = useState<File[]>([]);
+  const filRef = useRef<HTMLInputElement>(null);
+
+  // Ctrl/⌘ + Enter bokfører når bilaget er uten feil
+  const lagreRef = useRef<(b: boolean) => void>(() => {});
+  useEffect(() => {
+    const tast = (e: KeyboardEvent) => {
+      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        lagreRef.current(true);
+      }
+    };
+    window.addEventListener("keydown", tast);
+    return () => window.removeEventListener("keydown", tast);
+  }, []);
 
   const set = (i: number, k: keyof EditLinje, v: string) =>
     setLinjer((ls) => ls.map((l, j) => (j === i ? { ...l, [k]: v, ...(k === "konto" ? { mva_kode: kontoer.find((a) => a.number === v)?.mva_kode ?? l.mva_kode } : {}) } : l)));
@@ -125,6 +178,7 @@ export function BilagEditor({
 
   async function lagre(bokfor: boolean) {
     if (!beskr.trim()) { toast.error("Legg inn en beskrivelse"); return; }
+    if (bokfor && harFeil) { toast.error(funn.find((f) => f.alvor === "feil")!.tekst); return; }
     const rader = linjer.filter((l) => l.konto && (Number(l.debet) || Number(l.kredit)));
     for (const r of rader) if (!kontoer.find((a) => a.number === r.konto)) { toast.error(`Konto ${r.konto} finnes ikke i kontoplanen`); return; }
     setBusy(true);
@@ -154,6 +208,8 @@ export function BilagEditor({
         );
         if (error) throw error;
       }
+      for (const fil of ventende) await lastOppDokument(company.id, fil, { voucher_id: id! });
+      if (ventende.length) setVentende([]);
       if (bokfor) {
         const { data: nr, error } = await supabase.rpc("post_voucher", { _voucher: id! });
         if (error) throw error;
@@ -167,6 +223,8 @@ export function BilagEditor({
       setBusy(false);
     }
   }
+
+  lagreRef.current = (b) => { if (!busy) void lagre(b); };
 
   return (
     <div className="space-y-6">
@@ -370,7 +428,7 @@ export function BilagEditor({
           <tfoot>
             <tr className="border-t bg-muted/50">
               <td className="px-4 py-3" colSpan={3}>
-                <Button variant="ghost" size="sm" onClick={() => setLinjer((ls) => [...ls, tom()])}><Plus /> Ny linje</Button>
+                <Button variant="ghost" size="sm" onClick={() => setLinjer((ls) => [...ls, tom_()])}><Plus /> Ny linje</Button>
               </td>
               <td className="num px-4 py-3">{kr(sumD)}</td>
               <td className="num px-4 py-3">{kr(sumK)}</td>
@@ -380,13 +438,54 @@ export function BilagEditor({
         </table>
       </Panel>
 
-      <div className="flex items-center justify-between">
-        <span className={`text-sm ${balanse === 0 ? "text-success" : "text-destructive"}`}>
-          {balanse === 0 ? "Bilaget balanserer" : `Differanse ${kr(balanse)}`}
-        </span>
-        <div className="flex gap-2">
+      <div className="space-y-1.5 text-sm">
+        {funn.length === 0 && !duplikat ? (
+          <div className="flex items-center gap-2 text-success"><CircleCheck className="h-4 w-4" /> Bilaget balanserer og er klart til bokføring</div>
+        ) : (
+          <>
+            {funn.map((f, i) => (
+              <div key={i} className={`flex items-start gap-2 ${f.alvor === "feil" ? "text-destructive" : "text-[oklch(0.45_0.1_70)]"}`}>
+                {f.alvor === "feil" ? <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" /> : <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />} {f.tekst}
+              </div>
+            ))}
+            {duplikat && (
+              <div className="flex items-start gap-2 text-[oklch(0.45_0.1_70)]">
+                <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" /> Mulig duplikat: bilag {duplikat.bilagsnr} ({duplikat.beskrivelse}) har samme dato og beløp.
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          {balanse !== 0 && (
+            <Button variant="outline" size="sm" onClick={fyllDifferanse}><Scale /> Fyll differanse ({kr(Math.abs(balanse))})</Button>
+          )}
+          {!voucherId && (
+            <>
+              <input
+                ref={filRef}
+                type="file"
+                multiple
+                accept="image/*,application/pdf"
+                className="hidden"
+                onChange={(e) => { setVentende((v) => [...v, ...Array.from(e.target.files ?? [])]); e.target.value = ""; }}
+              />
+              <Button variant="outline" size="sm" onClick={() => filRef.current?.click()}><Paperclip /> Legg ved kvittering</Button>
+              {ventende.map((f, i) => (
+                <span key={i} className="flex items-center gap-1 rounded-md border px-2 py-1 text-xs">
+                  {f.name}
+                  <button aria-label="Fjern" onClick={() => setVentende((v) => v.filter((_, j) => j !== i))}><Trash2 className="h-3 w-3" /></button>
+                </span>
+              ))}
+            </>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="hidden text-xs text-muted-foreground sm:inline">Ctrl/⌘ + Enter bokfører</span>
           <Button variant="outline" disabled={busy} onClick={() => lagre(false)}>Lagre utkast</Button>
-          <Button disabled={busy || balanse !== 0 || sumD === 0} onClick={() => lagre(true)}>Bokfør</Button>
+          <Button disabled={busy || harFeil} onClick={() => lagre(true)}>Bokfør</Button>
         </div>
       </div>
     </div>
