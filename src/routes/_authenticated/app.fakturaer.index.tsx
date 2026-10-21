@@ -8,19 +8,12 @@ import { dato, idag, kr } from "@/lib/format";
 import { PageHeader, Panel, Empty } from "@/components/app/ui";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useCustomers } from "./app.kunder";
+import { useCustomers, STATUS } from "@/components/app/kunder";
 
 export const Route = createFileRoute("/_authenticated/app/fakturaer/")({
   head: () => ({ meta: [{ title: "Fakturaer – Fjordbok" }] }),
   component: Fakturaer,
 });
-
-export const STATUS: Record<string, { t: string; v: "outline" | "secondary" | "default" | "destructive" }> = {
-  utkast: { t: "Utkast", v: "outline" },
-  sendt: { t: "Sendt", v: "secondary" },
-  betalt: { t: "Betalt", v: "default" },
-  kreditert: { t: "Kreditert", v: "destructive" },
-};
 
 function Fakturaer() {
   const { company, canWrite } = useCompany();

@@ -11,8 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { useCustomers, NyKunde } from "./app.kunder";
-import { STATUS } from "./app.fakturaer.index";
+import { useCustomers, NyKunde, STATUS } from "@/components/app/kunder";
 
 export const Route = createFileRoute("/_authenticated/app/fakturaer/$id")({
   head: () => ({ meta: [{ title: "Faktura – Fjordbok" }] }),
