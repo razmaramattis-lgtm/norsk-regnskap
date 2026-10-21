@@ -68,6 +68,8 @@ export type HendelseInput = {
   sats?: number;
   betaltFra?: string;
   tilKonto?: string;
+  /** Overstyrer kostnads-/inntektskontoen, f.eks. fra et KI-forslag. */
+  konto?: string;
 };
 
 const l = (konto: string, tekst: string, debet: number, kredit: number, mva_kode = ""): HLinje => ({
@@ -88,10 +90,11 @@ export function byggHendelse(i: HendelseInput): HLinje[] {
       const sats = i.mvaRegistrert ? (i.sats ?? k.sats) : 0;
       const ink = INNGAENDE_KONTO[sats];
       const fra = i.betaltFra ?? "1920";
-      if (!ink) return [l(k.konto, t, b, 0), l(fra, t, 0, b)];
+      const kk = i.konto ?? k.konto;
+      if (!ink) return [l(kk, t, b, 0), l(fra, t, 0, b)];
       const { netto, mva } = splittBrutto(b, sats);
       return [
-        l(k.konto, t, netto, 0, ink.kode),
+        l(kk, t, netto, 0, ink.kode),
         l(ink.konto, `Inngående mva ${sats} %`, mva, 0, ink.kode),
         l(fra, t, 0, b),
       ];
@@ -106,7 +109,7 @@ export function byggHendelse(i: HendelseInput): HLinje[] {
       const { netto, mva } = splittBrutto(b, i.sats ?? 25);
       return [
         l("1920", t, b, 0),
-        l(s.konto, t, 0, netto, s.kode),
+        l(i.konto ?? s.konto, t, 0, netto, s.kode),
         l(s.mvaKonto, `Utgående mva ${i.sats ?? 25} %`, 0, mva, s.kode),
       ];
     }

@@ -67,6 +67,7 @@ export const lesBilag = createServerFn({ method: "POST" })
     });
     if (svar.status === 429) throw new Error("For mange forespørsler. Prøv igjen om litt.");
     if (svar.status === 402) throw new Error("KI-kreditten er brukt opp.");
+    if (svar.status === 403) throw new Error("KI-grensen for arbeidsområdet er nådd. En administrator må heve den.");
     if (!svar.ok || !svar.body) throw new Error("Kunne ikke lese bilaget");
     const leser = svar.body.getReader();
     const dek = new TextDecoder();
