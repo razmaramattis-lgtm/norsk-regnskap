@@ -214,7 +214,7 @@ function KontoInput({ value, onChange, kontoer }: { value: string; onChange: (v:
   const navn = kontoer.find((k) => k.number === value)?.name;
   return (
     <div>
-      <Input list="kontoliste" value={value} onChange={(e) => onChange(e.target.value.split(" ")[0])} className="font-mono" />
+      <Input list="kontoliste" value={value} onChange={(e) => onChange(e.target.value.split(" ")[0] ?? "")} className="font-mono" />
       <datalist id="kontoliste">
         {kontoer.map((k) => <option key={k.number} value={k.number}>{k.number} {k.name}</option>)}
       </datalist>

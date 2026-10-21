@@ -24,7 +24,7 @@ describe("MVA", () => {
   it("har seks tomånedlige terminer", () => {
     const t = terminer(2026, "tomaaned");
     expect(t).toHaveLength(6);
-    expect(t[0].til).toBe("2026-02-28");
+    expect(t[0]?.til).toBe("2026-02-28");
   });
 });
 

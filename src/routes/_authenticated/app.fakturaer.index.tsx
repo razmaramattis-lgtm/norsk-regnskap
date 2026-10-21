@@ -30,7 +30,7 @@ function Fakturaer() {
 
   async function ny() {
     if (!kunder.length) { toast.error("Legg til en kunde først"); return; }
-    const { data, error } = await supabase.from("invoices").insert({ company_id: company.id, customer_id: kunder[0].id }).select("id").single();
+    const { data, error } = await supabase.from("invoices").insert({ company_id: company.id, customer_id: kunder[0]!.id }).select("id").single();
     if (error) { toast.error(error.message); return; }
     nav({ to: "/app/fakturaer/$id", params: { id: data.id } });
   }
