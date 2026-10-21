@@ -143,7 +143,7 @@ describe("månedsplan", () => {
     const total = plan.reduce((s, md) => s + md.sum, 0);
     expect(Math.round(total * 100)).toBe(Math.round(aar * 100));
     // Januar–november er like, desember tar avrundingsresten.
-    expect(plan[0].sum).toBe(plan[10].sum);
-    expect(plan[11].sum).not.toBe(plan[0].sum);
+    expect(plan[0]!.sum).toBe(plan[10]!.sum);
+    expect(plan[11]!.sum).not.toBe(plan[0]!.sum);
   });
 });
