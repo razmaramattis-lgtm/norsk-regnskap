@@ -35,7 +35,19 @@ function Oversikt() {
 
   const { data: oversikt = [] } = useOversikt();
   const rad = oversikt.find((o) => o.company_id === company.id);
-  const gjoremaal = rad ? lagGjoremaal(company, rad, idag()) : [];
+  const { data: repeterendeKlare = 0 } = useQuery({
+    queryKey: ["repeterende-klare", company.id],
+    queryFn: async () =>
+      (
+        await supabase
+          .from("repeterende_fakturaer")
+          .select("id", { count: "exact", head: true })
+          .eq("company_id", company.id)
+          .eq("aktiv", true)
+          .lte("neste_dato", idag())
+      ).count ?? 0,
+  });
+  const gjoremaal = rad ? lagGjoremaal(company, rad, idag(), { repeterendeKlare }) : [];
   const graf = maanedstall(år, y);
   const { data: antall } = useQuery({
     queryKey: ["kom-i-gang", company.id],

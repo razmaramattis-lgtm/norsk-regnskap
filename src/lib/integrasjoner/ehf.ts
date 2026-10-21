@@ -33,6 +33,8 @@ export type EhfLinje = {
   mvaSats: number;
   /** UN/ECE rec. 20, f.eks. C62 (stk), HUR (time), DAY (dag). */
   enhet?: string;
+  /** Rabatt i prosent av enhetsprisen. Sendes som prisrabatt (Price/AllowanceCharge). */
+  rabattProsent?: number;
 };
 
 export type EhfInput = {
@@ -59,6 +61,21 @@ export type EhfInput = {
 
 const r2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100;
 const f2 = (n: number) => r2(n).toFixed(2);
+const r4 = (n: number) => Math.round((n + Number.EPSILON) * 10000) / 10000;
+/** Enhetspris etter rabatt, med fire desimaler slik at antall × pris gir linjebeløpet. */
+const nettopris = (l: EhfLinje) => (l.rabattProsent ? r4(l.enhetspris * (1 - l.rabattProsent / 100)) : l.enhetspris);
+function prisXml(l: EhfLinje, valuta: string): string {
+  if (!l.rabattProsent) return `<cac:Price><cbc:PriceAmount currencyID="${valuta}">${f2(l.enhetspris)}</cbc:PriceAmount></cac:Price>`;
+  const netto = nettopris(l);
+  return `<cac:Price>
+      <cbc:PriceAmount currencyID="${valuta}">${netto}</cbc:PriceAmount>
+      <cac:AllowanceCharge>
+        <cbc:ChargeIndicator>false</cbc:ChargeIndicator>
+        <cbc:Amount currencyID="${valuta}">${r4(l.enhetspris - netto)}</cbc:Amount>
+        <cbc:BaseAmount currencyID="${valuta}">${f2(l.enhetspris)}</cbc:BaseAmount>
+      </cac:AllowanceCharge>
+    </cac:Price>`;
+}
 
 export function xmlEsc(s: string | number | null | undefined): string {
   return String(s ?? "")
@@ -81,7 +98,7 @@ export type EhfSummer = {
 
 /** Beregner linjebeløp og MVA per sats slik Peppol forventer (avgift per kategori av grunnlaget). */
 export function beregnEhfSummer(linjer: EhfLinje[]): EhfSummer {
-  const linjebelop = linjer.map((l) => r2(l.antall * l.enhetspris));
+  const linjebelop = linjer.map((l) => r2(l.antall * nettopris(l)));
   const grupper = new Map<number, number>();
   linjer.forEach((l, i) =>
     grupper.set(l.mvaSats, r2((grupper.get(l.mvaSats) ?? 0) + linjebelop[i]!)),
@@ -240,7 +257,7 @@ export function byggEhfFaktura(i: EhfInput): string {
         <cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme>
       </cac:ClassifiedTaxCategory>
     </cac:Item>
-    <cac:Price><cbc:PriceAmount currencyID="${valuta}">${f2(l.enhetspris)}</cbc:PriceAmount></cac:Price>
+    ${prisXml(l, valuta)}
   </cac:InvoiceLine>`,
     )
     .join("\n  ");
@@ -312,7 +329,7 @@ function byggKreditnota(i: EhfInput): string {
         <cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme>
       </cac:ClassifiedTaxCategory>
     </cac:Item>
-    <cac:Price><cbc:PriceAmount currencyID="${valuta}">${f2(l.enhetspris)}</cbc:PriceAmount></cac:Price>
+    ${prisXml(l, valuta)}
   </cac:CreditNoteLine>`,
     )
     .join("\n  ");

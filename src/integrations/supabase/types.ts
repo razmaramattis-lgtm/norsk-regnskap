@@ -836,6 +836,8 @@ export type Database = {
       }
       invoice_lines: {
         Row: {
+          rabatt_prosent: number
+          enhet: string | null
           antall: number
           beskrivelse: string
           company_id: string
@@ -846,6 +848,8 @@ export type Database = {
           mva_sats: number
         }
         Insert: {
+          rabatt_prosent?: number
+          enhet?: string | null
           antall?: number
           beskrivelse: string
           company_id: string
@@ -856,6 +860,8 @@ export type Database = {
           mva_sats?: number
         }
         Update: {
+          rabatt_prosent?: number
+          enhet?: string | null
           antall?: number
           beskrivelse?: string
           company_id?: string
@@ -884,6 +890,10 @@ export type Database = {
       }
       invoices: {
         Row: {
+          leveringsdato: string | null
+          deres_ref: string | null
+          var_ref: string | null
+          innbetalt: number
           betalt_voucher_id: string | null
           company_id: string
           created_at: string
@@ -903,6 +913,10 @@ export type Database = {
           voucher_id: string | null
         }
         Insert: {
+          leveringsdato?: string | null
+          deres_ref?: string | null
+          var_ref?: string | null
+          innbetalt?: number
           betalt_voucher_id?: string | null
           company_id: string
           created_at?: string
@@ -922,6 +936,10 @@ export type Database = {
           voucher_id?: string | null
         }
         Update: {
+          leveringsdato?: string | null
+          deres_ref?: string | null
+          var_ref?: string | null
+          innbetalt?: number
           betalt_voucher_id?: string | null
           company_id?: string
           created_at?: string
@@ -1125,6 +1143,47 @@ export type Database = {
           id?: string
         }
         Relationships: []
+      }
+      repeterende_fakturaer: {
+        Row: {
+          aktiv: boolean
+          company_id: string
+          created_at: string
+          id: string
+          intervall: string
+          mal_faktura: string
+          neste_dato: string
+          opprettet_av: string | null
+        }
+        Insert: {
+          aktiv?: boolean
+          company_id: string
+          created_at?: string
+          id?: string
+          intervall: string
+          mal_faktura: string
+          neste_dato: string
+          opprettet_av?: string | null
+        }
+        Update: {
+          aktiv?: boolean
+          company_id?: string
+          created_at?: string
+          id?: string
+          intervall?: string
+          mal_faktura?: string
+          neste_dato?: string
+          opprettet_av?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repeterende_fakturaer_mal_faktura_fkey"
+            columns: ["mal_faktura"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       supplier_invoice_lines: {
         Row: {
@@ -1516,6 +1575,11 @@ export type Database = {
         Args: { _dato: string; _invoice: string }
         Returns: string
       }
+      registrer_innbetaling: {
+        Args: { _belop: number; _dato: string; _invoice: string; _konto?: string }
+        Returns: string
+      }
+      lag_repeterende_utkast: { Args: { _id: string }; Returns: string }
       reverse_voucher: { Args: { _voucher: string }; Returns: string }
       send_invoice: { Args: { _invoice: string }; Returns: number }
       set_period_lock: {

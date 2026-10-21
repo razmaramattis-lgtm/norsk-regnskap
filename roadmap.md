@@ -58,10 +58,17 @@
 - [x] Endre ansatte, fødselsdato, aktiv/inaktiv
 - [ ] Skattekort-API og a-melding via Maskinporten
 
+## Fakturahåndtering (fase 5)
+- [x] Leveringsdato (bokføringsforskriften § 5-1-1), deres og vår referanse (EHF BuyerReference)
+- [x] Enhet og rabatt per linje, også i EHF (prisrabatt og UN/ECE-enhetskoder)
+- [x] Delbetaling, også ved bankavstemming; kreditering sperret for delbetalte fakturaer
+- [x] Kopier faktura, repeterende fakturaer (måned, kvartal, halvår, år) med varsel under «Til behandling»
+- [x] Purring på restbeløpet
+
 ## Neste faser
 - [ ] Velg og koble på leverandører: Peppol-aksesspunkt, Skatteetaten (MVA, skattemelding, a-melding), bank
 - [x] SAF-T-import: kontoplan, kunder, leverandører og åpningsbalanse som utkast (`/app/import`)
-- [ ] Periodiseringer, tilbud, ordre, repeterende fakturaer
+- [ ] Periodiseringer, tilbud, ordre
 - [ ] Prosjekter/avdelinger (dimensjoner), kontoregler for automatisk kontering
 - [ ] Kjørebok og reiseregning
 - [ ] Skattekonto-avstemming
