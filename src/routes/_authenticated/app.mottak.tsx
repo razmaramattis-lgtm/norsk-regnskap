@@ -135,8 +135,11 @@ function Mottak() {
               </ul>
               {laster > 0 && <p className="px-2 pt-2 text-xs text-primary">Laster opp {laster} …</p>}
             </Panel>
-            {d && <DokumentViser key={d.id} path={d.path} mime={d.mime} filnavn={d.filnavn} className="h-[75vh] lg:sticky lg:top-6" />}
+            {d && <DokumentViser key={d.id} path={d.path} mime={d.mime} filnavn={d.filnavn} className="h-[45vh] lg:sticky lg:top-6 lg:h-[75vh]" />}
             {d && canWrite && <Registrering key={d.id} dokumentId={d.id} filnavn={d.filnavn} />}
+            {d && !canWrite && (
+              <Panel className="h-fit p-5 text-sm text-muted-foreground">Du har lesetilgang i dette firmaet og kan ikke bokføre. Be en eier eller administrator om tilgang som regnskapsfører.</Panel>
+            )}
           </div>
         )}
       </div>
