@@ -12,7 +12,7 @@ export function PdfSider({ url }: { url: string }) {
         const pdfjs = await import("pdfjs-dist");
         const worker = await import("pdfjs-dist/build/pdf.worker.min.mjs?url");
         pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
-        const doc = await pdfjs.getDocument(url).promise;
+        const doc = await pdfjs.getDocument({ url }).promise;
         if (!el || avbrutt) return;
         el.innerHTML = "";
         const bredde = el.clientWidth - 24 || 600;
