@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { lagGjoremaal } from "./gjoremaal";
+import { komIGang, lagGjoremaal } from "./gjoremaal";
 import type { OversiktRad } from "./klienter";
 
 const rad = (o: Partial<OversiktRad> = {}): OversiktRad => ({
@@ -46,5 +46,12 @@ describe("lagGjoremaal", () => {
     expect(g).toEqual([
       { id: "bank", tittel: "4 banktransaksjoner å avstemme", tone: "warn", lenke: "/app/bank" },
     ]);
+  });
+});
+
+describe("komIGang", () => {
+  it("markerer ferdige steg", () => {
+    const s = komIGang({ org_nr: "923609016", kontonummer: null }, { harBokfort: false, harBank: true, harFaktura: false });
+    expect(s.map((x) => [x.id, x.ferdig])).toEqual([["firma", false], ["import", false], ["bank", true], ["faktura", false]]);
   });
 });

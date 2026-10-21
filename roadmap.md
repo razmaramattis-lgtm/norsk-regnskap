@@ -43,7 +43,7 @@
 - [x] Søk og hurtigvalg med ⌘K / Ctrl+K (sider, oppgaver, bytt firma)
 - [x] Mobilmeny
 - [x] Lær kontoregler av avstemte banktransaksjoner: samme motpart to ganger på samme konto gir forslag (`src/lib/laering.ts`)
-- [ ] Veiviser for nytt firma (Enhetsregisteret, MVA-termin, første kontoutskrift)
+- [x] Veiviser for nytt firma (Enhetsregisteret, MVA-termin, kontonummer) og «Kom i gang» på oversikten
 - [ ] «Hva har skjedd?»-registrering (kjøp/salg/overføring) som førstevalg
 
 ## Neste faser

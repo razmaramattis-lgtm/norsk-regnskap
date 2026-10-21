@@ -80,3 +80,42 @@ export function lagGjoremaal(firma: KlientFirma, r: OversiktRad, idag: string): 
 
   return ut.sort((a, b) => RANG[a.tone] - RANG[b.tone]);
 }
+
+export type Steg = { id: string; tittel: string; tekst: string; lenke: string; ferdig: boolean };
+
+/** «Kom i gang» for et nytt firma. Vises til de viktigste stegene er gjort. */
+export function komIGang(
+  firma: { org_nr: string | null; kontonummer: string | null },
+  s: { harBokfort: boolean; harBank: boolean; harFaktura: boolean },
+): Steg[] {
+  return [
+    {
+      id: "firma",
+      tittel: "Fyll ut firmaopplysninger",
+      tekst: "Org.nr. og kontonummer står på fakturaene",
+      lenke: "/app/firma",
+      ferdig: !!firma.org_nr && !!firma.kontonummer,
+    },
+    {
+      id: "import",
+      tittel: "Flytt fra Fiken, Tripletex eller annet system",
+      tekst: "Kontoplan, kunder, leverandører og åpningsbalanse fra SAF-T",
+      lenke: "/app/import",
+      ferdig: s.harBokfort,
+    },
+    {
+      id: "bank",
+      tittel: "Importer første kontoutskrift",
+      tekst: "Fjordbok foreslår kontering, du godkjenner",
+      lenke: "/app/bank",
+      ferdig: s.harBank,
+    },
+    {
+      id: "faktura",
+      tittel: "Send første faktura",
+      tekst: "Med KID, PDF og EHF",
+      lenke: "/app/fakturaer",
+      ferdig: s.harFaktura,
+    },
+  ];
+}

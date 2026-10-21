@@ -8,10 +8,10 @@ import { useHarAnsatte } from "@/lib/integrasjoner/hooks";
 import { beregnMvaMelding, terminer } from "@/lib/mva";
 import { PageHeader, Panel, StatusPill, usePostedLines } from "@/components/app/ui";
 import { Button } from "@/components/ui/button";
-import { lagGjoremaal } from "@/lib/gjoremaal";
+import { komIGang, lagGjoremaal } from "@/lib/gjoremaal";
 import { maanedstall } from "@/lib/maanedstall";
 import { useOversikt } from "@/lib/oversikt";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, Circle } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 export const Route = createFileRoute("/_authenticated/app/")({
@@ -37,6 +37,19 @@ function Oversikt() {
   const rad = oversikt.find((o) => o.company_id === company.id);
   const gjoremaal = rad ? lagGjoremaal(company, rad, idag()) : [];
   const graf = maanedstall(år, y);
+  const { data: antall } = useQuery({
+    queryKey: ["kom-i-gang", company.id],
+    queryFn: async () => {
+      const telle = (t: "bank_transactions" | "invoices") =>
+        supabase.from(t).select("id", { count: "exact", head: true }).eq("company_id", company.id);
+      const [b, f] = await Promise.all([telle("bank_transactions"), telle("invoices")]);
+      return { bank: b.count ?? 0, faktura: f.count ?? 0 };
+    },
+  });
+  const steg = antall
+    ? komIGang(company, { harBokfort: alt.length > 0, harBank: antall.bank > 0, harFaktura: antall.faktura > 0 })
+    : [];
+  const visKomIGang = steg.some((s) => !s.ferdig);
 
   const sum = (ls: typeof år, f: (k: number) => boolean) => ls.filter((l) => f(Number(l.konto))).reduce((s, l) => s + l.debet - l.kredit, 0);
   const inntekt = -sum(år, (k) => k >= 3000 && k < 4000);
@@ -73,6 +86,34 @@ function Oversikt() {
           </>
         )}
       />
+      {visKomIGang && (
+        <Panel className="mb-8 p-6">
+          <h2 className="text-xl">Kom i gang</h2>
+          <p className="mb-4 text-sm text-muted-foreground">
+            {steg.filter((s) => s.ferdig).length} av {steg.length} steg gjort
+          </p>
+          <ol className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            {steg.map((s) => (
+              <li key={s.id}>
+                <Link
+                  to={s.lenke}
+                  className={`flex h-full gap-3 rounded-md border p-4 transition hover:border-primary hover:bg-primary/5 ${s.ferdig ? "opacity-60" : ""}`}
+                >
+                  {s.ferdig ? (
+                    <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-success" />
+                  ) : (
+                    <Circle className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
+                  )}
+                  <span>
+                    <span className="block text-sm font-medium">{s.tittel}</span>
+                    <span className="block text-xs text-muted-foreground">{s.tekst}</span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ol>
+        </Panel>
+      )}
       <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-5">
         {kort.map((k) => (
           <Panel key={k.t} className="p-5">
