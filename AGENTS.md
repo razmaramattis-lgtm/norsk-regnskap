@@ -22,4 +22,5 @@
 - Nye konteringsmaler i `src/lib/bokforingsmaler.ts` må bruke kontoer som finnes i NS 4102-malen; testen leser migrasjonen og feiler ellers.
 - Nye migrasjoner legges i `drizzle/migrations/` med nytt løpenummer og oppføring i `meta/_journal.json`. Oppdater `src/integrations/supabase/types.ts` for nye tabeller og funksjoner.
 - Accounted (svensk, AGPL) er referanse, ikke kodekilde. Ikke kopier kode derfra.
-
+- Agenter bruker kun `agent_*`-funksjonene med en `agent_keys`-nøkkel (lagres som hash, aldri i klartekst). Nøkkelen kan lese kontoplan/nye banktransaksjoner og foreslå bilag, aldri bokføre. Se `docs/AI-AGENTER.md`.
+- Kjøp med omvendt avgiftsplikt lages med `byggOmvendtAvgift` (`src/lib/mva.ts`): avgift på 270x (utgående) og 271x (inngående) i samme bilag, samme MVA-kode på alle tre linjene.

@@ -70,6 +70,28 @@ export type Database = {
           },
         ]
       }
+      agent_keys: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          last_used_at: string | null
+          navn: string
+          prefix: string
+          revoked_at: string | null
+        }
+        Insert: never
+        Update: never
+        Relationships: [
+          {
+            foreignKeyName: "agent_keys_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_proposals: {
         Row: {
           agent_navn: string | null
@@ -1308,7 +1330,23 @@ export type Database = {
     }
     Functions: {
       accept_my_invites: { Args: never; Returns: number }
+      agent_foreslaa_bilag: {
+        Args: {
+          _agent_navn?: string
+          _bank_transaction_id?: string
+          _begrunnelse: string
+          _key: string
+          _payload: Json
+          _sikkerhet?: number
+          _tittel: string
+        }
+        Returns: string
+      }
+      agent_hent_banktransaksjoner: { Args: { _grense?: number; _key: string }; Returns: Json }
+      agent_hent_kontoplan: { Args: { _key: string }; Returns: Json }
       approve_proposal: { Args: { _id: string }; Returns: string }
+      create_agent_key: { Args: { _company: string; _navn: string }; Returns: string }
+      revoke_agent_key: { Args: { _id: string }; Returns: undefined }
       book_bank_transaction: {
         Args: {
           _invoice: string

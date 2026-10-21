@@ -62,7 +62,7 @@ Status: **Gjort** = fungerer og er testet. **Forberedt** = kode og struktur finn
 | BAS-momskonton 26xx | NS 4102 27xx, SAF-T-koder | Gjort |
 | Avräkning mot skattekonto | MVA-oppgjør mot oppgjørskonto 2740 | Gjort (oppgjørsbilag genereres) |
 | Terminer (mån/kvartal/år) | Tomånedlig eller årlig | Gjort |
-| Omvendt skattskyldighet (EU) | Omvendt avgiftsplikt, import | **Ikke gjort** (SAF-T-kodene 81, 86 m.fl. mangler) |
+| Omvendt skattskyldighet (EU) | Omvendt avgiftsplikt, import (SAF-T 14, 15, 81–89) | Gjort i beregning og bilagseditor; kodene må kontrolleres mot Skatteetatens kodeliste før første innsending |
 | Periodisk sammanställning, VIES | Må vurderes mot norske regler | Ikke gjort |
 | OSS/IOSS | VOEC-ordningen | Ikke gjort |
 
@@ -110,9 +110,9 @@ Status: **Gjort** = fungerer og er testet. **Forberedt** = kode og struktur finn
 
 | Accounted | Fjordbok | Status |
 | --- | --- | --- |
-| 150+ MCP-verktøy, scoped API-nøkler | Forslagslag: agent foreslår, menneske godkjenner | Gjort |
+| 150+ MCP-verktøy, scoped API-nøkler | Forslagslag og scopede agentnøkler (les kontoplan/bank, foreslå bilag): agent foreslår, menneske godkjenner | Gjort |
 | AI-kategorisering som utvidelse | Regelmotor for banktransaksjoner | Gjort |
-| MCP-server og Claude-plugin | Samme forslagsformat er klart, serveren er ikke bygget | Ikke gjort |
+| MCP-server og Claude-plugin | Funksjonene og nøklene er klare (`docs/AI-AGENTER.md`); selve MCP-serveren er ikke bygget | Delvis |
 | Kvitteringsgjenkjenning (OCR) | Krever leverandør | Ikke gjort |
 
 ## Hva Accounted gjør bedre (verdt å hente)

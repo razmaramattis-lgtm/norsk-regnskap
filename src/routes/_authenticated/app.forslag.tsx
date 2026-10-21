@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Bot, Check, X } from "lucide-react";
+import { Bot, Check, Copy, KeyRound, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "@/lib/company";
 import { dato, kr } from "@/lib/format";
@@ -275,6 +275,190 @@ function ForslagKort({ f }: { f: Rad }) {
 
 function AgentInfo() {
   return (
+    <div className="space-y-6">
+      <AgentNokler />
+      <AgentForklaring />
+    </div>
+  );
+}
+
+type Nokkel = {
+  id: string;
+  navn: string;
+  prefix: string;
+  created_at: string;
+  revoked_at: string | null;
+  last_used_at: string | null;
+};
+
+function AgentNokler() {
+  const { company, isAdmin } = useCompany();
+  const qc = useQueryClient();
+  const [navn, setNavn] = useState("");
+  const [ny, setNy] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const url = import.meta.env["VITE_SUPABASE_URL"] as string | undefined;
+  const { data: nokler = [] } = useQuery({
+    queryKey: ["agent-keys", company.id],
+    enabled: isAdmin,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("agent_keys")
+        .select("id, navn, prefix, created_at, revoked_at, last_used_at")
+        .eq("company_id", company.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as Nokkel[];
+    },
+  });
+
+  async function opprett() {
+    if (!navn.trim()) {
+      toast.error("Gi nøkkelen et navn, f.eks. hvilken agent som skal bruke den.");
+      return;
+    }
+    setBusy(true);
+    const { data, error } = await supabase.rpc("create_agent_key", {
+      _company: company.id,
+      _navn: navn.trim(),
+    });
+    setBusy(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setNy(data);
+    setNavn("");
+    qc.invalidateQueries({ queryKey: ["agent-keys"] });
+  }
+
+  async function kall(id: string) {
+    const { error } = await supabase.rpc("revoke_agent_key", { _id: id });
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Nøkkelen er tilbakekalt");
+    qc.invalidateQueries({ queryKey: ["agent-keys"] });
+  }
+
+  async function kopier(t: string) {
+    try {
+      await navigator.clipboard.writeText(t);
+      toast.success("Kopiert");
+    } catch {
+      toast.error("Kunne ikke kopiere. Marker teksten og kopier manuelt.");
+    }
+  }
+
+  if (!isAdmin) {
+    return (
+      <Panel className="p-6 text-sm text-muted-foreground">
+        Kun eier og administrator kan opprette agentnøkler.
+      </Panel>
+    );
+  }
+
+  return (
+    <Panel className="space-y-5 p-6 text-sm">
+      <div>
+        <h2 className="flex items-center gap-2 text-xl">
+          <KeyRound className="h-5 w-5 text-primary" /> Agentnøkler
+        </h2>
+        <p className="mt-2 text-muted-foreground">
+          En nøkkel gir én agent lov til å lese kontoplanen og nye banktransaksjoner i{" "}
+          <strong className="text-foreground">{company.name}</strong>, og til å foreslå bilag. Den
+          kan ikke bokføre, godkjenne, slette eller se noe annet. Du kan kalle den tilbake når som
+          helst.
+        </p>
+      </div>
+
+      {ny && (
+        <div className="rounded-md border border-primary/40 bg-accent/40 p-4">
+          <p className="font-medium">Kopier nøkkelen nå. Den vises ikke igjen.</p>
+          <div className="mt-2 flex items-center gap-2">
+            <code className="min-w-0 flex-1 break-all rounded bg-background px-2 py-1.5 text-xs">
+              {ny}
+            </code>
+            <Button variant="outline" size="sm" onClick={() => kopier(ny)}>
+              <Copy /> Kopier
+            </Button>
+          </div>
+          <Button variant="ghost" size="sm" className="mt-2" onClick={() => setNy(null)}>
+            Jeg har lagret den
+          </Button>
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="grid gap-1.5">
+          <label htmlFor="nokkelnavn" className="text-xs text-muted-foreground">
+            Navn på nøkkelen
+          </label>
+          <Input
+            id="nokkelnavn"
+            className="w-72"
+            value={navn}
+            onChange={(e) => setNavn(e.target.value)}
+            placeholder="F.eks. Claude – bankavstemming"
+            maxLength={80}
+          />
+        </div>
+        <Button onClick={opprett} disabled={busy}>
+          Opprett nøkkel
+        </Button>
+      </div>
+
+      {nokler.length > 0 && (
+        <ul className="divide-y rounded-md border">
+          {nokler.map((n) => (
+            <li key={n.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3">
+              <span className="font-medium">{n.navn}</span>
+              <code className="text-xs text-muted-foreground">{n.prefix}…</code>
+              <span className="text-xs text-muted-foreground">
+                Opprettet {dato(n.created_at)}
+                {n.last_used_at ? ` · sist brukt ${dato(n.last_used_at)}` : " · aldri brukt"}
+              </span>
+              <span className="ml-auto flex items-center gap-2">
+                {n.revoked_at ? (
+                  <StatusPill tone="muted">Tilbakekalt</StatusPill>
+                ) : (
+                  <>
+                    <StatusPill tone="ok">Aktiv</StatusPill>
+                    <Button variant="ghost" size="sm" onClick={() => kall(n.id)}>
+                      Kall tilbake
+                    </Button>
+                  </>
+                )}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div>
+        <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          Slik kaller agenten Fjordbok
+        </h3>
+        <p className="mb-2 text-muted-foreground">
+          Tre funksjoner over HTTPS. Send nøkkelen som parameter; «apikey» er den offentlige
+          nettstedsnøkkelen. Dokumentasjon med flere eksempler ligger i{" "}
+          <code>docs/AI-AGENTER.md</code>.
+        </p>
+        <pre className="overflow-x-auto rounded-md bg-ink p-4 text-xs leading-relaxed text-ink-foreground">{`POST ${url ?? "https://<prosjekt>.supabase.co"}/rest/v1/rpc/agent_hent_kontoplan
+POST ${url ?? "https://<prosjekt>.supabase.co"}/rest/v1/rpc/agent_hent_banktransaksjoner
+POST ${url ?? "https://<prosjekt>.supabase.co"}/rest/v1/rpc/agent_foreslaa_bilag
+apikey: <offentlig nøkkel>
+Content-Type: application/json
+
+{ "_key": "fbk_…", "_tittel": "…", "_begrunnelse": "…", "_payload": { … }, "_sikkerhet": 0.9 }`}</pre>
+      </div>
+    </Panel>
+  );
+}
+
+function AgentForklaring() {
+  return (
     <Panel className="space-y-5 p-6 text-sm">
       <div>
         <h2 className="text-xl">Slik jobber en AI-agent i Fjordbok</h2>
@@ -298,9 +482,9 @@ function AgentInfo() {
           som holder nøklene hemmelige.
         </li>
         <li>
-          <strong>MCP-tilgang (forberedt, ikke koblet).</strong> Eksterne agenter (Claude m.fl.) kan
-          senere få scoped nøkler som kun kan <em>opprette forslag og lese</em>, aldri godkjenne
-          eller bokføre.
+          <strong>Eksterne agenter (klart nå).</strong> Agenter som Claude kan få en nøkkel (se
+          over) som kun kan <em>lese kontoplan og nye banktransaksjoner og opprette forslag</em>,
+          aldri godkjenne eller bokføre. En ferdig MCP-server oppå dette er ikke bygget ennå.
         </li>
       </ol>
       <div>
