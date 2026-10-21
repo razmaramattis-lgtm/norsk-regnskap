@@ -71,6 +71,13 @@
       "when": 1792601428093,
       "tag": "0009_byraa_oversikt",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792601528093,
+      "tag": "0010_maanedsavslutning",
+      "breakpoints": true
     }
   ]
 }

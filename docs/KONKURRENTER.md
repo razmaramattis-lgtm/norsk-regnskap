@@ -61,7 +61,7 @@ og lansering mot årsskiftet.
 
 - **Globalt søk og snarveier** for folk som bruker systemet hele dagen. *Gjort nå:* ⌘K / Ctrl+K.
 - **Regnskapsbyrå-funksjoner:** klientliste, oppgaver per klient, tilgangsstyring. Fjordbok har klientoversikt og
-  månedsavslutning; avkrysningen bør lagres.
+  månedsavslutning med lagret avkrysning.
 - **Automatisk kontering som lærer** av tidligere bilag per leverandør. Fjordbok har regelmotor (`kontoforslag.ts`);
   neste steg er å lære av godkjente forslag.
 - **Prosjekt, avdeling, timer og reiseregning** som dimensjoner. Står i veikartet.
@@ -93,7 +93,7 @@ og lansering mot årsskiftet.
 3. **Faktura-PDF** og «send på e-post», med purring på forfalte fakturaer. *Gjort* via eget e-postprogram; automatisk utsendelse krever e-postleverandør.
 4. **Veiviser for nytt firma**: hent fra Enhetsregisteret, velg MVA-termin, importer første kontoutskrift. *Gjort.*
 5. **Fiken-lignende registrering**: «Hva har skjedd?» med kjøp/salg/overføring som førstevalg i «Registrer bilag». *Gjort.*
-6. **Lagre avkrysning i månedsavslutningen.**
+6. **Lagre avkrysning i månedsavslutningen.** *Gjort* (migrasjon 0010, med hvem og når).
 
 ### Krever leverandør eller avtale
 

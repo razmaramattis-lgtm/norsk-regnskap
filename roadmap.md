@@ -46,6 +46,8 @@
 - [x] Veiviser for nytt firma (Enhetsregisteret, MVA-termin, kontonummer) og «Kom i gang» på oversikten
 - [x] «Hva har skjedd?»-registrering (kjøp, salg, overføring, eier inn/ut) som førstevalg i nytt bilag (`src/lib/hendelser.ts`)
 
+- [x] Månedsavslutning lagrer avkrysning med hvem og når (migrasjon 0010)
+
 ## Neste faser
 - [ ] Velg og koble på leverandører: Peppol-aksesspunkt, Skatteetaten (MVA, skattemelding, a-melding), bank
 - [x] SAF-T-import: kontoplan, kunder, leverandører og åpningsbalanse som utkast (`/app/import`)

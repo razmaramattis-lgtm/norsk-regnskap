@@ -135,7 +135,7 @@ a-melding via Maskinporten), innsendingsvei for årsregnskap, bank-API og lønns
 | Accounted | Fjordbok | Status |
 | --- | --- | --- |
 | Byrå-cockpit: alle klienter i én tabell, mest hastende først | Klientoversikt (`byraa_oversikt()` + poeng i `src/lib/klienter.ts`) | Gjort |
-| Månedsavslutning mot sjekkliste | Månedsavslutning: automatiske punkter fra databasen og manuelle avkrysninger | Gjort (avkrysning lagres ikke) |
+| Månedsavslutning mot sjekkliste | Månedsavslutning: automatiske punkter fra databasen og manuelle avkrysninger | Gjort (avkrysning lagres med hvem og når) |
 | Hvitmerking (eget navn, logo, domene per byrå) | Ikke relevant før det finnes flere byråer på samme installasjon | Ikke gjort |
 | Claude-plugin med arbeidsflyter (bokfør, mva, avslutning) | MCP-server finnes; arbeidsflyt-skills er ikke skrevet | Ikke gjort |
 
