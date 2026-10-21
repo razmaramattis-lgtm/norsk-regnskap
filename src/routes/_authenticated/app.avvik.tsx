@@ -23,7 +23,7 @@ type AvvikRad = {
   alvor: "hoy" | "middels" | "lav";
 };
 
-const TONE = { hoy: "error", middels: "warn", lav: "muted" } as const;
+const TONE = { hoy: "bad", middels: "warn", lav: "muted" } as const;
 const ALVOR_LABEL = { hoy: "Høy", middels: "Middels", lav: "Lav" } as const;
 
 function Avvik() {
