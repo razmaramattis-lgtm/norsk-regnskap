@@ -14,6 +14,7 @@ import { lastOppDokument } from "@/components/app/Vedlegg";
 import { useTidligereBilag } from "@/components/app/hooks";
 import { useServerFn } from "@tanstack/react-start";
 import { lesBilag, type LestBilag } from "@/lib/les-bilag.functions";
+import { foreslaaKontoKi, type KiKontoforslag } from "@/lib/kontoforslag-ki.functions";
 import { Empty, PageHeader, Panel, selectCls, useAccounts } from "@/components/app/ui";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -189,6 +190,24 @@ function Registrering({ dokumentId, filnavn }: { dokumentId: string; filnavn: st
   }
   useEffect(() => { void lesDokument(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const [ki, setKi] = useState<KiKontoforslag | null>(null);
+  const [kiLaster, setKiLaster] = useState(false);
+  const foreslaa = useServerFn(foreslaaKontoKi);
+  async function hentKiForslag() {
+    setKiLaster(true);
+    try {
+      const r = await foreslaa({ data: { dokumentId } });
+      setKi(r);
+      setEgne(null);
+      setType(r.type);
+      setSats(r.mva_sats);
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setKiLaster(false);
+    }
+  }
+
   const linjer: HLinje[] = egne
     ? skalerLinjer(egne, b)
     : byggHendelse({
@@ -200,6 +219,7 @@ function Registrering({ dokumentId, filnavn }: { dokumentId: string; filnavn: st
         kjopstype: kjop,
         sats,
         betaltFra: fra,
+        ...(ki && ki.type === type ? { konto: ki.konto } : {}),
       }).map((l) => ({ ...l, mva_kode: l.mva_kode || null }));
   const funn = kontrollerBilag({
     dato: dato_,
