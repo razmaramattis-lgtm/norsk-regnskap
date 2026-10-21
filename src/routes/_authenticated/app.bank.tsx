@@ -2,11 +2,12 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { Upload } from "lucide-react";
+import { Sparkles, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "@/lib/company";
 import { dato, kr } from "@/lib/format";
 import { parseBankCsv, radHash } from "@/lib/bankimport";
+import { foreslaaForListe } from "@/lib/kontoforslag";
 import { PageHeader, Panel, Empty, useAccounts, usePostedLines, selectCls, theadCls } from "@/components/app/ui";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -50,11 +51,41 @@ function Bank() {
     qc.invalidateQueries({ queryKey: ["bank"] });
   }
 
+  async function foreslaa() {
+    const { forslag, utenTreff } = foreslaaForListe(
+      uavstemt.map((t) => ({ id: t.id, dato: t.dato, tekst: t.tekst, belop: Number(t.belop) })),
+      company.mva_registrert,
+    );
+    const { data: eksisterende, error: e1 } = await supabase.from("agent_proposals").select("bank_transaction_id").eq("company_id", company.id).eq("status", "ventende");
+    if (e1) { toast.error(e1.message); return; }
+    const harForslag = new Set((eksisterende ?? []).map((e) => e.bank_transaction_id));
+    const nye = forslag.filter((f) => f.txId && !harForslag.has(f.txId));
+    if (!nye.length) {
+      toast.info(forslag.length ? "Alle treff har allerede et forslag til godkjenning." : `Ingen regler traff (${utenTreff} transaksjoner må avstemmes manuelt).`);
+      return;
+    }
+    const { error } = await supabase.from("agent_proposals").insert(
+      nye.map((f) => ({
+        company_id: company.id,
+        kilde: "regel",
+        agent_navn: "Regelmotor",
+        tittel: f.tittel,
+        begrunnelse: f.begrunnelse,
+        sikkerhet: f.sikkerhet,
+        bank_transaction_id: f.txId!,
+        payload: f.payload,
+      })),
+    );
+    if (error) { toast.error(error.message); return; }
+    toast.success(`${nye.length} forslag er klare til godkjenning${utenTreff ? ` · ${utenTreff} uten treff` : ""}`);
+    qc.invalidateQueries({ queryKey: ["forslag"] });
+  }
+
   const liste = vis === "ny" ? uavstemt : txs;
   return (
     <>
       <PageHeader title="Bank og avstemming" sub="Importer kontoutskrift (CSV) fra nettbanken og avstem mot hovedboken."
-        actions={canWrite && (<><input ref={ref} type="file" accept=".csv,text/csv" className="hidden" onChange={importer} /><Button onClick={() => ref.current?.click()}><Upload /> Importer CSV</Button></>)} />
+        actions={canWrite && (<><input ref={ref} type="file" accept=".csv,text/csv" className="hidden" onChange={importer} /><Button variant="outline" disabled={!uavstemt.length} onClick={foreslaa}><Sparkles /> Foreslå konteringer</Button><Button onClick={() => ref.current?.click()}><Upload /> Importer CSV</Button></>)} />
       <div className="mb-6 grid gap-4 md:grid-cols-3">
         <Panel className="p-5"><div className="text-xs uppercase text-muted-foreground">Saldo 1920 i hovedbok</div><div className="num mt-2 text-left font-serif text-2xl">{kr(hovedbok1920)}</div></Panel>
         <Panel className="p-5"><div className="text-xs uppercase text-muted-foreground">Sum importerte transaksjoner</div><div className="num mt-2 text-left font-serif text-2xl">{kr(banksum)}</div></Panel>

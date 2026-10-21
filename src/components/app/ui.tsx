@@ -67,3 +67,33 @@ export function Th({ children, right }: { children?: ReactNode; right?: boolean 
 }
 
 export const theadCls = "border-b text-left text-xs uppercase tracking-wide text-muted-foreground";
+
+type Tone = "ok" | "warn" | "bad" | "info" | "muted";
+const TONE: Record<Tone, string> = {
+  ok: "bg-success/12 text-success ring-success/25",
+  warn: "bg-warning/15 text-[oklch(0.45_0.1_70)] ring-warning/30",
+  bad: "bg-destructive/10 text-destructive ring-destructive/25",
+  info: "bg-primary/10 text-primary ring-primary/20",
+  muted: "bg-muted text-muted-foreground ring-border",
+};
+
+/** Liten statusmerkelapp med rolig fargebruk. */
+export function StatusPill({ tone = "muted", children }: { tone?: Tone; children: ReactNode }) {
+  return (
+    <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${TONE[tone]}`}>
+      <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />
+      {children}
+    </span>
+  );
+}
+
+/** Tallkort for nøkkeltall. */
+export function Stat({ label, value, sub, tone }: { label: string; value: ReactNode; sub?: ReactNode; tone?: "bad" | "ok" }) {
+  return (
+    <Panel className="p-5">
+      <div className="text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="num mt-3 text-left font-serif text-2xl">{value}</div>
+      {sub && <div className={`mt-1 text-xs ${tone === "bad" ? "text-destructive" : tone === "ok" ? "text-success" : "text-muted-foreground"}`}>{sub}</div>}
+    </Panel>
+  );
+}

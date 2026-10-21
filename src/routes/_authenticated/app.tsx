@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
-import { Archive, BookOpen, Building2, CalendarCheck, FileInput, FileText, History, Landmark, LayoutDashboard, ListTree, LogOut, Package, Receipt, BarChart3, ScrollText, Truck, Users, Wallet, Scale } from "lucide-react";
+import { Archive, BookOpen, Bot, Building2, CalendarCheck, CalendarClock, FileInput, FileText, FileSpreadsheet, History, Landmark, LayoutDashboard, ListTree, LogOut, Package, Plug, Receipt, BarChart3, ScrollText, Truck, Users, Wallet, Scale } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CompanyProvider, useCompany, useMemberships, ROLLENAVN } from "@/lib/company";
 import { NyttFirma } from "@/components/app/NyttFirma";
@@ -49,9 +49,12 @@ const grupper = [
     { to: "/app/bank", label: "Bank", icon: Landmark },
     { to: "/app/lonn", label: "Lønn", icon: Wallet },
     { to: "/app/arkiv", label: "Bilagsarkiv", icon: Archive },
+    { to: "/app/forslag", label: "Forslag fra AI", icon: Bot },
   ] },
   { tittel: "Rapporter", lenker: [
     { to: "/app/mva", label: "MVA-melding", icon: Receipt },
+    { to: "/app/aarsregnskap", label: "Årsregnskap", icon: FileSpreadsheet },
+    { to: "/app/frister", label: "Frister", icon: CalendarClock },
     { to: "/app/rapporter", label: "Resultat og balanse", icon: BarChart3 },
     { to: "/app/hovedbok", label: "Hovedbok", icon: ScrollText },
     { to: "/app/reskontro", label: "Reskontro", icon: Scale },
@@ -59,6 +62,7 @@ const grupper = [
   { tittel: "Innstillinger", lenker: [
     { to: "/app/aarsavslutning", label: "Perioder og årsoppgjør", icon: CalendarCheck },
     { to: "/app/kontoplan", label: "Kontoplan", icon: ListTree },
+    { to: "/app/integrasjoner", label: "Integrasjoner", icon: Plug },
     { to: "/app/logg", label: "Revisjonslogg", icon: History },
     { to: "/app/firma", label: "Firma og brukere", icon: Building2 },
   ] },

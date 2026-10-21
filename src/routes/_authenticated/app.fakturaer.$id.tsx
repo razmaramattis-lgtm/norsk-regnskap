@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useCustomers, NyKunde, STATUS } from "@/components/app/kunder";
 import { useArticles } from "@/components/app/hooks";
+import { EhfPanel } from "@/components/app/EhfPanel";
 
 export const Route = createFileRoute("/_authenticated/app/fakturaer/$id")({
   head: () => ({ meta: [{ title: "Faktura – Fjordbok" }] }),
@@ -112,6 +113,7 @@ function FakturaSide() {
             <Button disabled={busy} onClick={() => run(async () => { const { error } = await supabase.rpc("register_invoice_payment", { _invoice: id, _dato: betDato }); if (error) throw error; }, "Innbetaling bokført (1920 / 1500)")}>Registrer innbetaling</Button>
           </Panel>
         )}
+        <EhfPanel faktura={f} company={company} />
         <Panel className="mx-auto max-w-3xl p-12">
           <div className="flex justify-between">
             <div>

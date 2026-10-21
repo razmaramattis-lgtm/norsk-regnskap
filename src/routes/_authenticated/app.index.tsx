@@ -2,9 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "@/lib/company";
-import { idag, kr } from "@/lib/format";
+import { dato, idag, kr } from "@/lib/format";
+import { dagerTil, kommendeFrister } from "@/lib/frister";
+import { useHarAnsatte } from "@/lib/integrasjoner/hooks";
 import { beregnMvaMelding, terminer } from "@/lib/mva";
-import { PageHeader, Panel, usePostedLines } from "@/components/app/ui";
+import { PageHeader, Panel, StatusPill, usePostedLines } from "@/components/app/ui";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/app/")({
@@ -20,6 +22,7 @@ function Oversikt() {
   const t = terminer(y, company.mva_termin);
   const termin = t[company.mva_termin === "aarlig" ? 0 : Math.floor(new Date().getMonth() / 2)] ?? t[0]!;
   const { data: tl = [] } = usePostedLines(termin.fra, termin.til);
+  const { data: harAnsatte = false } = useHarAnsatte();
   const { data: åpne = [] } = useQuery({
     queryKey: ["open-invoices", company.id],
     queryFn: async () => (await supabase.from("invoices").select("total, forfallsdato").eq("company_id", company.id).eq("status", "sendt")).data ?? [],
@@ -32,6 +35,13 @@ function Oversikt() {
   const mva = beregnMvaMelding(tl).aBetale;
   const utestående = åpne.reduce((s, f) => s + Number(f.total), 0);
   const forfalt = åpne.filter((f) => f.forfallsdato < idag()).length;
+
+  const kommende = kommendeFrister(idag(), {
+    selskapstype: company.company_type === "as" ? "as" : "enk",
+    mvaRegistrert: company.mva_registrert,
+    mvaTermin: company.mva_termin,
+    harAnsatte,
+  }, 6);
 
   const kort = [
     { t: `Driftsinntekter ${y}`, v: kr(inntekt) },
@@ -63,15 +73,21 @@ function Oversikt() {
         ))}
       </div>
       <Panel className="mt-8 p-6">
-        <h2 className="mb-3 text-xl">Frister</h2>
-        <ul className="space-y-2 text-sm text-muted-foreground">
-          {company.mva_registrert && <li>MVA-melding for {termin.navn}: 10. i andre måned etter terminslutt (unntak 10. april for 6. termin og 31. august for 3. termin).</li>}
-          <li>A-melding: 5. hver måned (hvis lønn er utbetalt).</li>
-          {company.company_type === "as" ? (
-            <li>Skattemelding for AS: 31. mai. Årsregnskap til Regnskapsregisteret: 31. juli.</li>
-          ) : (
-            <li>Skattemelding med næringsspesifikasjon for ENK: 31. mai.</li>
-          )}
+        <div className="mb-3 flex items-baseline justify-between">
+          <h2 className="text-xl">Kommende frister</h2>
+          <Link to="/app/frister" className="text-sm text-primary hover:underline">Alle frister</Link>
+        </div>
+        <ul className="divide-y text-sm">
+          {kommende.map((f) => {
+            const d = dagerTil(idag(), f.dato);
+            return (
+              <li key={f.id} className="flex flex-wrap items-center gap-x-5 gap-y-1 py-2.5">
+                <span className="num w-24 shrink-0 text-left font-medium">{dato(f.dato)}</span>
+                <span className="min-w-0 flex-1">{f.tittel}</span>
+                <StatusPill tone={d <= 7 ? "bad" : d <= 30 ? "warn" : "info"}>{d === 0 ? "I dag" : d === 1 ? "I morgen" : `Om ${d} dager`}</StatusPill>
+              </li>
+            );
+          })}
         </ul>
       </Panel>
     </>

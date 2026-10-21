@@ -18,18 +18,32 @@
 - [x] Lønn: ansatte, lønnskjøring, forskuddstrekk, feriepenger, OTP, AGA per sone
 - [x] Kreditnota, varer/tjenester, hovedbok per konto, aldersfordelt reskontro
 
+## Ferdig (fase 3: forberedt for leverandører)
+- [x] Fristmotor med norske helligdager: MVA-terminer, a-melding, trekk/AGA, skattemelding, årsregnskap (`src/lib/frister.ts`)
+- [x] Integrasjonsside med krav, kilder og leverandørvalg per tjeneste; databasevakt mot hemmeligheter i konfigurasjon
+- [x] Leverandøruavhengige adaptere (Peppol, MVA, a-melding, årsregnskap, skattemelding) som feiler tydelig til en leverandør er valgt
+- [x] EHF/Peppol BIS Billing 3.0-generator med validering og nedlasting fra faktura
+- [x] Betalingsfil (pain.001) for leverandørbetalinger
+- [x] Innsendingskø (`innsendinger`) som ikke kan endres etter sending
+- [x] MVA-oppgjør: oppgjørsbilag mot 2740, og klargjøring av MVA-melding
+- [x] Årsregnskap: oppstilling, sjekkliste før godkjenning og skattegrunnlag
+- [x] Forslagslag for AI og regler (agent foreslår, menneske godkjenner), regelmotor for banktransaksjoner
+- [x] Konteringsmaler (utbytte, privatuttak, skatt, MVA, bank m.fl.)
+- [x] Oppslag i Enhetsregisteret på kunder og leverandører (uverifisert mot live-API)
+
 ## Neste faser
+- [ ] Velg og koble på leverandører: Peppol-aksesspunkt, Skatteetaten (MVA, skattemelding, a-melding), bank
+- [ ] SAF-T-import (flytte kunder fra andre systemer)
+- [ ] Omvendt avgiftsplikt og import (SAF-T MVA-kodene 81, 86 m.fl.)
+- [ ] MCP-server med scoped nøkler som kun kan opprette forslag
 - [ ] Anleggsmidler og avskrivninger (saldogrupper)
 - [ ] Periodiseringer, tilbud, ordre, repeterende fakturaer
 - [ ] Prosjekter/avdelinger (dimensjoner), kontoregler for automatisk kontering
 - [ ] Kjørebok og reiseregning
-- [ ] Remittering (pain.001 betalingsfil) for leverandørbetalinger
 - [ ] Skattekonto-avstemming
 - [ ] To-faktor-innlogging, API-nøkler
 - [ ] A-melding (Altinn) – krever Maskinporten-avtale
 - [ ] MVA-melding innsending via Skatteetatens API – krever Maskinporten-avtale
 - [ ] Skattemelding: næringsspesifikasjon (ENK/AS), RF-1167
-- [ ] EHF/Peppol e-faktura – krever aksesspunkt-leverandør
 - [ ] Faktura-PDF og utsendelse på e-post
-- [ ] AI-assistent / agent-tilgang (MCP) for kontering og avstemming
 - [ ] Bransjeveiledere (bygg, netthandel, konsulent, restaurant, helse) tilpasset norske regler

@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "@/lib/company";
 import { kr, idag } from "@/lib/format";
 import { MVA_KODER, INNGAENDE_KONTO, splittBrutto } from "@/lib/mva";
+import { KATEGORI_NAVN, bruk, malerFor } from "@/lib/bokforingsmaler";
 import { useAccounts, Panel } from "./ui";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,6 +39,21 @@ export function BilagEditor({
   const [kostKonto, setKostKonto] = useState("6800");
   const [sats, setSats] = useState(25);
   const [betaltFra, setBetaltFra] = useState("1920");
+
+  // Konteringsmal
+  const [malId, setMalId] = useState("");
+  const [malBelop, setMalBelop] = useState("");
+  const maler = malerFor(company.company_type === "as" ? "as" : "enk");
+  const valgtMal = maler.find((m) => m.id === malId);
+
+  function lagFraMal() {
+    if (!valgtMal) { toast.error("Velg en mal"); return; }
+    const b = Number(malBelop.replace(",", "."));
+    if (!b) { toast.error("Skriv inn beløp"); return; }
+    setLinjer(bruk(valgtMal, b).map((p) => ({ konto: p.konto, tekst: p.tekst, debet: p.debet ? String(p.debet) : "", kredit: p.kredit ? String(p.kredit) : "", mva_kode: "" })));
+    if (!beskr.trim()) setBeskr(valgtMal.navn);
+    toast.success("Posteringer laget – kontroller og bokfør.");
+  }
 
   const sumD = linjer.reduce((s, l) => s + Number(l.debet || 0), 0);
   const sumK = linjer.reduce((s, l) => s + Number(l.kredit || 0), 0);
@@ -122,6 +138,7 @@ export function BilagEditor({
       <Tabs defaultValue={initial ? "manuell" : "utgift"}>
         <TabsList>
           <TabsTrigger value="utgift">Kjøp / utgift</TabsTrigger>
+          <TabsTrigger value="mal">Fra mal</TabsTrigger>
           <TabsTrigger value="manuell">Posteringer</TabsTrigger>
         </TabsList>
         <TabsContent value="utgift">
@@ -148,6 +165,26 @@ export function BilagEditor({
               <KontoInput value={betaltFra} onChange={setBetaltFra} kontoer={kontoer} />
             </div>
             <Button type="button" variant="secondary" onClick={lagFraUtgift}>Lag posteringer</Button>
+          </Panel>
+        </TabsContent>
+        <TabsContent value="mal">
+          <Panel className="grid items-end gap-4 p-6 md:grid-cols-[1fr_180px_auto]">
+            <div className="space-y-1.5">
+              <Label>Mal</Label>
+              <select className="h-9 w-full rounded-md border border-input bg-card px-2 text-sm" value={malId} onChange={(e) => setMalId(e.target.value)}>
+                <option value="">Velg mal …</option>
+                {(Object.keys(KATEGORI_NAVN) as (keyof typeof KATEGORI_NAVN)[]).map((k) => {
+                  const ms = maler.filter((m) => m.kategori === k);
+                  return ms.length ? <optgroup key={k} label={KATEGORI_NAVN[k]}>{ms.map((m) => <option key={m.id} value={m.id}>{m.navn}</option>)}</optgroup> : null;
+                })}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Beløp</Label>
+              <Input className="num" value={malBelop} onChange={(e) => setMalBelop(e.target.value)} placeholder="0,00" />
+            </div>
+            <Button type="button" variant="secondary" onClick={lagFraMal}>Lag posteringer</Button>
+            {valgtMal && <p className="text-sm text-muted-foreground md:col-span-3">{valgtMal.beskrivelse}</p>}
           </Panel>
         </TabsContent>
         <TabsContent value="manuell" />

@@ -15,3 +15,11 @@
 - Active company is chosen client-side via `CompanyProvider` (`src/lib/company.tsx`); pages read it with `useCompany()`.
 - MVA logic (codes, rates, melding calculation) is pure TS in `src/lib/mva.ts` with tests in `src/lib/mva.test.ts`; MVA box assignment uses the line's SAF-T `mva_kode`, with 27xx accounts holding the tax amount.
 - UI copy is Norwegian bokmål; feature roadmap is in `roadmap.md`.
+- Integrasjoner (Peppol, MVA-innsending, a-melding, årsregnskap, skattemelding, bank) går alltid gjennom adaptere i `src/lib/integrasjoner/adapter.ts`. Ingen leverandør er valgt; stubbene kaster `LeverandorMangler`. Ekte adaptere trenger hemmeligheter og skal kjøres på serveren, aldri i nettleseren. Hemmeligheter lagres aldri i `integrations.konfig` (databasen avviser det).
+- Det som er sendt (`innsendinger.status` er sendt/mottatt/avvist) kan ikke endres eller slettes; trigger i Postgres håndhever det.
+- AI og regler lager `agent_proposals`, aldri bilag direkte. Bokføring skjer kun via `approve_proposal`, som kaller `post_voucher`.
+- Frister beregnes i `src/lib/frister.ts` (norske helligdager, flytting til virkedag). Ikke hardkod frister i sidene.
+- Nye konteringsmaler i `src/lib/bokforingsmaler.ts` må bruke kontoer som finnes i NS 4102-malen; testen leser migrasjonen og feiler ellers.
+- Nye migrasjoner legges i `drizzle/migrations/` med nytt løpenummer og oppføring i `meta/_journal.json`. Oppdater `src/integrations/supabase/types.ts` for nye tabeller og funksjoner.
+- Accounted (svensk, AGPL) er referanse, ikke kodekilde. Ikke kopier kode derfra.
+
