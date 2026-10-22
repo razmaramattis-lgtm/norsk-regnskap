@@ -11,7 +11,8 @@ export function useSignertUrl(path: string | null | undefined) {
     enabled: !!path,
     staleTime: 8 * 60 * 1000,
     queryFn: async () => {
-      const { data, error } = await supabase.storage.from("bilag").createSignedUrl(path!, 600);
+      if (!path) throw new Error("Fil mangler");
+      const { data, error } = await supabase.storage.from("bilag").createSignedUrl(path, 600);
       if (error) throw error;
       return data.signedUrl;
     },
@@ -46,7 +47,7 @@ export function DokumentViser({
           </Button>
         )}
       </div>
-      <div className="relative min-h-[420px] flex-1">
+      <div className="relative min-h-0 flex-1">
         {isLoading ? (
           <div className="absolute inset-0 animate-pulse bg-muted" />
         ) : error || !url ? (

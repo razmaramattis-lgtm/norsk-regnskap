@@ -73,6 +73,7 @@
 - [x] Kopier bilag; søk og filter (status, måned, beløp) i bilagslisten
 
 ## Oversikt, mottak og hukommelse (fase 6)
+- [x] Bokføringsmodus med dominerende PDF til høyre, skjult meny/filliste og stabil filbytting med retur til mottaket
 - [x] Fakturanummer kan aldri brukes to ganger: unik indeks, tellere kan ikke settes tilbake eller hoppe over etter første faktura/bilag; startnummer kan velges før første faktura (migrasjon 0013)
 - [x] Samme leverandørfaktura og samme fil kan ikke registreres to ganger
 - [x] Klikk deg ned fra resultat, balanse, saldobalanse og hovedbok til posteringer, bilag og vedlegg

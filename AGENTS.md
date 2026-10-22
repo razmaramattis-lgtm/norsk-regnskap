@@ -10,6 +10,7 @@
 <!-- LOVABLE:END -->
 
 ## Architecture rules
+- Voucher inbox focus mode is shared with the app shell through a dedicated React context; this lets the shell hide navigation without affecting other pages.
 - Bookkeeping integrity (balance check, sequential voucher numbers, immutability of posted vouchers, invoice posting) lives in Postgres functions/triggers (`post_voucher`, `send_invoice`, `register_invoice_payment`, `reverse_voucher`), never in client code — the law requires it be enforced regardless of caller.
 - Multi-tenancy: every business table has `company_id`; RLS uses `is_member` / `can_write` / `is_admin` security-definer helpers on `company_members`.
 - Active company is chosen client-side via `CompanyProvider` (`src/lib/company.tsx`); pages read it with `useCompany()`.
