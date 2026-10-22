@@ -82,7 +82,7 @@ function Mottak() {
         await lastOppDokument(company.id, f);
         ok++;
       } catch (e) {
-        toast.error((e as Error).message);
+        toast.error((e as Error).message, { position: "bottom-right" });
       }
       setLaster((n) => n - 1);
     }
@@ -220,7 +220,7 @@ function Registrering({ dokumentId, filnavn, aktiv }: { dokumentId: string; filn
       if (r.type) setType(r.type);
       if (r.mva_sats != null && [0, 12, 15, 25].includes(r.mva_sats)) setSats(r.mva_sats);
     } catch (e) {
-      toast.error((e as Error).message);
+      toast.error((e as Error).message, { position: "bottom-right" });
     } finally {
       setLeser(false);
     }
@@ -239,7 +239,7 @@ function Registrering({ dokumentId, filnavn, aktiv }: { dokumentId: string; filn
       setType(r.type);
       setSats(r.mva_sats);
     } catch (e) {
-      toast.error((e as Error).message);
+      toast.error((e as Error).message, { position: "bottom-right" });
     } finally {
       setKiLaster(false);
     }
@@ -289,7 +289,7 @@ function Registrering({ dokumentId, filnavn, aktiv }: { dokumentId: string; filn
       } else toast.success("Lagret som utkast");
       qc.invalidateQueries();
     } catch (e) {
-      toast.error((e as Error).message);
+      toast.error((e as Error).message, { position: "bottom-right" });
     } finally {
       setBusy(false);
     }
