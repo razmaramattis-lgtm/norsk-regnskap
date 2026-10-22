@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Camera, CheckCircle2, FileText, Inbox, Sparkles, Upload } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Camera, CheckCircle2, FileText, Inbox, Sparkles, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "@/lib/company";
 import { dato, idag, kr } from "@/lib/format";
@@ -18,10 +18,18 @@ import { foreslaaKontoKi, type KiKontoforslag } from "@/lib/kontoforslag-ki.func
 import { Empty, PageHeader, Panel, selectCls, useAccounts } from "@/components/app/ui";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useBokforingsmodus } from "@/components/app/Bokforingsmodus";
 import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/_authenticated/app/mottak")({
-  head: () => ({ meta: [{ title: "Bilagsmottak – Fjordbok" }] }),
+  head: () => ({ meta: [
+    { title: "Bilagsmottak – Fjordbok" },
+    { name: "description", content: "Behandle og bokfør kvitteringer og fakturaer i Fjordbok." },
+    { property: "og:title", content: "Bilagsmottak – Fjordbok" },
+    { property: "og:description", content: "Behandle og bokfør kvitteringer og fakturaer i Fjordbok." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: Mottak,
 });
 
@@ -47,14 +55,22 @@ function Mottak() {
   const qc = useQueryClient();
   const { data: docs = [], isLoading } = useMottak();
   const [valgt, setValgt] = useState<string | null>(null);
+  const [besokt, setBesokt] = useState<string[]>([]);
+  const setBokforingsmodus = useBokforingsmodus();
   const [drar, setDrar] = useState(false);
   const [laster, setLaster] = useState(0);
   const filRef = useRef<HTMLInputElement>(null);
   const kameraRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!docs.find((d) => d.id === valgt)) setValgt(docs[0]?.id ?? null);
+    if (valgt && !docs.find((d) => d.id === valgt)) setValgt(docs[0]?.id ?? null);
   }, [docs, valgt]);
+
+  useEffect(() => {
+    setBokforingsmodus(!!valgt);
+    if (valgt) setBesokt((ids) => ids.includes(valgt) ? ids : [...ids, valgt]);
+    return () => setBokforingsmodus(false);
+  }, [valgt, setBokforingsmodus]);
 
   async function lastOpp(filer: File[]) {
     const gyldige = filer.filter((f) => f.type === "application/pdf" || f.type.startsWith("image/"));
@@ -75,10 +91,11 @@ function Mottak() {
   }
 
   const d = docs.find((x) => x.id === valgt);
+  const indeks = docs.findIndex((x) => x.id === valgt);
 
   return (
     <>
-      <PageHeader
+      {!d && <PageHeader
         title="Bilagsmottak"
         sub="Slipp kvitteringer og fakturaer her. Før dem én og én med dokumentet ved siden av – vi husker hvordan du førte sist."
         actions={
@@ -91,7 +108,21 @@ function Mottak() {
             </>
           )
         }
-      />
+      />}
+      {d && (
+        <div className="mb-3 flex min-w-0 flex-wrap items-center gap-2 border-b pb-3">
+          <Button variant="outline" onClick={() => setValgt(null)}><ArrowLeft /> Bilagsmottak</Button>
+          <span className="hidden font-serif text-lg sm:block">Bokføring</span>
+          <div className="ml-auto flex min-w-0 items-center gap-2">
+            <Button variant="outline" size="icon" aria-label="Forrige fil" disabled={indeks <= 0} onClick={() => setValgt(docs[indeks - 1]?.id ?? null)}><ChevronLeft /></Button>
+            <select aria-label="Velg fil" className={`${selectCls} w-32 min-w-0 sm:w-64`} value={valgt ?? ""} onChange={(e) => setValgt(e.target.value)}>
+              {docs.map((x) => <option key={x.id} value={x.id}>{x.filnavn}</option>)}
+            </select>
+            <span className="shrink-0 text-xs text-muted-foreground">{indeks + 1} / {docs.length}</span>
+            <Button variant="outline" size="icon" aria-label="Neste fil" disabled={indeks >= docs.length - 1} onClick={() => setValgt(docs[indeks + 1]?.id ?? null)}><ChevronRight /></Button>
+          </div>
+        </div>
+      )}
       <div
         onDragOver={(e) => { e.preventDefault(); setDrar(true); }}
         onDragLeave={() => setDrar(false)}
@@ -115,34 +146,40 @@ function Mottak() {
             {laster > 0 && <p className="text-sm text-primary">Laster opp {laster} …</p>}
           </Panel>
         ) : (
-          <div className="grid gap-4 lg:grid-cols-[220px_minmax(0,1fr)_minmax(340px,420px)]">
-            <Panel className="h-fit p-2">
+          <div className={d ? "grid min-w-0 gap-3 md:h-[calc(100dvh-88px)] md:grid-cols-[minmax(300px,0.7fr)_minmax(0,1.3fr)]" : "grid gap-4"}>
+            {!d && <Panel className="h-fit p-2">
               <div className="flex items-center gap-2 px-2 pb-2 pt-1 text-xs uppercase tracking-wide text-muted-foreground">
                 <Inbox className="h-3.5 w-3.5" /> {docs.length} til behandling
               </div>
               <ul className="space-y-1">
                 {docs.map((x) => (
                   <li key={x.id}>
-                    <button
+                    <Button variant="ghost"
                       onClick={() => setValgt(x.id)}
-                      className={`flex w-full items-start gap-2 rounded-md px-2 py-2 text-left text-sm transition ${x.id === valgt ? "bg-primary/10 text-primary" : "hover:bg-muted"}`}
+                      className="flex h-auto w-full items-start justify-start gap-2 rounded-md px-2 py-3 text-left text-sm"
                     >
                       <FileText className="mt-0.5 h-4 w-4 shrink-0" />
                       <span className="min-w-0">
                         <span className="block truncate">{x.filnavn}</span>
                         <span className="block text-xs text-muted-foreground">{dato(x.created_at)}</span>
                       </span>
-                    </button>
+                    </Button>
                   </li>
                 ))}
               </ul>
               {laster > 0 && <p className="px-2 pt-2 text-xs text-primary">Laster opp {laster} …</p>}
-            </Panel>
-            {d && <DokumentViser key={d.id} path={d.path} mime={d.mime} filnavn={d.filnavn} className="h-[45vh] lg:sticky lg:top-6 lg:h-[75vh]" />}
-            {d && canWrite && <Registrering key={d.id} dokumentId={d.id} filnavn={d.filnavn} />}
-            {d && !canWrite && (
-              <Panel className="h-fit p-5 text-sm text-muted-foreground">Du har lesetilgang i dette firmaet og kan ikke bokføre. Be en eier eller administrator om tilgang som regnskapsfører.</Panel>
-            )}
+            </Panel>}
+            <div className={d ? "min-h-0 min-w-0 md:overflow-y-auto" : "hidden"}>
+              {canWrite && docs.filter((x) => besokt.includes(x.id)).map((x) => (
+                <div key={x.id} hidden={x.id !== valgt}>
+                  <Registrering dokumentId={x.id} filnavn={x.filnavn} aktiv={x.id === valgt} />
+                </div>
+              ))}
+              {d && !canWrite && (
+                <Panel className="h-fit p-5 text-sm text-muted-foreground">Du har lesetilgang i dette firmaet og kan ikke bokføre. Be en eier eller administrator om tilgang som regnskapsfører.</Panel>
+              )}
+            </div>
+            {d && <DokumentViser key={d.id} path={d.path} mime={d.mime} filnavn={d.filnavn} className="h-[70dvh] min-w-0 md:h-full" />}
           </div>
         )}
       </div>
@@ -151,7 +188,7 @@ function Mottak() {
 }
 
 /** Rask føring av ett dokument: hva, beløp, dato – resten foreslås. */
-function Registrering({ dokumentId, filnavn }: { dokumentId: string; filnavn: string }) {
+function Registrering({ dokumentId, filnavn, aktiv }: { dokumentId: string; filnavn: string; aktiv: boolean }) {
   const { company } = useCompany();
   const qc = useQueryClient();
   const { data: kontoer = [] } = useAccounts();
@@ -259,6 +296,7 @@ function Registrering({ dokumentId, filnavn }: { dokumentId: string; filnavn: st
   }
 
   useEffect(() => {
+    if (!aktiv) return;
     const tast = (e: KeyboardEvent) => {
       if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); void lagre(true); }
     };
@@ -305,7 +343,7 @@ function Registrering({ dokumentId, filnavn }: { dokumentId: string; filnavn: st
       <div className="grid grid-cols-2 gap-3">
         <div className="col-span-2 space-y-1.5">
           <Label>Hva er dette?</Label>
-          <Input autoFocus value={tekst} onChange={(e) => { setTekst(e.target.value); setEgne(null); }} placeholder="F.eks. Telenor mobil oktober" />
+          <Input aria-label="Hva er dette?" value={tekst} onChange={(e) => { setTekst(e.target.value); setEgne(null); }} placeholder="F.eks. Telenor mobil oktober" />
           {forslag.length > 0 && (
             <div className="flex flex-wrap gap-1.5 pt-1">
               {forslag.map((f) => (
@@ -320,7 +358,7 @@ function Registrering({ dokumentId, filnavn }: { dokumentId: string; filnavn: st
             </div>
           )}
         </div>
-        <div className="space-y-1.5"><Label>Beløp inkl. mva</Label><Input className="num text-lg" inputMode="decimal" value={belop} onChange={(e) => setBelop(e.target.value)} placeholder="0,00" /></div>
+        <div className="space-y-1.5"><Label>Beløp inkl. mva</Label><Input aria-label="Beløp inkl. mva" className="num text-lg" inputMode="decimal" value={belop} onChange={(e) => setBelop(e.target.value)} placeholder="0,00" /></div>
         <div className="space-y-1.5"><Label>Dato</Label><Input type="date" value={dato_} onChange={(e) => setDato(e.target.value)} /></div>
         {!egne && (
           <>
