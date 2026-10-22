@@ -36,7 +36,8 @@ export function PdfSider({ url }: { url: string }) {
           if (!context) throw new Error("Canvas er ikke tilgjengelig");
           await side.render({ canvas: c, canvasContext: context, viewport: vp }).promise;
         }
-      } catch {
+      } catch (error) {
+        if (!avbrutt && error instanceof Error) console.error("PDF-visning:", error.name, error.message.split("http")[0]);
         if (!avbrutt) setFeil(true);
       }
     })();
