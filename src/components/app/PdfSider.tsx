@@ -7,15 +7,19 @@ export function PdfSider({ url }: { url: string }) {
   useEffect(() => {
     let avbrutt = false;
     const el = ref.current;
+    let stopp: (() => void) | undefined;
+    setFeil(false);
     (async () => {
       try {
         const pdfjs = await import("pdfjs-dist");
         const worker = await import("pdfjs-dist/build/pdf.worker.min.mjs?url");
         pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
-        const doc = await pdfjs.getDocument({ url }).promise;
+        const lasting = pdfjs.getDocument({ url });
+        stopp = () => { void lasting.destroy(); };
+        const doc = await lasting.promise;
         if (!el || avbrutt) return;
         el.innerHTML = "";
-        const bredde = el.clientWidth - 24 || 600;
+        const bredde = Math.max(el.clientWidth - 24, 1);
         for (let n = 1; n <= Math.min(doc.numPages, 20); n++) {
           const side = await doc.getPage(n);
           if (avbrutt) return;
@@ -26,15 +30,17 @@ export function PdfSider({ url }: { url: string }) {
           c.width = vp.width;
           c.height = vp.height;
           c.style.width = `${bredde}px`;
-          c.className = "mx-auto mb-3 rounded bg-white shadow-paper";
+          c.className = "mx-auto mb-3 rounded bg-card shadow-paper";
           el.appendChild(c);
-          await side.render({ canvas: c, canvasContext: c.getContext("2d")!, viewport: vp }).promise;
+          const context = c.getContext("2d");
+          if (!context) throw new Error("Canvas er ikke tilgjengelig");
+          await side.render({ canvas: c, canvasContext: context, viewport: vp }).promise;
         }
       } catch {
         if (!avbrutt) setFeil(true);
       }
     })();
-    return () => { avbrutt = true; };
+    return () => { avbrutt = true; stopp?.(); el?.replaceChildren(); };
   }, [url]);
   if (feil) return <div className="p-6 text-sm text-destructive">Kunne ikke vise PDF-en. Bruk «Åpne».</div>;
   return <div ref={ref} className="absolute inset-0 overflow-auto p-3" />;
